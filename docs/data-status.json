@@ -1,0 +1,250 @@
+{
+  "datasets": [
+    {
+      "id": "sentinel",
+      "name": "Sentinel-1 and Sentinel-2",
+      "role": "prediction inputs",
+      "url": "https://dataspace.copernicus.eu/",
+      "license": "Copernicus free, full and open data policy"
+    },
+    {
+      "id": "osm",
+      "name": "Pre-event OpenStreetMap",
+      "role": "infrastructure and road network",
+      "url": "https://api.ohsome.org/v1",
+      "license": "ODbL"
+    },
+    {
+      "id": "copernicus_dem",
+      "name": "Copernicus DEM GLO-30",
+      "role": "terrain correction and downhill trace",
+      "url": "https://dataspace.copernicus.eu/",
+      "license": "Copernicus DEM license and WorldDEM attribution"
+    },
+    {
+      "id": "kuro_siwo",
+      "name": "Kuro Siwo",
+      "role": "water-model training and held-out evaluation",
+      "url": "https://github.com/Orion-AI-Lab/KuroSiwo",
+      "license": "Data CC BY 4.0 per authors' dataset card; repository code MIT",
+      "citation": "Bountos et al. (2024). Kuro Siwo: 33 billion m^2 under the water. NeurIPS 37, 38105-38121.",
+      "downloaded_samples": 72,
+      "splits": {
+        "train": 48,
+        "valid": 0,
+        "test": 24
+      },
+      "selection": "Initial prefixes of four publisher train shards and two publisher test shards; not the full dataset",
+      "actual_host": "https://huggingface.co/datasets/orion-ai-lab/Kuro-Siwo-Webdataset",
+      "manifest": "data/datasets/training/kuro_siwo/manifest.json",
+      "manifest_sha256": "250dcb75c6e38f90ecda26bfd1663a0972551fd5503d6aea5ce21b35dff02534"
+    },
+    {
+      "id": "sen1floods11",
+      "name": "Sen1Floods11",
+      "role": "water-model training and held-out evaluation",
+      "url": "https://github.com/cloudtostreet/Sen1Floods11",
+      "license": "Original repository has no license file; retain attribution and use for the educational project",
+      "citation": "Bonafilia, Tellman, Anderson and Issenberg (2020). Sen1Floods11. CVPR Workshops, 210-211.",
+      "downloaded_samples": 96,
+      "splits": {
+        "train": 32,
+        "valid": 32,
+        "test": 32
+      },
+      "selection": "Publisher hand-labeled splits; event-balanced initial subset",
+      "actual_host": "https://storage.googleapis.com/sen1floods11/v1.1",
+      "manifest": "data/datasets/training/sen1floods11/manifest.json",
+      "manifest_sha256": "ea2092c0c768b6e38ca6a55a686093ba31dccb9309c7ea8f7cd56558e1610fca"
+    },
+    {
+      "id": "emsr927",
+      "name": "Copernicus EMSR927",
+      "role": "case-study evaluation only",
+      "url": "https://mapping.emergency.copernicus.eu/activations/EMSR927/",
+      "license": "European Union, Copernicus Emergency Management Service data",
+      "downloaded_products": 6,
+      "manifest": "data/datasets/evaluation/EMSR927/manifest.json",
+      "manifest_sha256": "47aaf3608e87a030b486eb9450dc4734b061b2e14b61536abf682a5b9f2b426b",
+      "reference_class": "Landslide",
+      "prediction_input": false
+    }
+  ],
+  "run_id": "0f54ad10-431a-4d91-bff9-7d8164fc1039",
+  "mode": "live",
+  "created_at": "2026-10-11T19:11:53.535237+00:00",
+  "bbox": [
+    85.19,
+    27.9,
+    85.41,
+    28.3
+  ],
+  "event_date": "2026-08-26",
+  "stats": {
+    "buildings_total": 49468,
+    "buildings_exposed": 0,
+    "roads_total": 817,
+    "roads_exposed": 1,
+    "road_exposed_km": 0.032,
+    "bridges_total": 118,
+    "bridges_exposed": 1,
+    "settlements_total": 109,
+    "settlements_cut_off": 0,
+    "settlements_unassessed": 17,
+    "settlements_baseline_disconnected": 12,
+    "destinations_total": 9,
+    "water_km2": 0.195,
+    "debris_km2": 0.0,
+    "permanent_water_km2": 2.129,
+    "valid_area_km2": 130.261,
+    "valid_coverage_pct": 13.6,
+    "optical_clear_pct": 31.1
+  },
+  "provenance": {
+    "radar_scenes": [
+      {
+        "id": "S1D_IW_GRDH_1SDV_20260816T122141_20260816T122206_004151_007980",
+        "acquired": "2026-08-16T12:21:53.557589Z",
+        "relative_orbit": 85,
+        "direction": "ascending",
+        "platform": "sentinel-1d",
+        "polarization": "VV",
+        "instrument_mode": "IW"
+      },
+      {
+        "id": "S1D_IW_GRDH_1SDV_20260828T122141_20260828T122206_004326_007FA4",
+        "acquired": "2026-08-28T12:21:54.261291Z",
+        "relative_orbit": 85,
+        "direction": "ascending",
+        "platform": "sentinel-1d",
+        "polarization": "VV",
+        "instrument_mode": "IW"
+      }
+    ],
+    "osm_snapshot": "2026-07-27T08:59:58Z",
+    "optical_scenes": [
+      "S2C_MSIL2A_20260812T045701_R119_T45RUM_20260812T100317",
+      "S2C_MSIL2A_20260812T045701_R119_T45RUL_20260812T100317",
+      "S2B_MSIL2A_20260827T045659_R119_T45RUM_20260827T084453",
+      "S2B_MSIL2A_20260827T045659_R119_T45RUL_20260827T084453"
+    ],
+    "radar_processing": "DN squared, annotation range/azimuth thermal denoising, beta0 calibration, sarsen gamma_bilinear RTC with Copernicus GLO-30 and EGM2008-to-ellipsoid height conversion",
+    "acquisition": {
+      "provider": "Original ESA Sentinel GRD via the Microsoft public mirror; locally processed",
+      "radar_assets": [
+        "https://sentinel1euwest.blob.core.windows.net/s1-grd/GRD/2026/8/16/IW/DV/S1D_IW_GRDH_1SDV_20260816T122141_20260816T122206_004151_007980_B091/measurement/iw-vv.tiff",
+        "https://sentinel1euwest.blob.core.windows.net/s1-grd/GRD/2026/8/28/IW/DV/S1D_IW_GRDH_1SDV_20260828T122141_20260828T122206_004326_007FA4_C73B/measurement/iw-vv.tiff"
+      ],
+      "catalog": "https://planetarycomputer.microsoft.com/api/stac/v1/search",
+      "dem": {
+        "tiles": [
+          "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N27_00_E085_00_DEM/Copernicus_DSM_COG_10_N27_00_E085_00_DEM.tif",
+          "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N28_00_E085_00_DEM/Copernicus_DSM_COG_10_N28_00_E085_00_DEM.tif"
+        ],
+        "vertical_conversion": "https://cdn.proj.org/us_nga_egm08_25.tif"
+      },
+      "processing": "DN squared, annotation range/azimuth thermal denoising, beta0 calibration, sarsen gamma_bilinear RTC with Copernicus GLO-30 and EGM2008-to-ellipsoid height conversion",
+      "osm_sha256": "3c3b1c0ebcfce9192bed986e79cc6afb4fc8711da94a6c71cc3a979f0d816968"
+    },
+    "water_model": {
+      "algorithm": "ExtraTrees pixel water segmentation baseline",
+      "training_datasets": [
+        "kuro_siwo",
+        "sen1floods11"
+      ],
+      "training_pixels": 327680,
+      "training_chip_count": 80,
+      "artifact_sha256": "6479ada0f4d9827e4ee28fa10b133338babd8892e8de868cb59715c6087bdee9",
+      "threshold": 0.5,
+      "citations": [
+        "Bountos et al. (2024). Kuro Siwo: 33 billion m^2 under the water. NeurIPS 37, 38105-38121.",
+        "Bonafilia, Tellman, Anderson and Issenberg (2020). Sen1Floods11. CVPR Workshops, 210-211."
+      ],
+      "limitations": [
+        "Initial subsets of the listed datasets, not complete-dataset benchmark results.",
+        "Binary observed water model, not a learned debris detector; new flooding is determined by comparing pre/post predictions.",
+        "Publisher splits are preserved. Sen1Floods11 splits can share events; this is chip-held-out, not an unseen-event claim.",
+        "Kuro Siwo sigma0 and live gamma0 processing, terrain, spatial resolution and sampling differ; Himalayan generalization requires separate verification.",
+        "EMSR927 and all published damage maps are excluded from training and prediction."
+      ]
+    },
+    "osm_source_api": "https://api.ohsome.org/v1",
+    "crs": "EPSG:32645",
+    "resolution_m": 30,
+    "grid_bounds": [
+      321855.4404129869,
+      3087124.9851435684,
+      344115.4404129869,
+      3131764.9851435684
+    ],
+    "source_policy": "Only Sentinel-1, Sentinel-2, Copernicus DEM, pre-event OSM and the two listed training datasets. Published damage maps are evaluation-only.",
+    "ai_model": "Bilingual TF-IDF copilot with map-derived facts; ExtraTrees pixel water segmentation baseline"
+  },
+  "warnings": [
+    "Local public-GRD processing has no complete radar shadow/layover mask. Copernicus DEM slope screening is applied; terrain occlusion remains a limitation.",
+    "A Sentinel-2 observation is more than 12 days from the event. Optical change can include other intervening changes; cloud masks apply pixel by pixel.",
+    "The initial model uses subsets of both listed training datasets; its low Kuro Siwo held-out recall and Himalayan processing differences limit reliability. Review the model card before interpreting an empty change map.",
+    "Some settlements have no nearby mapped road or no mapped destination; they are unassessed, not newly cut off.",
+    "Less than half the area has jointly valid radar pixels. Exposure and access outside valid coverage may be underestimated."
+  ],
+  "evaluation": {
+    "activation": "EMSR927",
+    "mode": "reference comparison",
+    "run_id": "0f54ad10-431a-4d91-bff9-7d8164fc1039",
+    "reference_file": "reference-extent.geojson",
+    "coverage_file": "reviewed-coverage.geojson",
+    "evaluated_pixels": 1093,
+    "evaluated_area_km2": 0.9837,
+    "reviewed_pixels_inside_grid": 7316,
+    "valid_reviewed_coverage_pct": 14.939857845817386,
+    "metrics": {
+      "true_positive_pixels": 15,
+      "false_positive_pixels": 0,
+      "false_negative_pixels": 990,
+      "true_negative_pixels": 88,
+      "iou": 0.014925373134328358,
+      "precision": 1.0,
+      "recall": 0.014925373134328358,
+      "f1": 0.029411764705882353
+    },
+    "reference_classes": [
+      "Landslide"
+    ],
+    "comparison_type": "landslide-class diagnostic; not flood-water accuracy",
+    "separate_classes": {
+      "new_water": {
+        "true_positive_pixels": 15,
+        "false_positive_pixels": 0,
+        "false_negative_pixels": 990,
+        "true_negative_pixels": 88,
+        "iou": 0.014925373134328358,
+        "precision": 1.0,
+        "recall": 0.014925373134328358,
+        "f1": 0.029411764705882353
+      },
+      "debris_candidate": {
+        "true_positive_pixels": 0,
+        "false_positive_pixels": 0,
+        "false_negative_pixels": 1005,
+        "true_negative_pixels": 88,
+        "iou": 0.0,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0
+      }
+    },
+    "attribution": "European Union, Copernicus Emergency Management Service data",
+    "limitations": "The official observed-event polygons are landslides. This class-mismatched diagnostic is not a flood-water accuracy score. Compares combined water/debris change to supplied reference extent at pixel centers inside reviewed coverage. Differences in acquisition dates, class definitions and map scale remain. Does not validate structural damage or actual road closures."
+  },
+  "artifact_directory": "data/runs/0f54ad10-431a-4d91-bff9-7d8164fc1039",
+  "training_scope": "Initial real-data subsets of both listed datasets",
+  "raster_checksums": {
+    "s1-before.tif": "ceeb0d5652b2250766c43373232ec34881c5dadc6910f3eeabd6b88b9d0663fc",
+    "s1-after.tif": "369c202112f243552c394978229029fd09eef5b70948700b2d325586ba34df07",
+    "s2-before.tif": "4aaba9758c21d1b3c86e8f9af73795de9b96d5a9b4cd39a5fda93b924d74ffd0",
+    "s2-after.tif": "a7d6e67a5bb1c2bcd98ba705a15f70982d5b92e445894629827be84c974d2240",
+    "water-probability.tif": "53bcd1acec1f89062bcb7196e0aa1a52d6d0d966a05a21ed5a1307fb6ea0dacf",
+    "change-mask.tif": "106f2f77f859ecd1e35e52a13d3671606afdc676736f0942f14d7b13c1f80ee7",
+    "dem-grid.tif": "0d668cfeeddab4c927fb3bd967416b7674954d16c7cc45dcde356b0655bd1221"
+  }
+}

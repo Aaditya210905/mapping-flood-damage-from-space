@@ -1,0 +1,56 @@
+{
+  "page_errors": [],
+  "responsive": [
+    {
+      "viewport": 360,
+      "document": 360
+    },
+    {
+      "viewport": 768,
+      "document": 768
+    },
+    {
+      "viewport": 1280,
+      "document": 1280
+    },
+    {
+      "viewport": 1440,
+      "document": 1440
+    }
+  ],
+  "checks": [
+    "Actual case loads by default; both training datasets and official evaluation downloads displayed",
+    "Before/after and access/method views; class-mismatch disclosure; map-grounded English/Nepali answers",
+    "Nepali situation report printed with Chromium"
+  ],
+  "run_id": "0f54ad10-431a-4d91-bff9-7d8164fc1039",
+  "automated_tests": 42,
+  "pdf_pages": {
+    "technical_report": 6,
+    "english_report": 1,
+    "nepali_report": 1
+  },
+  "video": {
+    "file": "docs/demo-actual.mp4",
+    "duration_seconds": 180,
+    "codec": "h264",
+    "width": 1280,
+    "height": 900
+  },
+  "actual_inputs": [
+    "Sentinel-1",
+    "Sentinel-2",
+    "Copernicus DEM GLO-30",
+    "Pre-event OSM",
+    "Kuro Siwo",
+    "Sen1Floods11"
+  ],
+  "evaluation_only": "Six Copernicus EMSR927 official vector products; observed-event class Landslide",
+  "delivery_sha256": {
+    "docs/demo-actual.mp4": "b653a9a193ccdd560355adfac8dfdc9914eb2da8ec45057435550819a9d3b191",
+    "docs/technical-report.pdf": "5c76a02606db2f044cde6897133d2405033a7c4ef8e1fecf0490e7e0f8049281",
+    "docs/actual-situation-report-en.pdf": "8815c6b2afcfd78f34517fa132390048abd9a0dff25e1a65c561cba8c2921245",
+    "docs/actual-situation-report-ne.pdf": "f7290229bacf408308c1ab1a46405554b413fc78a72ede8ab2ff3cec319f4265"
+  },
+  "repository": "https://github.com/vishal88736/mapping-flood-damage-from-space"
+}

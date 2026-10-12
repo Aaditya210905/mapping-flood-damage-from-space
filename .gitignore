@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+.env.*
+!.env.example
+data/runs/
+data/cache/
+data/datasets/
+data/source-discovery/
+data/models/
+data/demo-run/
+build/
+dist/
+*.egg-info/
+docs/qa/
+

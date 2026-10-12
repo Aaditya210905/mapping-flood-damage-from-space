@@ -1,0 +1,553 @@
+{
+  "status": "trained",
+  "created_at": "2026-10-11T18:58:00.575687+00:00",
+  "algorithm": "ExtraTrees pixel water segmentation baseline",
+  "training_datasets": [
+    "kuro_siwo",
+    "sen1floods11"
+  ],
+  "features": [
+    "VV dB",
+    "3x3 VV median dB",
+    "VV minus local median dB",
+    "5x5 VV standard deviation dB"
+  ],
+  "threshold": 0.5,
+  "label_mapping": {
+    "kuro_siwo": "0 non-water; 1 permanent and 2 flood mapped to water; 3 ignored",
+    "sen1floods11": "0 non-water, 1 water; -1 excluded"
+  },
+  "training_pixels": 327680,
+  "training_chip_count": 80,
+  "training_inputs": [
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00000-000000",
+      "event": "470",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00000-000001",
+      "event": "470",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00000-000002",
+      "event": "470",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00000-000003",
+      "event": "470",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00000-000004",
+      "event": "470",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00000-000005",
+      "event": "470",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00000-000006",
+      "event": "470",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00000-000007",
+      "event": "470",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00000-000008",
+      "event": "470",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00000-000009",
+      "event": "470",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00000-000010",
+      "event": "470",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00000-000011",
+      "event": "470",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00001-000000",
+      "event": "1111004",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00001-000001",
+      "event": "1111004",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00001-000002",
+      "event": "1111004",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00001-000003",
+      "event": "1111004",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00001-000004",
+      "event": "1111004",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00001-000005",
+      "event": "1111004",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00001-000006",
+      "event": "1111004",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00001-000007",
+      "event": "1111004",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00001-000008",
+      "event": "1111004",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00001-000009",
+      "event": "1111004",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00001-000010",
+      "event": "1111004",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00001-000011",
+      "event": "1111004",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00002-000000",
+      "event": "1111009",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00002-000001",
+      "event": "1111009",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00002-000002",
+      "event": "1111009",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00002-000003",
+      "event": "1111009",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00002-000004",
+      "event": "1111009",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00002-000005",
+      "event": "1111009",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00002-000006",
+      "event": "1111009",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00002-000007",
+      "event": "1111009",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00002-000008",
+      "event": "1111009",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00002-000009",
+      "event": "1111009",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00002-000010",
+      "event": "1111009",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00002-000011",
+      "event": "1111009",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00003-000000",
+      "event": "1111010",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00003-000001",
+      "event": "1111010",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00003-000002",
+      "event": "1111010",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00003-000003",
+      "event": "1111010",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00003-000004",
+      "event": "1111010",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00003-000005",
+      "event": "1111010",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00003-000006",
+      "event": "1111010",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00003-000007",
+      "event": "1111010",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00003-000008",
+      "event": "1111010",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00003-000009",
+      "event": "1111010",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00003-000010",
+      "event": "1111010",
+      "pixels": 4096
+    },
+    {
+      "dataset": "kuro_siwo",
+      "id": "train-00003-000011",
+      "event": "1111010",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Ghana_103272",
+      "event": "Ghana",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "India_285297",
+      "event": "India",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Mekong_221789",
+      "event": "Mekong",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Nigeria_529525",
+      "event": "Nigeria",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Pakistan_909806",
+      "event": "Pakistan",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Paraguay_721886",
+      "event": "Paraguay",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Somalia_989553",
+      "event": "Somalia",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Spain_5923267",
+      "event": "Spain",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Sri-Lanka_152185",
+      "event": "Sri-Lanka",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "USA_994009",
+      "event": "USA",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Ghana_24858",
+      "event": "Ghana",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "India_1072277",
+      "event": "India",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Mekong_52610",
+      "event": "Mekong",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Nigeria_143329",
+      "event": "Nigeria",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Pakistan_132143",
+      "event": "Pakistan",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Paraguay_62897",
+      "event": "Paraguay",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Somalia_93023",
+      "event": "Somalia",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Spain_7786924",
+      "event": "Spain",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Sri-Lanka_55568",
+      "event": "Sri-Lanka",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "USA_66026",
+      "event": "USA",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Ghana_147015",
+      "event": "Ghana",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "India_324254",
+      "event": "India",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Mekong_596495",
+      "event": "Mekong",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Nigeria_439488",
+      "event": "Nigeria",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Pakistan_712873",
+      "event": "Pakistan",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Paraguay_36015",
+      "event": "Paraguay",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Somalia_371421",
+      "event": "Somalia",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Spain_7856615",
+      "event": "Spain",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Sri-Lanka_92824",
+      "event": "Sri-Lanka",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "USA_11422",
+      "event": "USA",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "Ghana_953791",
+      "event": "Ghana",
+      "pixels": 4096
+    },
+    {
+      "dataset": "sen1floods11",
+      "id": "India_177319",
+      "event": "India",
+      "pixels": 4096
+    }
+  ],
+  "publisher_manifest_sha256": {
+    "kuro_siwo": "250dcb75c6e38f90ecda26bfd1663a0972551fd5503d6aea5ce21b35dff02534",
+    "sen1floods11": "ea2092c0c768b6e38ca6a55a686093ba31dccb9309c7ea8f7cd56558e1610fca"
+  },
+  "artifact_sha256": "6479ada0f4d9827e4ee28fa10b133338babd8892e8de868cb59715c6087bdee9",
+  "scores": {
+    "kuro_siwo/test": {
+      "true_positive_pixels": 8772,
+      "false_positive_pixels": 3087,
+      "false_negative_pixels": 67231,
+      "true_negative_pixels": 1016603,
+      "iou": 0.11091161967378936,
+      "f1": 0.19967676583733582,
+      "precision": 0.7396913736402733,
+      "recall": 0.11541649671723485
+    },
+    "sen1floods11/valid": {
+      "true_positive_pixels": 517970,
+      "false_positive_pixels": 103363,
+      "false_negative_pixels": 416059,
+      "true_negative_pixels": 6073679,
+      "iou": 0.4993001681138856,
+      "f1": 0.6660443035126228,
+      "precision": 0.8336431510961111,
+      "recall": 0.5545545159732728
+    },
+    "sen1floods11/test": {
+      "true_positive_pixels": 678439,
+      "false_positive_pixels": 75002,
+      "false_negative_pixels": 695174,
+      "true_negative_pixels": 5537628,
+      "iou": 0.46833630743848437,
+      "f1": 0.6379142231461918,
+      "precision": 0.9004540501512395,
+      "recall": 0.49390840069218916
+    }
+  },
+  "evaluation_chip_count": 88,
+  "citations": [
+    "Bountos et al. (2024). Kuro Siwo: 33 billion m^2 under the water. NeurIPS 37, 38105-38121.",
+    "Bonafilia, Tellman, Anderson and Issenberg (2020). Sen1Floods11. CVPR Workshops, 210-211."
+  ],
+  "limitations": [
+    "Initial subsets of the listed datasets, not complete-dataset benchmark results.",
+    "Binary observed water model, not a learned debris detector; new flooding is determined by comparing pre/post predictions.",
+    "Publisher splits are preserved. Sen1Floods11 splits can share events; this is chip-held-out, not an unseen-event claim.",
+    "Kuro Siwo sigma0 and live gamma0 processing, terrain, spatial resolution and sampling differ; Himalayan generalization requires separate verification.",
+    "EMSR927 and all published damage maps are excluded from training and prediction."
+  ]
+}

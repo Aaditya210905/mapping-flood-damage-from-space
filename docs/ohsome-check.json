@@ -1,0 +1,19 @@
+{
+  "verification": "Metadata and endpoint access checks only; real feature extraction remains unverified",
+  "v1": {
+    "metadata_http_status": 200,
+    "api_version": "1.10.4",
+    "latest_available": "2026-07-27T09:00Z",
+    "geometry_get_http_status": 403,
+    "geometry_post_http_status": 403
+  },
+  "v2": {
+    "endpoint": "https://api.heigit.org/ohsome-api/v2-rc",
+    "metadata_http_status": 200,
+    "latest_available": "2026-10-09T07:25:28Z",
+    "unauthenticated_extract_http_status": 401,
+    "required_environment_variable": "OHSOME_API_KEY"
+  },
+  "fallback_policy": "Historical snapshot only, strictly before the event. No present-day OSM fallback.",
+  "attribution": "© OpenStreetMap contributors."
+}

@@ -1,0 +1,31 @@
+{
+  "bbox": [
+    85.19,
+    27.9,
+    85.41,
+    28.3
+  ],
+  "flood_date": "2026-08-26",
+  "catalog_features": 12,
+  "radar_pair": [
+    {
+      "id": "S1D_IW_GRDH_1SDV_20260816T122141_20260816T122206_004151_007980_B091_COG",
+      "acquired": "2026-08-16T12:21:41.058298Z",
+      "relative_orbit": 85,
+      "direction": "ascending",
+      "platform": "sentinel-1d",
+      "polarization": "VV",
+      "instrument_mode": "IW"
+    },
+    {
+      "id": "S1D_IW_GRDH_1SDV_20260828T122141_20260828T122206_004326_007FA4_C73B_COG",
+      "acquired": "2026-08-28T12:21:41.762029Z",
+      "relative_orbit": 85,
+      "direction": "ascending",
+      "platform": "sentinel-1d",
+      "polarization": "VV",
+      "instrument_mode": "IW"
+    }
+  ],
+  "status": "Catalog discovery only; authenticated image processing has not occurred."
+}
