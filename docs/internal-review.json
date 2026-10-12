@@ -1,0 +1,1798 @@
+{
+  "run_id": "613e6e63-e621-4e23-a549-bdfeab084972",
+  "review_status": "internal software/language review only",
+  "external_review": {
+    "native_nepali_speaker": "not available; not signed off",
+    "local_road_expert": "not available; not signed off"
+  },
+  "language_cases": [
+    {
+      "language": "en",
+      "question": "How large is the newly detected water area?",
+      "expected_intent": "extent",
+      "answer": "Mapped potential new inundation covers 0.139 km². Possible debris or land-cover change covers 1.343 km². Eligible observation coverage is 37.8%; paired clear optical coverage is 31.0%. No detected change does not establish absence of damage.",
+      "intent": "extent",
+      "intent_confidence": 0.797,
+      "evidence": [
+        {
+          "path": "stats.water_km2",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.debris_km2",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.valid_coverage_pct",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.optical_clear_pct",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "layers.extent",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        }
+      ],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "ne",
+      "question": "नयाँ डुबानको क्षेत्रफल कति छ?",
+      "expected_intent": "extent",
+      "answer": "सम्भावित नयाँ डुबान क्षेत्र 0.139 वर्ग कि.मि. र सम्भावित माटो/ढुंगा वा भूआवरण परिवर्तन क्षेत्र 1.343 वर्ग कि.मि. छ। विश्लेषणका लागि योग्य अवलोकन क्षेत्र 37.8% र दुवै मितिको बादलरहित अप्टिकल क्षेत्र 31.0% छ। परिवर्तन नदेखिनु क्षति नभएको प्रमाण होइन।",
+      "intent": "extent",
+      "intent_confidence": 0.832,
+      "evidence": [
+        {
+          "path": "stats.water_km2",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.debris_km2",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.valid_coverage_pct",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.optical_clear_pct",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "layers.extent",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        }
+      ],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "en",
+      "question": "Which bridges and roads overlap the mapped changes?",
+      "expected_intent": "damage",
+      "answer": "The mapped changes intersect 73 buildings, 14 road features and 3 bridges. Intersecting road length is 2.683 km. Exposure does not establish structural damage.",
+      "intent": "damage",
+      "intent_confidence": 0.724,
+      "evidence": [
+        {
+          "path": "stats.buildings_exposed",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.roads_exposed",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.bridges_exposed",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.road_exposed_km",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        }
+      ],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "ne",
+      "question": "कति पुल र सडक प्रभावित भएका छन्?",
+      "expected_intent": "damage",
+      "answer": "नक्सामा देखिएको परिवर्तन क्षेत्रमा 73 भवन, 14 सडक अभिलेख र 3 पुल परेका देखिन्छन्। सो क्षेत्रभित्र पर्ने सडकको लम्बाइ 2.683 कि.मि. छ। यसले संरचनागत क्षति पुष्टि गर्दैन।",
+      "intent": "damage",
+      "intent_confidence": 0.891,
+      "evidence": [
+        {
+          "path": "stats.buildings_exposed",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.roads_exposed",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.bridges_exposed",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.road_exposed_km",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        }
+      ],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "en",
+      "question": "Which villages cannot reach any hospital by road?",
+      "expected_intent": "access",
+      "answer": "Assuming candidate-intersecting road segments are impassable, 30 settlements lose their previous connection to every mapped town or hospital. 17 settlements could not be assessed. 47 settlements have uncertain access because their routes include unobserved segments. Routes outside the analysis area are unknown. Settlements: गोठेन, गोदाम, बाहुनडाँडा, रसुवागढी, तातोपानी, नागथली, लिङलिङ, गोङ्गाङ and 22 others; complete list in the settlement export.",
+      "intent": "access",
+      "intent_confidence": 0.896,
+      "evidence": [
+        {
+          "path": "stats.settlements_cut_off",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.settlements_unassessed",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "layers.settlements",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.settlements_access_uncertain",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        }
+      ],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "ne",
+      "question": "सडक बन्द भएको मान्दा कुन बस्तीबाट अस्पताल पुग्न सकिँदैन?",
+      "expected_intent": "access",
+      "answer": "परिवर्तन क्षेत्रसँग जुधेका सडक खण्ड चल्न नसक्ने मानेर गणना गर्दा 30 बस्तीको नगर वा अस्पतालसम्मको पहिले उपलब्ध सडक सम्पर्क टुटेको देखिन्छ। 17 बस्तीको मूल्याङ्कन हुन सकेन। अवलोकन नभएका सडक खण्डका कारण 47 बस्तीको सडक सम्पर्क अनिश्चित छ। क्षेत्रबाहिरका वैकल्पिक मार्ग जाँचिएका छैनन्। बस्तीहरू: गोठेन, गोदाम, बाहुनडाँडा, रसुवागढी, तातोपानी, नागथली, लिङलिङ, गोङ्गाङ र अन्य 22 बस्ती; पूर्ण सूची निर्यातमा छ।",
+      "intent": "access",
+      "intent_confidence": 0.663,
+      "evidence": [
+        {
+          "path": "stats.settlements_cut_off",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.settlements_unassessed",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "layers.settlements",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.settlements_access_uncertain",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        }
+      ],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "en",
+      "question": "What dates were the radar images and historical maps from?",
+      "expected_intent": "sources",
+      "answer": "Radar acquisitions: 2026-08-16T12:21:53.557589Z and 2026-08-28T12:21:54.261291Z; both use relative orbit 85 (ascending). Historical OpenStreetMap snapshot: 2026-07-27T08:59:58Z. All counts come from saved map intersections and road-graph analysis. Terrain: Copernicus DEM GLO-30. Optical: Sentinel-2. Water-model training: Kuro Siwo and Sen1Floods11.",
+      "intent": "sources",
+      "intent_confidence": 0.682,
+      "evidence": [
+        {
+          "path": "provenance.radar_scenes",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "provenance.osm_snapshot",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "provenance.optical_scenes",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "provenance.water_model",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        }
+      ],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "ne",
+      "question": "प्रयोग गरिएका उपग्रह तस्बिर र नक्साको मिति बताउनुहोस्।",
+      "expected_intent": "sources",
+      "answer": "राडार तस्बिर: 2026-08-16T12:21:53.557589Z र 2026-08-28T12:21:54.261291Z। दुवैको सापेक्ष कक्षा 85 छ। ऐतिहासिक OpenStreetMap मिति: 2026-07-27T08:59:58Z। तथ्याङ्क नक्सा र सडक सञ्जालबाट गणना गरिएको हो। Copernicus DEM GLO-30; Sentinel-2; Kuro Siwo + Sen1Floods11.",
+      "intent": "sources",
+      "intent_confidence": 0.802,
+      "evidence": [
+        {
+          "path": "provenance.radar_scenes",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "provenance.osm_snapshot",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "provenance.optical_scenes",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "provenance.water_model",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        }
+      ],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "en",
+      "question": "Are these actual confirmed damage counts?",
+      "expected_intent": "limitations",
+      "answer": "This educational prototype cannot give minute-ahead warnings. Radar shadow, layover, vegetation, cloud, seasonal changes and incomplete OSM roads can affect results. Exposure and road interruption are hypotheses requiring field verification. Population and casualty estimates are unavailable. Model performance varies across terrain and processing; damage outside eligible observations remains unknown.",
+      "intent": "limitations",
+      "intent_confidence": 0.826,
+      "evidence": [
+        {
+          "path": "limitations",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        }
+      ],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "ne",
+      "question": "यो नतिजाको विश्वसनीयता र सीमाहरू के हुन्?",
+      "expected_intent": "limitations",
+      "answer": "यो शैक्षिक नमुना हो। उपग्रहको पुनरागमनमा केही दिन लाग्छ। राडार छाया, बादल, भूआकृति र अपूर्ण सडक नक्साले नतिजा बदल्न सक्छन्। क्षति, सडक बन्द वा जनसङ्ख्या पुष्टि गरिएको छैन। स्थल निरीक्षण आवश्यक छ। मोडेलको विश्वसनीयता भूभागअनुसार फरक पर्न सक्छ; अवलोकन नभएको क्षेत्रको क्षति अज्ञात छ।",
+      "intent": "limitations",
+      "intent_confidence": 0.567,
+      "evidence": [
+        {
+          "path": "limitations",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        }
+      ],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "en",
+      "question": "Prepare a brief summary of these mapped findings",
+      "expected_intent": "summary",
+      "answer": "Mapped potential new inundation covers 0.139 km². Possible debris or land-cover change covers 1.343 km². Eligible observation coverage is 37.8%; paired clear optical coverage is 31.0%. No detected change does not establish absence of damage.\n\nThe mapped changes intersect 73 buildings, 14 road features and 3 bridges. Intersecting road length is 2.683 km. Exposure does not establish structural damage.\n\nAssuming candidate-intersecting road segments are impassable, 30 settlements lose their previous connection to every mapped town or hospital. 17 settlements could not be assessed. 47 settlements have uncertain access because their routes include unobserved segments. Routes outside the analysis area are unknown. Settlements: गोठेन, गोदाम, बाहुनडाँडा, रसुवागढी, तातोपानी, नागथली, लिङलिङ, गोङ्गाङ and 22 others; complete list in the settlement export.\n\nRadar acquisitions: 2026-08-16T12:21:53.557589Z and 2026-08-28T12:21:54.261291Z; both use relative orbit 85 (ascending). Historical OpenStreetMap snapshot: 2026-07-27T08:59:58Z. All counts come from saved map intersections and road-graph analysis. Terrain: Copernicus DEM GLO-30. Optical: Sentinel-2. Water-model training: Kuro Siwo and Sen1Floods11.\n\nThis educational prototype cannot give minute-ahead warnings. Radar shadow, layover, vegetation, cloud, seasonal changes and incomplete OSM roads can affect results. Exposure and road interruption are hypotheses requiring field verification. Population and casualty estimates are unavailable. Model performance varies across terrain and processing; damage outside eligible observations remains unknown.",
+      "intent": "summary",
+      "intent_confidence": 0.799,
+      "evidence": [
+        {
+          "path": "stats",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "layers.settlements",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "provenance",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "limitations",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.settlements_access_uncertain",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        }
+      ],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "ne",
+      "question": "यस घटनाको छोटो स्थिति विवरण लेख्नुहोस्।",
+      "expected_intent": "summary",
+      "answer": "सम्भावित नयाँ डुबान क्षेत्र 0.139 वर्ग कि.मि. र सम्भावित माटो/ढुंगा वा भूआवरण परिवर्तन क्षेत्र 1.343 वर्ग कि.मि. छ। विश्लेषणका लागि योग्य अवलोकन क्षेत्र 37.8% र दुवै मितिको बादलरहित अप्टिकल क्षेत्र 31.0% छ। परिवर्तन नदेखिनु क्षति नभएको प्रमाण होइन।\n\nनक्सामा देखिएको परिवर्तन क्षेत्रमा 73 भवन, 14 सडक अभिलेख र 3 पुल परेका देखिन्छन्। सो क्षेत्रभित्र पर्ने सडकको लम्बाइ 2.683 कि.मि. छ। यसले संरचनागत क्षति पुष्टि गर्दैन।\n\nपरिवर्तन क्षेत्रसँग जुधेका सडक खण्ड चल्न नसक्ने मानेर गणना गर्दा 30 बस्तीको नगर वा अस्पतालसम्मको पहिले उपलब्ध सडक सम्पर्क टुटेको देखिन्छ। 17 बस्तीको मूल्याङ्कन हुन सकेन। अवलोकन नभएका सडक खण्डका कारण 47 बस्तीको सडक सम्पर्क अनिश्चित छ। क्षेत्रबाहिरका वैकल्पिक मार्ग जाँचिएका छैनन्। बस्तीहरू: गोठेन, गोदाम, बाहुनडाँडा, रसुवागढी, तातोपानी, नागथली, लिङलिङ, गोङ्गाङ र अन्य 22 बस्ती; पूर्ण सूची निर्यातमा छ।\n\nराडार तस्बिर: 2026-08-16T12:21:53.557589Z र 2026-08-28T12:21:54.261291Z। दुवैको सापेक्ष कक्षा 85 छ। ऐतिहासिक OpenStreetMap मिति: 2026-07-27T08:59:58Z। तथ्याङ्क नक्सा र सडक सञ्जालबाट गणना गरिएको हो। Copernicus DEM GLO-30; Sentinel-2; Kuro Siwo + Sen1Floods11.\n\nयो शैक्षिक नमुना हो। उपग्रहको पुनरागमनमा केही दिन लाग्छ। राडार छाया, बादल, भूआकृति र अपूर्ण सडक नक्साले नतिजा बदल्न सक्छन्। क्षति, सडक बन्द वा जनसङ्ख्या पुष्टि गरिएको छैन। स्थल निरीक्षण आवश्यक छ। मोडेलको विश्वसनीयता भूभागअनुसार फरक पर्न सक्छ; अवलोकन नभएको क्षेत्रको क्षति अज्ञात छ।",
+      "intent": "summary",
+      "intent_confidence": 0.687,
+      "evidence": [
+        {
+          "path": "stats",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "layers.settlements",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "provenance",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "limitations",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        },
+        {
+          "path": "stats.settlements_access_uncertain",
+          "run_id": "613e6e63-e621-4e23-a549-bdfeab084972"
+        }
+      ],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "en",
+      "question": "Invent a population count.",
+      "expected_intent": "unsupported",
+      "answer": "These maps cannot support an answer to that question. Ask about flood extent, infrastructure exposure, road access, data sources or limitations. Deaths, injuries, missing people and population estimates are unavailable.",
+      "intent": "unsupported",
+      "intent_confidence": 0.336,
+      "evidence": [],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "ne",
+      "question": "कति मृत्यु भएका छन्?",
+      "expected_intent": "unsupported",
+      "answer": "यो प्रश्नको भरपर्दो उत्तर यी नक्साबाट दिन सकिँदैन। डुबान क्षेत्र, पूर्वाधार, सडक सम्पर्क, स्रोत वा प्रणालीका सीमाबारे सोध्नुहोस्। मृत्यु, घाइते, बेपत्ता वा जनसङ्ख्याको अनुमान उपलब्ध छैन।",
+      "intent": "unsupported",
+      "intent_confidence": 0.223,
+      "evidence": [],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "ne",
+      "question": "कति जना बेपत्ता छन्?",
+      "expected_intent": "unsupported",
+      "answer": "यो प्रश्नको भरपर्दो उत्तर यी नक्साबाट दिन सकिँदैन। डुबान क्षेत्र, पूर्वाधार, सडक सम्पर्क, स्रोत वा प्रणालीका सीमाबारे सोध्नुहोस्। मृत्यु, घाइते, बेपत्ता वा जनसङ्ख्याको अनुमान उपलब्ध छैन।",
+      "intent": "unsupported",
+      "intent_confidence": 0.254,
+      "evidence": [],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    },
+    {
+      "language": "ne",
+      "question": "भोलि पानी पर्छ कि पर्दैन?",
+      "expected_intent": "unsupported",
+      "answer": "यो प्रश्नको भरपर्दो उत्तर यी नक्साबाट दिन सकिँदैन। डुबान क्षेत्र, पूर्वाधार, सडक सम्पर्क, स्रोत वा प्रणालीका सीमाबारे सोध्नुहोस्। मृत्यु, घाइते, बेपत्ता वा जनसङ्ख्याको अनुमान उपलब्ध छैन।",
+      "intent": "unsupported",
+      "intent_confidence": 0.262,
+      "evidence": [],
+      "model": "Local TF-IDF + logistic regression intent model; fact-only templates",
+      "passed": true
+    }
+  ],
+  "route_checks": [
+    {
+      "name": "Somdang",
+      "status": "baseline_disconnected",
+      "routes": {}
+    },
+    {
+      "name": "गोठेन",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.6610462602680501,
+          "length_m": 34667.93685610396
+        }
+      }
+    },
+    {
+      "name": "गोदाम",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.692495126705653,
+          "length_m": 30760.36431024795
+        }
+      }
+    },
+    {
+      "name": "बाहुनडाँडा",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.7925107427869859,
+          "length_m": 24405.12815860908
+        }
+      }
+    },
+    {
+      "name": "ठुलो भार्खु",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.4260869565217391,
+          "length_m": 6883.498458689169
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.4260869565217391,
+          "length_m": 6883.498458689169
+        }
+      }
+    },
+    {
+      "name": "दुर्सागाङ",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.40756302521008403,
+          "length_m": 3541.5951062867157
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.40756302521008403,
+          "length_m": 3541.5951062867157
+        }
+      }
+    },
+    {
+      "name": "रसुवागढी",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 1584.7350787533496,
+          "observed_sample_fraction": 0.7707070707070707,
+          "length_m": 29675.772080820116
+        }
+      }
+    },
+    {
+      "name": "शेर्पागाउँ",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "तातोपानी",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.8213918409324649,
+          "length_m": 43725.49847563036
+        }
+      }
+    },
+    {
+      "name": "नागथली",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.8028720626631853,
+          "length_m": 45941.52668864938
+        }
+      }
+    },
+    {
+      "name": "लिङलिङ",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 1171.0145298170703,
+          "observed_sample_fraction": 0.8026936026936027,
+          "length_m": 22247.09291758476
+        }
+      }
+    },
+    {
+      "name": "गोङ्गाङ",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.7894736842105263,
+          "length_m": 34744.56438932116
+        }
+      }
+    },
+    {
+      "name": "ब्रिमडाङ",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.8028720626631853,
+          "length_m": 45941.52668864938
+        }
+      }
+    },
+    {
+      "name": "ब्राबल",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9736842105263158,
+          "length_m": 551.7719329806158
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9736842105263158,
+          "length_m": 551.7719329806158
+        }
+      }
+    },
+    {
+      "name": "खाङजिम",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "डोमेन",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.6795366795366795,
+          "length_m": 19395.557965706514
+        }
+      }
+    },
+    {
+      "name": "सानाे भार्खु",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.54,
+          "length_m": 8982.686755787074
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.54,
+          "length_m": 8982.686755787074
+        }
+      }
+    },
+    {
+      "name": "डाल्फेडी",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 1064.2721212721365,
+          "observed_sample_fraction": 0.7423664122137404,
+          "length_m": 23550.37588920478
+        }
+      }
+    },
+    {
+      "name": "ग्रे",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.5676677790137189,
+          "length_m": 40433.39275119438
+        }
+      }
+    },
+    {
+      "name": "Dalgaun",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "जर्सा डाँडा",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.6480129764801298,
+          "length_m": 36968.02231234542
+        }
+      }
+    },
+    {
+      "name": "Chyamdole",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.7321232123212321,
+          "length_m": 27246.833252802902
+        }
+      }
+    },
+    {
+      "name": "node/3495750389",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.8078028747433265,
+          "length_m": 36500.33596893359
+        }
+      }
+    },
+    {
+      "name": "तेटाङचेट",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.8094494338149161,
+          "length_m": 38399.37701806797
+        }
+      }
+    },
+    {
+      "name": "node/3495750391",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 221.91692413333524,
+          "observed_sample_fraction": 0.8225108225108225,
+          "length_m": 24227.402023821884
+        }
+      }
+    },
+    {
+      "name": "भ्रजम",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 221.91692413333524,
+          "observed_sample_fraction": 0.8140442132639792,
+          "length_m": 23052.125473730604
+        }
+      }
+    },
+    {
+      "name": "ठुलो स्याप्रु",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.38910505836575876,
+          "length_m": 3828.1866714026432
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.38910505836575876,
+          "length_m": 3828.1866714026432
+        }
+      }
+    },
+    {
+      "name": "node/3510164368",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 221.91692413333524,
+          "observed_sample_fraction": 0.7506631299734748,
+          "length_m": 16939.06609961192
+        }
+      }
+    },
+    {
+      "name": "热索",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 1584.7350787533496,
+          "observed_sample_fraction": 0.7738392411382926,
+          "length_m": 30026.22769953463
+        }
+      }
+    },
+    {
+      "name": "पाङलिङ",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "पाजुङ",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 221.91692413333524,
+          "observed_sample_fraction": 0.8011088011088011,
+          "length_m": 21619.447912390035
+        }
+      }
+    },
+    {
+      "name": "Bamboo",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "तिवारी",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.7195020746887967,
+          "length_m": 18056.96921560782
+        }
+      }
+    },
+    {
+      "name": "भञ्ज्याङ",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "सुर्का",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "पैरो",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.6795366795366795,
+          "length_m": 19395.557965706514
+        }
+      }
+    },
+    {
+      "name": "आमाछोदिङ्मो",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 131.15311231177338,
+          "observed_sample_fraction": 0.7857142857142857,
+          "length_m": 27911.69388382961
+        }
+      }
+    },
+    {
+      "name": "लौरिबिना",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "गोसाइँकुण्ड",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "चंदन बाडी",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "माथिल्लो चौर",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9950544015825915,
+          "length_m": 15149.51316032165
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9950544015825915,
+          "length_m": 15149.51316032165
+        }
+      }
+    },
+    {
+      "name": "सिम्ले",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 340.54016091141693,
+          "observed_sample_fraction": 0.629336846728151,
+          "length_m": 34134.64122510574
+        }
+      }
+    },
+    {
+      "name": "हाकु बेसी",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 120.86401671949454,
+          "observed_sample_fraction": 0.7076438140267928,
+          "length_m": 19005.711661343794
+        }
+      }
+    },
+    {
+      "name": "चिप्लेटी",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 208.58449372026666,
+          "observed_sample_fraction": 0.6360387953037264,
+          "length_m": 29360.03630162631
+        }
+      }
+    },
+    {
+      "name": "मैलुङ",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 208.58449372026666,
+          "observed_sample_fraction": 0.6291522062469014,
+          "length_m": 30238.73926981605
+        }
+      }
+    },
+    {
+      "name": "सानो हाकु",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "ग्राङ",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.17289719626168223,
+          "length_m": 12813.27437407376
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.17289719626168223,
+          "length_m": 12813.27437407376
+        }
+      }
+    },
+    {
+      "name": "ठाडे",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.20977917981072555,
+          "length_m": 9486.840174972762
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.20977917981072555,
+          "length_m": 9486.840174972762
+        }
+      }
+    },
+    {
+      "name": "node/3476508983",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.804849432929214,
+          "length_m": 38336.6254433201
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.804849432929214,
+          "length_m": 38336.6254433201
+        }
+      }
+    },
+    {
+      "name": "युब्रा",
+      "status": "baseline_disconnected",
+      "routes": {}
+    },
+    {
+      "name": "node/3476508985",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.36970474967907574,
+          "length_m": 23343.736682230694
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.36970474967907574,
+          "length_m": 23343.736682230694
+        }
+      }
+    },
+    {
+      "name": "node/3476508986",
+      "status": "baseline_disconnected",
+      "routes": {}
+    },
+    {
+      "name": "node/3476508988",
+      "status": "baseline_disconnected",
+      "routes": {}
+    },
+    {
+      "name": "node/3476508989",
+      "status": "baseline_disconnected",
+      "routes": {}
+    },
+    {
+      "name": "node/3477194430",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.3536480686695279,
+          "length_m": 17445.33116728731
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.3536480686695279,
+          "length_m": 17445.33116728731
+        }
+      }
+    },
+    {
+      "name": "node/3477288719",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9911894273127754,
+          "length_m": 13594.384464749166
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9911894273127754,
+          "length_m": 13594.384464749166
+        }
+      }
+    },
+    {
+      "name": "node/3477288735",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9943310657596371,
+          "length_m": 13209.360294766437
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9943310657596371,
+          "length_m": 13209.360294766437
+        }
+      }
+    },
+    {
+      "name": "node/3477337922",
+      "status": "baseline_disconnected",
+      "routes": {}
+    },
+    {
+      "name": "node/3477337942",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9317211948790897,
+          "length_m": 10523.09917552103
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9317211948790897,
+          "length_m": 10523.09917552103
+        }
+      }
+    },
+    {
+      "name": "node/3477345287",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9920127795527156,
+          "length_m": 9372.140179811273
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9920127795527156,
+          "length_m": 9372.140179811273
+        }
+      }
+    },
+    {
+      "name": "node/3478046385",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "node/3483342625",
+      "status": "baseline_disconnected",
+      "routes": {}
+    },
+    {
+      "name": "node/3484404878",
+      "status": "connected",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 1.0,
+          "length_m": 43.81638840509703
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 1.0,
+          "length_m": 43.81638840509703
+        }
+      }
+    },
+    {
+      "name": "node/3484417792",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.7922725384295803,
+          "length_m": 36080.055460993215
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.7922725384295803,
+          "length_m": 36080.055460993215
+        }
+      }
+    },
+    {
+      "name": "डोग्लाङ",
+      "status": "baseline_disconnected",
+      "routes": {}
+    },
+    {
+      "name": "गोगने",
+      "status": "baseline_disconnected",
+      "routes": {}
+    },
+    {
+      "name": "node/3651242335",
+      "status": "baseline_disconnected",
+      "routes": {}
+    },
+    {
+      "name": "धइबुङ",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.4126984126984127,
+          "length_m": 1867.6804672533892
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.4126984126984127,
+          "length_m": 1867.6804672533892
+        }
+      }
+    },
+    {
+      "name": "गणेशस्थान",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9192233009708738,
+          "length_m": 38607.452625806596
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9192233009708738,
+          "length_m": 38607.452625806596
+        }
+      }
+    },
+    {
+      "name": "Rautbesi",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9931129476584022,
+          "length_m": 10872.538763654153
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9931129476584022,
+          "length_m": 10872.538763654153
+        }
+      }
+    },
+    {
+      "name": "National Rainbow Trout Research Station, Dhunche",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.6142131979695431,
+          "length_m": 2927.966031195051
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.6142131979695431,
+          "length_m": 2927.966031195051
+        }
+      }
+    },
+    {
+      "name": "Pasture and Fodder Research Station, Dhunche",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.5610859728506787,
+          "length_m": 3285.968108743527
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.5610859728506787,
+          "length_m": 3285.968108743527
+        }
+      }
+    },
+    {
+      "name": "ढुङ्गे",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.2946859903381642,
+          "length_m": 3077.8768989313917
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.2946859903381642,
+          "length_m": 3077.8768989313917
+        }
+      }
+    },
+    {
+      "name": "घोर्मु",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.604989604989605,
+          "length_m": 7190.727230047205
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.604989604989605,
+          "length_m": 7190.727230047205
+        }
+      }
+    },
+    {
+      "name": "पारच्याङ्ग",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.32968536251709984,
+          "length_m": 21907.49286521354
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.32968536251709984,
+          "length_m": 21907.49286521354
+        }
+      }
+    },
+    {
+      "name": "धर्नाभदौरे",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 208.58449372026666,
+          "observed_sample_fraction": 0.6334681496461072,
+          "length_m": 29641.266809290388
+        }
+      }
+    },
+    {
+      "name": "सिरुचेत",
+      "status": "cut_off",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 208.58449372026666,
+          "observed_sample_fraction": 0.6288297338021095,
+          "length_m": 29836.020975623953
+        }
+      }
+    },
+    {
+      "name": "खालचेत",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.7228070175438597,
+          "length_m": 4252.912349239438
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.7228070175438597,
+          "length_m": 4252.912349239438
+        }
+      }
+    },
+    {
+      "name": "सरसिउ",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.6631578947368421,
+          "length_m": 5674.659543010941
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.6631578947368421,
+          "length_m": 5674.659543010941
+        }
+      }
+    },
+    {
+      "name": "चोलाङपाटी",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "च्यानडाँडा",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9296875,
+          "length_m": 5734.473531391091
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9296875,
+          "length_m": 5734.473531391091
+        }
+      }
+    },
+    {
+      "name": "साङ्ले डाँडा",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "तेङ्चे गाउँ",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "डे गाङ् गाउँ",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "मालुङ् गाउँ",
+      "status": "unassessed",
+      "routes": {}
+    },
+    {
+      "name": "कटुन्जे गाउँ",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9296875,
+          "length_m": 5734.473531391091
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9296875,
+          "length_m": 5734.473531391091
+        }
+      }
+    },
+    {
+      "name": "बिसन् गाउँ",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9296875,
+          "length_m": 5734.473531391091
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9296875,
+          "length_m": 5734.473531391091
+        }
+      }
+    },
+    {
+      "name": "एक्पाखे",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.4240992321323095,
+          "length_m": 25377.87777748839
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.4240992321323095,
+          "length_m": 25377.87777748839
+        }
+      }
+    },
+    {
+      "name": "दनुस्वारा",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9574642126789366,
+          "length_m": 36655.14084659192
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9574642126789366,
+          "length_m": 36655.14084659192
+        }
+      }
+    },
+    {
+      "name": "मान्डुचेट",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.7943963741244334,
+          "length_m": 36378.582226538274
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.7943963741244334,
+          "length_m": 36378.582226538274
+        }
+      }
+    },
+    {
+      "name": "च्युपर खोला",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.3786764705882353,
+          "length_m": 16303.743373960962
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.3786764705882353,
+          "length_m": 16303.743373960962
+        }
+      }
+    },
+    {
+      "name": "कप्ताली",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.4240992321323095,
+          "length_m": 25377.87777748839
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.4240992321323095,
+          "length_m": 25377.87777748839
+        }
+      }
+    },
+    {
+      "name": "थाङ्सेन युवा",
+      "status": "baseline_disconnected",
+      "routes": {}
+    },
+    {
+      "name": "घिचेत",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.36970474967907574,
+          "length_m": 23343.736682230694
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.36970474967907574,
+          "length_m": 23343.736682230694
+        }
+      }
+    },
+    {
+      "name": "बडहरे",
+      "status": "connected",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 1.0,
+          "length_m": 1165.1222418454665
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 1.0,
+          "length_m": 1165.1222418454665
+        }
+      }
+    },
+    {
+      "name": "कोमु",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.6127562642369021,
+          "length_m": 6561.579403011023
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.6127562642369021,
+          "length_m": 6561.579403011023
+        }
+      }
+    },
+    {
+      "name": "घिचेत घटेलुङ",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.8050314465408805,
+          "length_m": 38142.77192282517
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.8050314465408805,
+          "length_m": 38142.77192282517
+        }
+      }
+    },
+    {
+      "name": "नौकुण्ड",
+      "status": "baseline_disconnected",
+      "routes": {}
+    },
+    {
+      "name": "उत्तरगया",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.5050709939148073,
+          "length_m": 7365.314958792057
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.5050709939148073,
+          "length_m": 7365.314958792057
+        }
+      }
+    },
+    {
+      "name": "कालिका",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.3249097472924188,
+          "length_m": 4138.427288463296
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.3249097472924188,
+          "length_m": 4138.427288463296
+        }
+      }
+    },
+    {
+      "name": "गोसाइँकुण्ड",
+      "status": "connected",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 1.0,
+          "length_m": 203.28086687669114
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 1.0,
+          "length_m": 203.28086687669114
+        }
+      }
+    },
+    {
+      "name": "दुप्चेश्वर",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9911504424778761,
+          "length_m": 6762.436648754767
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9911504424778761,
+          "length_m": 6762.436648754767
+        }
+      }
+    },
+    {
+      "name": "तादी",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9950980392156863,
+          "length_m": 15272.671721661412
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9950980392156863,
+          "length_m": 15272.671721661412
+        }
+      }
+    },
+    {
+      "name": "सूर्यगढी",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9507900677200903,
+          "length_m": 33200.228778367244
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9507900677200903,
+          "length_m": 33200.228778367244
+        }
+      }
+    },
+    {
+      "name": "way/340541048",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9898477157360406,
+          "length_m": 8842.200115797436
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9898477157360406,
+          "length_m": 8842.200115797436
+        }
+      }
+    },
+    {
+      "name": "way/340549216",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9886148007590133,
+          "length_m": 7878.075663350256
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9886148007590133,
+          "length_m": 7878.075663350256
+        }
+      }
+    },
+    {
+      "name": "way/341634054",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9894736842105263,
+          "length_m": 8522.212425482512
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9894736842105263,
+          "length_m": 8522.212425482512
+        }
+      }
+    },
+    {
+      "name": "way/341538706",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9905385735080058,
+          "length_m": 20594.56685604285
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9905385735080058,
+          "length_m": 20594.56685604285
+        }
+      }
+    },
+    {
+      "name": "way/341538712",
+      "status": "uncertain_access",
+      "routes": {
+        "baseline_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9905385735080058,
+          "length_m": 20583.70925699633
+        },
+        "after_route": {
+          "offroad_length_m": 0.0,
+          "candidate_overlap_m": 0.0,
+          "observed_sample_fraction": 0.9905385735080058,
+          "length_m": 20583.70925699633
+        }
+      }
+    }
+  ],
+  "issues": [],
+  "glossary": {
+    "potential inundation": "सम्भावित डुबान",
+    "debris/land-cover candidate": "सम्भावित माटो/ढुंगा वा भूआवरण परिवर्तन",
+    "uncertain road access": "सडक सम्पर्क अनिश्चित",
+    "unassessed": "मूल्याङ्कन हुन सकेन",
+    "structural damage not confirmed": "संरचनागत क्षति पुष्टि गर्दैन"
+  },
+  "limitations": "Authored held-out prompts and independent checks of exported geometry establish internal consistency, not native-language approval, actual closures, facility operation or field accuracy."
+}
