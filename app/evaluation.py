@@ -60,15 +60,30 @@ def evaluate_run(folder, reference_path, coverage_path, activation="EMSR927", al
     valid = (classes != 255) & reviewed
     if not valid.any():
         raise ValueError("No shared valid prediction and reviewed reference coverage.")
+    primary_prediction = np.isin(classes,[2,3])
+    primary_valid = valid
+    target = "combined supplied extent"
+    if landslide_only:
+        primary_prediction = classes == 3
+        target = "debris candidate versus official landslide extent"
+        eligibility = folder / "eligibility.tif"
+        if eligibility.exists():
+            with rasterio.open(eligibility) as source:
+                primary_valid = reviewed & (source.read(3) > 0)
+        if not primary_valid.any():
+            raise ValueError("No shared clear optical eligibility for the landslide/debris comparison.")
     result = {"activation": activation, "mode": "synthetic sanity check" if run["mode"] == "demo" else "reference comparison",
               "run_id": run["id"], "reference_file": str(Path(reference_path).name), "coverage_file": str(Path(coverage_path).name),
               "evaluated_pixels": int(valid.sum()), "evaluated_area_km2": float(valid.sum()*grid.resolution**2/1e6),
               "reviewed_pixels_inside_grid": int(reviewed.sum()), "valid_reviewed_coverage_pct": float(100*valid.sum()/reviewed.sum()),
-              "metrics": binary_metrics(np.isin(classes, [2, 3]), reference, valid),
+              "primary_target":target, "primary_evaluated_pixels":int(primary_valid.sum()),
+              "metrics": binary_metrics(primary_prediction, reference, primary_valid),
+              "combined_diagnostic":binary_metrics(np.isin(classes,[2,3]),reference,valid),
+              "water_validation":{"status":"unavailable" if landslide_only else "requires class review", "reason":"EMSR927 observed-event polygons are landslides; no water accuracy is inferred." if landslide_only else "Inspect reference water class before interpreting water overlap."},
               "reference_classes": reference_classes,
-              "comparison_type": "landslide-class diagnostic; not flood-water accuracy" if landslide_only else "supplied reference extent comparison",
+              "comparison_type": "class-matched debris/landslide comparison; not flood-water accuracy" if landslide_only else "supplied reference extent comparison",
               "separate_classes": {"new_water": binary_metrics(classes == 2, reference, valid),
                                    "debris_candidate": binary_metrics(classes == 3, reference, valid)},
               "attribution": "European Union, Copernicus Emergency Management Service data",
-              "limitations": ("The official observed-event polygons are landslides. This class-mismatched diagnostic is not a flood-water accuracy score. " if landslide_only else "") + "Compares combined water/debris change to supplied reference extent at pixel centers inside reviewed coverage. Differences in acquisition dates, class definitions and map scale remain. Does not validate structural damage or actual road closures."}
+              "limitations": ("The official observed-event polygons are landslides. Primary metrics compare only debris candidates on clear optical coverage; this is not a flood-water accuracy score. " if landslide_only else "") + "Pixel-center comparison inside reviewed coverage. Acquisition timing, candidate-versus-confirmed class definitions and map scale differ. Combined change overlap is retained only as a secondary diagnostic. Structural damage and actual road closures remain unverified."}
     return result

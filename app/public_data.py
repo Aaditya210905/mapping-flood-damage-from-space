@@ -146,18 +146,18 @@ def dem_tiles(grid):
 
 class Calibration:
     """Interpolate per-scene calibration and thermal noise in original DN geometry."""
-    def __init__(self, folder):
+    def __init__(self, folder, polarization="vv"):
         self.folder = Path(folder)
-        calibration = ElementTree.parse(self.folder / "annotation/calibration/calibration-iw-vv.xml")
+        calibration = ElementTree.parse(self.folder / f"annotation/calibration/calibration-iw-{polarization}.xml")
         self.beta = self.vectors(calibration.findall(".//calibrationVector"), "betaNought")
-        noise = ElementTree.parse(self.folder / "annotation/calibration/noise-iw-vv.xml")
+        noise = ElementTree.parse(self.folder / f"annotation/calibration/noise-iw-{polarization}.xml")
         self.noise = self.vectors(noise.findall(".//noiseRangeVector"), "noiseRangeLut")
         self.azimuth = []
         for vector in noise.findall(".//noiseAzimuthVector"):
             self.azimuth.append((int(vector.findtext("firstAzimuthLine")), int(vector.findtext("lastAzimuthLine")),
                 int(vector.findtext("firstRangeSample")), int(vector.findtext("lastRangeSample")),
                 np.fromstring(vector.findtext("line"), sep=" "), np.fromstring(vector.findtext("noiseAzimuthLut"), sep=" ")))
-        annotation = ElementTree.parse(self.folder / "annotation/iw-vv.xml")
+        annotation = ElementTree.parse(self.folder / f"annotation/iw-{polarization}.xml")
         self.already_denoised = annotation.findtext(".//thermalNoiseCorrectionPerformed") == "true"
 
     @staticmethod
@@ -188,21 +188,21 @@ class Calibration:
         return block.copy(data=corrected.astype("float32"))
 
 
-def raw_rtc(item, dem_path, padded, grid, cache):
+def raw_rtc(item, dem_path, padded, grid, cache, polarization="vv"):
     import dask
     import xarray as xr
     from sarsen import Sentinel1SarProduct, apps
     folder = cache / item["id"]
     folder.mkdir(exist_ok=True)
-    output = folder / "rtc-final.tif"
+    output = folder / ("rtc-final.tif" if polarization == "vv" else "rtc-vh.tif")
     if output.exists():
         return read_grid(str(output), grid)
-    measurement = item["assets"]["vv"]["href"]
+    measurement = item["assets"][polarization]["href"]
     base = measurement.rsplit("/measurement/", 1)[0]
     signed = signed_url(measurement)
     token = signed.split("?", 1)[1]
     with httpx.Client(timeout=90, follow_redirects=True) as client:
-        for name in ("manifest.safe", "annotation/iw-vv.xml", "annotation/calibration/calibration-iw-vv.xml", "annotation/calibration/noise-iw-vv.xml"):
+        for name in ("manifest.safe", f"annotation/iw-{polarization}.xml", f"annotation/calibration/calibration-iw-{polarization}.xml", f"annotation/calibration/noise-iw-{polarization}.xml"):
             path = folder / name
             if not path.exists():
                 response = client.get(f"{base}/{name}?{token}"); response.raise_for_status()
@@ -210,10 +210,10 @@ def raw_rtc(item, dem_path, padded, grid, cache):
     # Explicit /vsicurl/ prevents GDAL's VRT driver downloading the full GRD file.
     with rasterio.Env(**REMOTE_ENV), rasterio.open(signed) as source:
         width, height = source.width, source.height
-    pointer = folder / "measurement/iw-vv.tiff"
+    pointer = folder / f"measurement/iw-{polarization}.tiff"
     pointer.parent.mkdir(exist_ok=True)
     pointer.write_text(f'<VRTDataset rasterXSize="{width}" rasterYSize="{height}"><VRTRasterBand dataType="UInt16" band="1"><NoDataValue>0</NoDataValue><SimpleSource><SourceFilename relativeToVRT="0">/vsicurl/{escape(signed)}</SourceFilename><SourceBand>1</SourceBand><SrcRect xOff="0" yOff="0" xSize="{width}" ySize="{height}"/><DstRect xOff="0" yOff="0" xSize="{width}" ySize="{height}"/></SimpleSource></VRTRasterBand></VRTDataset>')
-    calibration = Calibration(folder)
+    calibration = Calibration(folder, polarization)
     class CorrectedProduct(Sentinel1SarProduct):
         @cached_property
         def measurement(self):
@@ -222,15 +222,18 @@ def raw_rtc(item, dem_path, padded, grid, cache):
             measurement = self.measurement["measurement"]
             corrected = xr.map_blocks(calibration.correct, measurement, template=measurement.astype("float32"))
             return corrected.drop_vars(["pixel", "line"])
-    product = CorrectedProduct(str(folder / "manifest.safe"), measurement_group="IW/VV", measurement_chunks=512)
+    product = CorrectedProduct(str(folder / "manifest.safe"), measurement_group=f"IW/{polarization.upper()}", measurement_chunks=512)
     temporary = output.with_name("rtc-processing.tif")
     try:
         with rasterio.Env(**REMOTE_ENV), dask.config.set(scheduler="synchronous", num_workers=2):
-            apps.terrain_correction(product, str(dem_path), output_urlpath=str(temporary),
+            geocoded = apps.terrain_correction(product, str(dem_path), output_urlpath=str(temporary),
                 correct_radiometry="gamma_bilinear", chunks=256, radiometry_chunks=512, radiometry_bound=64)
+            geocoded.close()
         temporary.replace(output)
     finally:
         temporary.unlink(missing_ok=True)
+        if "measurement" in product.__dict__:
+            product.measurement.close()
     return read_grid(str(output), grid)
 
 
@@ -269,15 +272,29 @@ def acquire_public(params, grid, folder, progress):
         write_grid(dem_path, elevation + geoid, padded)
         save_json(cache / "dem-sources.json", {"tiles": dem_urls, "vertical_conversion": geoid_url})
     dem = read_grid(str(dem_original), grid)
-    arrays = []
+    arrays, cross_arrays, quality_arrays = [], [], []
     for index, (scene, item) in enumerate(zip(scenes, selected)):
         progress(f"Locally calibrating and terrain-correcting {'pre' if index == 0 else 'post'}-event Sentinel-1", 28+index*18)
         values = raw_rtc(item, dem_path, padded, grid, cache)
-        valid = np.isfinite(values) & (values > 0)
-        arrays.append(np.stack([values, valid.astype("float32")]))
+        cross = raw_rtc(item, dem_path, padded, grid, cache, polarization="vh")
+        from app.terrain import scene_quality
+        quality_path = cache / f"{scene.id}-terrain-quality-v3.tif"
+        if not quality_path.exists():
+            with rasterio.open(dem_path) as source:
+                elevation = source.read(1)
+            quality = scene_quality(cache / scene.id / "annotation/iw-vv.xml", elevation, padded)
+            write_grid(quality_path, quality, padded)
+        with rasterio.open(quality_path) as source, WarpedVRT(source, crs=grid.crs, transform=grid.transform,
+            width=grid.width,height=grid.height,resampling=Resampling.nearest) as warped:
+            quality = warped.read()
+        valid = np.isfinite(values) & (values > 0) & np.isfinite(cross) & (cross > 0)
+        arrays.append(np.stack([values, valid.astype("float32"), (quality[1] > 0).astype('float32')]))
+        cross_arrays.append(cross); quality_arrays.append(quality)
         write_grid(Path(folder) / f"s1-{'before' if index == 0 else 'after'}.tif", arrays[-1], grid)
+        write_grid(Path(folder) / f"s1-vh-{'before' if index == 0 else 'after'}.tif", cross, grid)
+        write_grid(Path(folder) / f"terrain-{'before' if index == 0 else 'after'}.tif", quality, grid)
     optical_before, optical_after, optical_scenes = None, None, []
-    warnings = ["Local public-GRD processing has no complete radar shadow/layover mask. Copernicus DEM slope screening is applied; terrain occlusion remains a limitation."]
+    warnings = ["Annotation-driven local layover/self-shadow and DEM ray screening are applied over a 1.92 km horizon. Visibility is approximate; distant occlusion and subpixel terrain remain uncertain."]
     progress("Downloading actual Sentinel-2 clear-sky support", 63)
     try:
         optical_catalog = cache / "optical-catalog.json"
@@ -297,9 +314,12 @@ def acquire_public(params, grid, folder, progress):
     except (httpx.HTTPError, ValueError, KeyError, rasterio.errors.RasterioError) as error:
         warnings.append(f"Sentinel-2 retrieval failed ({type(error).__name__}); no fabricated optical inputs were substituted. Debris estimation is unavailable.")
     return {"before": arrays[0], "after": arrays[1], "dem": dem, "osm": osm, "snapshot": timestamp, "scenes": scenes,
+            "vh_before": cross_arrays[0], "vh_after": cross_arrays[1], "terrain_before": quality_arrays[0], "terrain_after": quality_arrays[1],
             "optical_before": optical_before, "optical_after": optical_after, "optical_scenes": optical_scenes, "warnings": warnings,
             "acquisition": {"provider": "Original ESA Sentinel GRD via the Microsoft public mirror; locally processed",
                 "radar_assets": [i["assets"]["vv"]["href"] for i in selected], "catalog": STAC,
+                "radar_assets_vh": [i["assets"]["vh"]["href"] for i in selected],
+                "terrain_screening": {"method":"Orbit/annotation local incidence, self-shadow and layover; Copernicus-DEM ray occlusion", "horizon_m":1920,"approximate":True},
                 "dem": json.loads((cache / "dem-sources.json").read_text()),
                 "processing": "DN squared, annotation range/azimuth thermal denoising, beta0 calibration, sarsen gamma_bilinear RTC with Copernicus GLO-30 and EGM2008-to-ellipsoid height conversion",
                 "osm_sha256": sha256(osm_path)}}

@@ -13,9 +13,9 @@ from app import providers
 
 def test_live_radar_request_records_terrain_processing_and_pass_window(monkeypatch,tmp_path):
     grid=Grid("EPSG:32645",from_origin(400000,3101000,30,30),8,8,30)
-    data=np.stack([np.full((8,8),.1),np.ones((8,8)),np.zeros((8,8))]).astype("float32")
+    data=np.stack([np.full((8,8),.1),np.ones((8,8)),np.zeros((8,8)),np.full((8,8),.03)]).astype("float32")
     with MemoryFile() as memory:
-        with memory.open(driver="GTiff",height=8,width=8,count=3,dtype="float32",crs=grid.crs,transform=grid.transform) as dataset:
+        with memory.open(driver="GTiff",height=8,width=8,count=4,dtype="float32",crs=grid.crs,transform=grid.transform) as dataset:
             dataset.write(data)
         tiff=memory.read()
     calls=[]

@@ -236,3 +236,29 @@ def load_sample(record, folder):
     if vv.shape != water.shape or vv.shape != valid.shape or vv.ndim != 2:
         raise ValueError("Training image, label and validity mask are not aligned.")
     return vv, water, valid
+
+
+def load_radar_chip(record, folder):
+    """Dual-polarization observations, with label validity kept separate."""
+    folder = Path(folder)
+    if record["dataset"] == "sen1floods11":
+        with rasterio.open(folder / record["files"]["radar"]) as source:
+            radar = source.read().astype("float32")
+            observed = np.all(source.read_masks() > 0, axis=0) & np.all(np.isfinite(radar), axis=0)
+        with rasterio.open(folder / record["files"]["label"]) as source:
+            labels = source.read(1)
+        label_valid, water = np.isin(labels, [0, 1]), labels == 1
+    elif record["dataset"] == "kuro_siwo":
+        def read(key):
+            return np.load(folder / record["files"][key], allow_pickle=False).squeeze()
+        linear = np.stack([read("flood_vv"), read("flood_vh")])
+        observed = (read("valid_mask") > 0) & np.all(np.isfinite(linear) & (linear > 0), axis=0)
+        radar = 10 * np.log10(np.maximum(linear, 1e-10))
+        labels = read("mask")
+        label_valid, water = np.isin(labels, [0, 1, 2]), np.isin(labels, [1, 2])
+    else:
+        raise ValueError("Only listed training datasets may supply labeled radar chips.")
+    if radar.shape[0] != 2 or radar.shape[1:] != water.shape or observed.shape != water.shape:
+        raise ValueError("Dual-polarization radar and labels are not aligned.")
+    return {"vv": radar[0], "vh": radar[1], "water": water, "observed": observed,
+            "label_valid": label_valid & observed}

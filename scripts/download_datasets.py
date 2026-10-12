@@ -9,8 +9,8 @@ from app.datasets import DATASETS, download_kuro_siwo, download_sen1floods11
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--dataset", choices=["all", "kuro_siwo", "sen1floods11"], default="all")
 parser.add_argument("--root", type=Path, default=DATASETS)
-parser.add_argument("--sen-per-split", type=int, default=32, help="0 downloads all 431 official train/valid/test hand-labeled pairs")
-parser.add_argument("--kuro-per-shard", type=int, default=12, help="Samples from each of four train and two test shards")
+parser.add_argument("--sen-per-split", type=int, default=0, help="0 downloads all 431 official train/valid/test hand-labeled pairs")
+parser.add_argument("--kuro-per-shard", type=int, default=128, help="Samples from each of four train and two test shards")
 args = parser.parse_args()
 if args.sen_per_split < 0 or not 1 <= args.kuro_per_shard <= 1000:
     parser.error("Use a nonnegative Sen limit and 1–1000 Kuro samples per shard.")

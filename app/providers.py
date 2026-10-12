@@ -1,5 +1,6 @@
 """Allowed-input adapters. Published damage maps are deliberately absent."""
 from datetime import datetime, timedelta, timezone
+import time
 from io import BytesIO
 import os
 from pathlib import Path
@@ -20,6 +21,21 @@ TOKEN_URL = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/
 OSM_URL = "https://api.ohsome.org/v1"
 OSM_V2_URL = "https://api.heigit.org/ohsome-api/v2-rc"
 OSM_FILTER = "building=* or highway=* or bridge=* or place in (village,hamlet,isolated_dwelling,town,city) or amenity=hospital"
+
+
+def historical_request(client, method, url, **kwargs):
+    """Retry transient transport/service failures without changing data policy."""
+    for attempt in range(3):
+        try:
+            response = client.request(method,url,**kwargs)
+            if response.status_code in (429,500,502,503,504) and attempt < 2:
+                time.sleep(attempt+1)
+                continue
+            response.raise_for_status()
+            return response
+        except (httpx.TimeoutException,httpx.NetworkError):
+            if attempt == 2:raise
+            time.sleep(attempt+1)
 
 
 def search_catalog(bbox, start, end, collection="sentinel-1-grd"):
@@ -133,13 +149,13 @@ def historical_v2(client, params, event, snapshot_hint=None):
 def osm_snapshot(params):
     event = datetime.combine(params.flood_date, datetime.min.time(), tzinfo=timezone.utc)
     snapshot = None
-    with httpx.Client(timeout=240, follow_redirects=True) as client:
+    with httpx.Client(timeout=httpx.Timeout(240,connect=20), follow_redirects=True) as client:
         try:
-            metadata = client.get(f"{OSM_URL}/metadata")
+            metadata = historical_request(client,"GET",f"{OSM_URL}/metadata")
             metadata.raise_for_status()
             snapshot = choose_snapshot(metadata.json(), event)
             timestamp = snapshot.isoformat().replace("+00:00", "Z")
-            response = client.post(f"{OSM_URL}/elements/geometry", data={
+            response = historical_request(client,"POST",f"{OSM_URL}/elements/geometry", data={
                 "bboxes": ",".join(map(str, params.bbox)), "time": timestamp,
                 "filter": OSM_FILTER, "properties": "tags,metadata", "clipGeometry": "true",
             })
@@ -193,7 +209,7 @@ def historical_v1_interval(client, params, available_until):
     instant = available_until - timedelta(seconds=2)
     timestamp = instant.isoformat().replace("+00:00", "Z")
     end = (instant + timedelta(seconds=1)).isoformat().replace("+00:00", "Z")
-    response = client.post(f"{OSM_URL}/elementsFullHistory/geometry", data={
+    response = historical_request(client,"POST",f"{OSM_URL}/elementsFullHistory/geometry", data={
         "bboxes": ",".join(map(str, params.bbox)), "time": f"{timestamp},{end}",
         "filter": OSM_FILTER, "properties": "tags,metadata", "clipGeometry": "true",
     })
@@ -218,7 +234,7 @@ class CopernicusProvider:
             self.token = response.json()["access_token"]
 
     def process(self, kind, output_name, scene=None):
-        bands = {"sentinel-1-grd": ["VV", "dataMask", "shadowMask"], "sentinel-2-l2a": ["B03", "B04", "B08", "B11", "SCL", "dataMask"], "dem": ["DEM"]}[kind]
+        bands = {"sentinel-1-grd": ["VV", "dataMask", "shadowMask", "VH"], "sentinel-2-l2a": ["B03", "B04", "B08", "B11", "SCL", "dataMask"], "dem": ["DEM"]}[kind]
         evaluation = f"//VERSION=3\nfunction setup(){{return {{input:{bands!r},output:{{bands:{len(bands)},sampleType:'FLOAT32'}}}};}}\nfunction evaluatePixel(s){{return [{','.join('s.' + band for band in bands)}];}}"
         data_filter = {}
         processing = {}
@@ -294,5 +310,5 @@ def acquire_live(params, grid, folder, progress):
     except (httpx.HTTPError, ValueError, KeyError):
         warnings.append("Optical provider unavailable. Radar water analysis continues without debris candidates.")
         optical_before, optical_after = None, None
-    return {"before": before, "after": after, "dem": dem, "osm": osm, "scenes": scenes, "snapshot": timestamp,
+    return {"before": before, "after": after, "vh_before": before[3], "vh_after": after[3], "dem": dem, "osm": osm, "scenes": scenes, "snapshot": timestamp,
             "optical_before": optical_before, "optical_after": optical_after, "optical_scenes": optical_scenes, "warnings": warnings}

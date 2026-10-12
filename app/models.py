@@ -13,10 +13,10 @@ ATTRIBUTIONS = [
 LIMITATIONS = [
     "Educational prototype. Satellite estimates require independent field verification.",
     "Satellite revisits take days; this system cannot warn of a sudden glacier collapse minutes ahead.",
-    "Radar shadow, layover, vegetation and urban double-bounce can hide flooding or produce false changes. Steep slopes and shadow are masked when DEM and auxiliary data are available; layover is not fully modeled.",
+    "Radar shadow, layover, vegetation and urban double-bounce affect inference. Annotation/orbit and DEM screening covers local geometry and a 1.92 km horizon; distant occlusion and subpixel terrain remain uncertain. Water targets use a separate slope eligibility mask.",
     "Optical cloud, snow and cloud-shadow pixels are excluded. Debris is a low-confidence change candidate, not a confirmed debris-flow classification.",
     "Buildings, roads and bridges intersecting mapped changes are potentially exposed, not verified damaged or destroyed.",
-    "Road isolation assumes exposed segments are impassable; incomplete OSM mapping, snapping and routes outside the analysis area can change the result.",
+    "Road isolation assumes candidate-intersecting segments are impassable. Oneway and vehicle restrictions are honored; unobserved route segments are uncertain. Incomplete OSM node identity, turn restrictions, snapping and routes outside the area can change results.",
     "Population, deaths, missing people, injuries and rescue priorities cannot be inferred from these inputs.",
     "Downhill DEM tracing is a terrain screening tool, not a hydraulic flood or travel-time simulation.",
 ]

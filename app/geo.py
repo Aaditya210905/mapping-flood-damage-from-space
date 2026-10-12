@@ -75,15 +75,15 @@ def slope_degrees(dem, resolution):
     return np.degrees(np.arctan(np.hypot(dx, dy)))
 
 
-def detect_changes(before, after, grid, params, dem=None, optical_before=None, optical_after=None):
+def detect_changes(before, after, grid, params, dem=None, optical_before=None, optical_after=None, vh_before=None, vh_after=None):
     """S1 arrays are [VV linear gamma0, dataMask, shadowMask]. S2: B03,B04,B08,B11,SCL,dataMask."""
     valid = (before[1] > 0) & (after[1] > 0) & (before[0] > 0) & (after[0] > 0)
     valid &= np.isfinite(before[0]) & np.isfinite(after[0])
     if before.shape[0] > 2 and after.shape[0] > 2:
         valid &= (before[2] == 0) & (after[2] == 0)
     radar_valid = valid.copy()
-    if dem is not None:
-        valid &= np.isfinite(dem) & (slope_degrees(dem, grid.resolution) < params.max_slope_deg)
+    low_slope = np.ones(valid.shape,dtype=bool) if dem is None else np.isfinite(dem) & (slope_degrees(dem, grid.resolution) < params.max_slope_deg)
+    valid &= low_slope
     # Median in log space suppresses isolated speckle; invalid neighbors are never treated as water.
     raw_before_db = np.where(radar_valid, 10 * np.log10(np.maximum(before[0], 1e-10)), np.nan)
     raw_after_db = np.where(radar_valid, 10 * np.log10(np.maximum(after[0], 1e-10)), np.nan)
@@ -97,8 +97,15 @@ def detect_changes(before, after, grid, params, dem=None, optical_before=None, o
         from app.segmentation import water_probabilities
         # Terrain eligibility applies to the target pixel. Its observed radar
         # neighbors remain valid feature context even when their slopes are high.
-        probability_before, pre_usable, card = water_probabilities(raw_before_db, radar_valid)
-        probability_after, post_usable, _ = water_probabilities(raw_after_db, radar_valid)
+        if vh_before is not None and vh_after is not None:
+            radar_valid &= np.isfinite(vh_before) & (vh_before > 0) & np.isfinite(vh_after) & (vh_after > 0)
+            pre_cross = {"vh_db":10*np.log10(np.maximum(vh_before,1e-10))}
+            post_cross = {"vh_db":10*np.log10(np.maximum(vh_after,1e-10))}
+        else:
+            pre_cross, post_cross = {}, {}
+        probability_before, pre_usable, card = water_probabilities(raw_before_db, radar_valid, **pre_cross)
+        probability_after, post_usable, _ = water_probabilities(raw_after_db, radar_valid, **post_cross)
+        radar_valid &= pre_usable & post_usable
         valid &= pre_usable & post_usable
         permanent = valid & (probability_before >= card["threshold"])
         water = valid & ~permanent & (probability_after >= card["threshold"]) & (drop > params.change_threshold_db)
@@ -112,17 +119,36 @@ def detect_changes(before, after, grid, params, dem=None, optical_before=None, o
         optical_valid = (optical_before[5] > 0) & (optical_after[5] > 0)
         optical_valid &= ~np.isin(optical_before[4], excluded) & ~np.isin(optical_after[4], excluded)
         optical_valid &= np.all(np.isfinite(optical_before[:4]), axis=0) & np.all(np.isfinite(optical_after[:4]), axis=0)
+        optical_valid &= np.all(optical_before[:4] >= 0,axis=0) & np.all(optical_after[:4] >= 0,axis=0)
         def index(a, b):
-            return (a - b) / np.maximum(a + b, 1e-6)
+            return np.divide(a-b,a+b,out=np.full(a.shape,np.nan,dtype='float32'),where=(a+b)>1e-6)
         pre_ndvi = index(optical_before[2], optical_before[1])
         post_ndvi = index(optical_after[2], optical_after[1])
         pre_water = index(optical_before[0], optical_before[3])
         post_water = index(optical_after[0], optical_after[3])
-        optical_water = optical_valid & valid & ~permanent & (post_water > .2) & (pre_water <= .2)
+        optical_water = optical_valid & low_slope & ~permanent & (post_water > .2) & (pre_water <= .2)
         # Vegetation loss + radar change is only a debris candidate; wet soil/harvest can look similar.
-        debris = optical_valid & valid & ~permanent & ~water & ~optical_water
-        debris &= (pre_ndvi > .3) & ((pre_ndvi - post_ndvi) > .25) & (np.abs(drop) > params.change_threshold_db)
+        if params.mode == "demo":
+            debris = optical_valid & valid & ~permanent & ~water & ~optical_water
+            debris &= (pre_ndvi > .3) & ((pre_ndvi - post_ndvi) > .25) & (np.abs(drop) > params.change_threshold_db)
+        else:
+            # Optical evidence remains observed on steep slopes and in radar
+            # shadow. Require both vegetation loss and increased bare surface;
+            # never use corrupted radar as confirmation there.
+            pre_bare = index(optical_before[3]+optical_before[1], optical_before[2]+optical_before[0])
+            post_bare = index(optical_after[3]+optical_after[1], optical_after[2]+optical_after[0])
+            debris = optical_valid & (pre_water <= .2) & (post_water <= .2) & ~water & ~optical_water
+            debris &= (pre_ndvi > .3) & ((pre_ndvi-post_ndvi) > .25) & ((post_bare-pre_bare) > .1)
+            # Require radar change where radar is interpretable. Optical-only
+            # targets use stricter spectral changes and remain low confidence.
+            corroborated = radar_valid & (np.abs(drop) > params.change_threshold_db)
+            optical_only = ~radar_valid & ((pre_ndvi-post_ndvi) > .4) & ((post_bare-pre_bare) > .2)
+            debris &= corroborated | optical_only
+        permanent |= optical_valid & low_slope & (pre_water > .2)
         water |= optical_water
+    water_eligible = valid | (optical_valid & low_slope)
+    debris_eligible = optical_valid & (valid if params.mode == "demo" else np.ones(valid.shape,dtype=bool))
+    valid = water_eligible | debris_eligible
     water = clean_mask(water, params.min_component_pixels)
     debris = clean_mask(debris, params.min_component_pixels)
     classes = np.zeros(water.shape, dtype=np.uint8)
@@ -134,6 +160,7 @@ def detect_changes(before, after, grid, params, dem=None, optical_before=None, o
         "classes": classes, "water": water, "debris": debris, "valid": valid,
         "permanent": permanent, "before_db": before_db, "after_db": after_db,
         "optical_valid": optical_valid, "optical_water": optical_water,
+        "radar_valid": radar_valid, "water_eligible": water_eligible, "debris_eligible": debris_eligible,
         **learned,
     }
 

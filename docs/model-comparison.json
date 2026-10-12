@@ -1,0 +1,47 @@
+{
+  "protocol": "Identical publisher test chips and identical observed/label-valid pixels. Frozen models; no test-driven threshold tuning.",
+  "evaluated_chips": 346,
+  "scores": {
+    "water-baseline-v1/kuro_siwo": {
+      "true_positive_pixels": 351452,
+      "false_positive_pixels": 28756,
+      "false_negative_pixels": 593922,
+      "true_negative_pixels": 11041112,
+      "iou": 0.3607855214396436,
+      "recall": 0.37175974799391565,
+      "precision": 0.9243677145141607,
+      "f1": 0.5302606704074135
+    },
+    "water-v2/kuro_siwo": {
+      "true_positive_pixels": 554185,
+      "false_positive_pixels": 210727,
+      "false_negative_pixels": 391189,
+      "true_negative_pixels": 10859141,
+      "iou": 0.47935690739822906,
+      "recall": 0.5862071518785158,
+      "precision": 0.7245081787185977,
+      "f1": 0.6480612014598728
+    },
+    "water-baseline-v1/sen1floods11": {
+      "true_positive_pixels": 1391397,
+      "false_positive_pixels": 311141,
+      "false_negative_pixels": 1083465,
+      "true_negative_pixels": 17334390,
+      "iou": 0.4994240853294128,
+      "recall": 0.5622119536362028,
+      "precision": 0.8172487192650032,
+      "f1": 0.666154545889788
+    },
+    "water-v2/sen1floods11": {
+      "true_positive_pixels": 1862552,
+      "false_positive_pixels": 807956,
+      "false_negative_pixels": 612310,
+      "true_negative_pixels": 16837575,
+      "iou": 0.5673637710040581,
+      "recall": 0.7525882251212391,
+      "precision": 0.6974523199331363,
+      "f1": 0.7239720369963676
+    }
+  },
+  "caveat": "V2 excludes India from training; v1 did not. Protocol changes are explicit, not a controlled architecture-only ablation."
+}

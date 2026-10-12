@@ -32,12 +32,13 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
     if str(inputs["snapshot"])[:10] >= str(params.flood_date):
         raise ValueError("OSM snapshot must predate the event.")
     progress("Mapping new inundation and possible debris", 72)
-    detected = detect_changes(inputs["before"], inputs["after"], grid, params, inputs["dem"], inputs["optical_before"], inputs["optical_after"])
+    detected = detect_changes(inputs["before"], inputs["after"], grid, params, inputs["dem"], inputs["optical_before"], inputs["optical_after"],
+                              inputs.get("vh_before"), inputs.get("vh_after"))
     # A geographic rectangle is not axis-aligned in UTM. Exclude padding cells
     # outside the requested AOI rather than counting the larger raster envelope.
     aoi = rasterize([(grid.project(segmentize(box(*params.bbox), max_segment_length=.001)), 1)], out_shape=(grid.height, grid.width),
                     transform=grid.transform, fill=0, dtype="uint8").astype(bool)
-    for key in ("water", "debris", "valid", "permanent", "optical_valid", "optical_water"):
+    for key in ("water", "debris", "valid", "permanent", "optical_valid", "optical_water", "radar_valid", "water_eligible", "debris_eligible"):
         detected[key] &= aoi
     detected["classes"][~aoi] = 255
     # Clipping to the geographic AOI can leave tiny boundary fragments from a
@@ -49,7 +50,7 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
         raise ValueError("No jointly valid radar pixels remain after quality and terrain masks.")
     extent = extent_features(detected, grid)
     progress("Intersecting infrastructure and testing road connectivity", 86)
-    layers, stats = analyze_impacts(inputs["osm"], extent, grid)
+    layers, stats = analyze_impacts(inputs["osm"], extent, grid, assessment_mask=detected["valid"])
     layers["extent"] = extent
     area_per_pixel = grid.resolution ** 2 / 1e6
     stats.update({
@@ -59,22 +60,26 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
         "valid_area_km2": round(float(detected["valid"].sum()) * area_per_pixel, 3),
         "valid_coverage_pct": round(float(detected["valid"].sum() / max(1, aoi.sum())) * 100, 1),
         "optical_clear_pct": round(float(detected["optical_valid"].sum() / max(1, aoi.sum())) * 100, 1),
+        "radar_valid_coverage_pct": round(float(detected["radar_valid"].sum()/max(1,aoi.sum()))*100,1),
+        "water_eligible_coverage_pct": round(float(detected["water_eligible"].sum()/max(1,aoi.sum()))*100,1),
+        "debris_eligible_coverage_pct": round(float(detected["debris_eligible"].sum()/max(1,aoi.sum()))*100,1),
     })
     warnings = inputs.get("warnings", [])
     if "water_model" in detected:
-        warnings.append("The initial model uses subsets of both listed training datasets; its low Kuro Siwo held-out recall and Himalayan processing differences limit reliability. Review the model card before interpreting an empty change map.")
+        warnings.append("Water inference uses both listed training datasets. Review held-out scores and radiometry/terrain differences in the model card; no detected change does not establish absence of damage.")
     if params.mode == "demo":
         warnings.insert(0, "All satellite-like inputs, terrain and OSM-like features in this run are synthetic. No results describe the real Trishuli event.")
     if stats["settlements_unassessed"]:
         warnings.append("Some settlements have no nearby mapped road or no mapped destination; they are unassessed, not newly cut off.")
     if stats["valid_coverage_pct"] < 50:
-        warnings.append("Less than half the area has jointly valid radar pixels. Exposure and access outside valid coverage may be underestimated.")
+        warnings.append("Less than half the area has eligible water or debris observations. Unobserved infrastructure and access remain uncertain.")
     run = {"id": run_id, "name": params.name, "mode": params.mode, "flood_date": str(params.flood_date),
            "created_at": datetime.now(timezone.utc).isoformat(), "bbox": params.bbox,
            "parameters": params.model_dump(mode="json"), "stats": stats, "layers": layers,
            "provenance": {"radar_scenes": [s.model_dump(mode="json") for s in inputs["scenes"]], "osm_snapshot": inputs["snapshot"],
                           "optical_scenes": inputs["optical_scenes"], "radar_processing": inputs.get("acquisition", {}).get("processing", "linear gamma0 terrain, Copernicus DEM 30, 3x3 median in dB"),
                           "acquisition": inputs.get("acquisition", {}), "water_model": detected.get("water_model", {"algorithm": "threshold baseline"}),
+                          "coverage_definitions": "radar_valid: physical screening/context; water_eligible: observed low-slope targets; debris_eligible: paired clear optical; valid: union of eligible water and debris targets",
                           "osm_source_api": inputs["osm"].get("metadata", {}).get("sourceApi", "synthetic"),
                           "crs": grid.crs, "resolution_m": grid.resolution, "grid_bounds": grid.bounds,
                           "source_policy": "Only Sentinel-1, Sentinel-2, Copernicus DEM, pre-event OSM and the two listed training datasets. Published damage maps are evaluation-only.",
@@ -100,6 +105,9 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
     with rasterio.open(folder / "dem-grid.tif", "w", driver="GTiff", height=grid.height, width=grid.width,
                        count=1, dtype="float32", crs=grid.crs, transform=grid.transform, nodata=np.nan, compress="deflate") as dst:
         dst.write(inputs["dem"], 1)
+    with rasterio.open(folder / "eligibility.tif", "w", driver="GTiff", height=grid.height,width=grid.width,count=3,dtype="uint8",crs=grid.crs,transform=grid.transform,compress="deflate") as dst:
+        dst.write(np.stack([detected["radar_valid"],detected["water_eligible"],detected["debris_eligible"]]).astype("uint8"))
+        dst.update_tags(bands="1=radar observed,2=water eligible,3=debris eligible; zeros are unassessed for that layer")
     (folder / "osm-snapshot.geojson").write_text(json.dumps(inputs["osm"], ensure_ascii=False), encoding="utf-8")
     for key, layer in layers.items():
         (folder / f"{key}.geojson").write_text(json.dumps(layer, ensure_ascii=False), encoding="utf-8")

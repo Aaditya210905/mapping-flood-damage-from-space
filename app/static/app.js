@@ -113,7 +113,7 @@ function renderRun(run) {
   const notice = run.mode === "demo" ? "<strong>Synthetic demonstration</strong> · All map features and results are generated test data. They do not describe the real Nepal flood." : "<strong>Satellite estimates</strong> · Infrastructure exposure and road interruptions require field verification.";
   $("notice").innerHTML = `<span class="notice-icon" aria-hidden="true">i</span><span>${notice}</span>`;
   $("map-caption").textContent = `${run.mode === "demo" ? "Synthetic" : "Estimated"} · ${run.name}`;
-  $("coverage-label").textContent = `${s.valid_coverage_pct}% valid radar coverage · ${run.provenance.resolution_m} m grid`;
+  $("coverage-label").textContent = `${s.valid_coverage_pct}% eligible observations · ${s.water_eligible_coverage_pct ?? s.valid_coverage_pct}% water-eligible · ${run.provenance.resolution_m} m grid`;
   const scenes = run.provenance.radar_scenes;
   $("before-date").textContent = dateLabel(scenes[0].acquired);
   $("after-date").textContent = dateLabel(scenes[1].acquired);
@@ -121,7 +121,7 @@ function renderRun(run) {
   const links = { "report-link": "report?language=en", "nepali-report": "report?language=ne", "export-geojson": "files/extent.geojson", "export-raster": "files/change-mask.tif", "export-audit": "files/result.json" };
   Object.entries(links).forEach(([id, suffix]) => { $(id).href = `${analysisBase()}/${suffix}`; $(id).setAttribute("aria-disabled", "false"); });
   $("report-link").target = $("nepali-report").target = "_blank";
-  const names = { cut_off: "Cut off", connected: "Connected", unassessed: "Unassessed", baseline_disconnected: "Pre-event disconnected" };
+  const names = { cut_off: "Modeled cutoff", connected: "Observed route available", uncertain_access: "Uncertain · unobserved route", unassessed: "Unassessed", baseline_disconnected: "Pre-event disconnected" };
   $("settlement-table").innerHTML = run.layers.settlements.features.map((f) => {
     const p = f.properties;
     const distances = `${p.before_distance_km == null ? "—" : p.before_distance_km + " km"} / ${p.after_distance_km == null ? "—" : p.after_distance_km + " km"}`;
@@ -136,6 +136,8 @@ function renderRun(run) {
     ["Processing", run.provenance.radar_processing], ["Analysis projection", `${run.provenance.crs} · ${run.provenance.resolution_m} m`],
     ["Water model", run.provenance.water_model?.algorithm || "Threshold baseline"],
     ["Training datasets", (run.provenance.water_model?.training_datasets || []).join(" + ") || "None for this run"],
+    ["Radar / water / debris eligibility", `${s.radar_valid_coverage_pct ?? s.valid_coverage_pct}% / ${s.water_eligible_coverage_pct ?? s.valid_coverage_pct}% / ${s.debris_eligible_coverage_pct ?? s.optical_clear_pct}%`],
+    ["Uncertain road access", `${s.settlements_access_uncertain ?? "Not assessed"} settlements; unobserved segments are not confirmed intact`],
     ["Copilot", "Local bilingual intent classifier; all facts rendered from saved analysis"],
   ];
   $("provenance-content").innerHTML = rows.map(([k, v]) => `<div class="provenance-row"><span>${escapeHTML(k)}</span><strong>${escapeHTML(v)}</strong></div>`).join("") + run.warnings.map((w) => `<p class="field-note">${escapeHTML(w)}</p>`).join("");

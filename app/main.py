@@ -64,6 +64,11 @@ def saved_run(run_id):
         if comparison.get("run_id") == run["id"]:
             run["evaluation"] = comparison
             run["attributions"] = run["attributions"] + [comparison["attribution"]]
+    assets = path.with_name("asset-evaluation.json")
+    if assets.exists():
+        comparison = json.loads(assets.read_text())
+        if comparison.get("run_id") == run["id"]:
+            run["asset_evaluation"] = comparison
     return run
 
 
@@ -196,7 +201,7 @@ def report(run_id: str, language: str = "en", format: str = "html"):
 
 @app.get("/api/analyses/{run_id}/files/{filename}")
 def file(run_id: str, filename: str):
-    allowed = {"before.png", "after.png", "change-mask.tif", "dem-grid.tif", "water-probability.tif", "evaluation.json", "s1-before.tif", "s1-after.tif", "s2-before.tif", "s2-after.tif", "result.json", "osm-snapshot.geojson", "extent.geojson", "buildings.geojson", "roads.geojson", "bridges.geojson", "settlements.geojson", "destinations.geojson"}
+    allowed = {"before.png", "after.png", "change-mask.tif", "dem-grid.tif", "water-probability.tif", "evaluation.json", "asset-evaluation.json", "eligibility.tif", "terrain-before.tif", "terrain-after.tif", "s1-before.tif", "s1-after.tif", "s1-vh-before.tif", "s1-vh-after.tif", "s2-before.tif", "s2-after.tif", "result.json", "osm-snapshot.geojson", "extent.geojson", "buildings.geojson", "roads.geojson", "bridges.geojson", "settlements.geojson", "destinations.geojson"}
     if filename not in allowed:
         raise HTTPException(404, "Unknown export")
     saved_run(run_id)
