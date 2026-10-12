@@ -57,4 +57,3 @@ def report_pdf(run):
     pdf.drawString(42, 28, f"Run {run['id']} | Generated {run['created_at']} | Educational prototype")
     pdf.showPage(); pdf.save()
     return stream.getvalue()
-

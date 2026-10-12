@@ -122,4 +122,3 @@ def analyze_impacts(osm, extent, grid, snap_distance=1000):
     def fc(features):
         return {"type": "FeatureCollection", "features": features}
     return {"buildings": fc(buildings), "roads": fc(roads), "bridges": fc(bridges), "settlements": fc(settlements), "destinations": fc(destinations)}, stats
-

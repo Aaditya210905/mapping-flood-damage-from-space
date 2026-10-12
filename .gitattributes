@@ -1,0 +1,4 @@
+*.pdf binary
+*.mp4 binary
+*.png binary
+app/static/vendor/** -text whitespace=cr-at-eol,-blank-at-eol

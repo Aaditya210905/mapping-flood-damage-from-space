@@ -83,4 +83,3 @@ def answer(run, question, language="en"):
     return {"answer": render_fact(run, intent, language), "intent": intent, "intent_confidence": round(score, 3),
             "evidence": [{"path": field, "run_id": run["id"]} for field in evidence[intent]],
             "model": "Local TF-IDF + logistic regression intent model; fact-only templates"}
-

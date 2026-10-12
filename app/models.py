@@ -74,4 +74,3 @@ def validate_pair(before: Scene, after: Scene, event: date) -> None:
     for key in ("relative_orbit", "direction", "platform", "polarization", "instrument_mode"):
         if getattr(before, key) != getattr(after, key):
             raise ValueError(f"Incompatible radar pair: {key} differs.")
-

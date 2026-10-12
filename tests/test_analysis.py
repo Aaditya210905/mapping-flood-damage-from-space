@@ -149,4 +149,3 @@ def test_metrics_exclude_unreviewed_pixels():
     assert out["precision"] == .5
     assert out["recall"] == .5
     assert out["f1"] == .5
-

@@ -106,4 +106,3 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
     (folder / "result.json").write_text(json.dumps(run, ensure_ascii=False, indent=2), encoding="utf-8")
     progress("Analysis complete", 100)
     return run
-
