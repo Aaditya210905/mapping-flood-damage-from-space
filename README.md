@@ -13,6 +13,17 @@ uv sync --frozen --python 3.12
 
 Open **http://127.0.0.1:8000**. On a fresh checkout the workspace starts empty; enter bounds/date and run an actual analysis, or explicitly select synthetic mode to try the interface without downloading satellite data.
 
+The dashboard shows the saved observation status and whether your external model is connected. **Data & method** separates analysis inputs from unused training references and independent evaluation maps. **Preview synthetic demo** generates test fixtures; its map and counts remain labeled as synthetic.
+
+| Source | Current application use |
+| --- | --- |
+| Sentinel-1 VV/VH | Pre/post radar inputs, acquired on demand |
+| Sentinel-2 L2A | Optical support and cloud classifications when available |
+| Copernicus DEM GLO-30 | Terrain correction, slope screening and downhill trace |
+| Historical OpenStreetMap | Pre-event infrastructure and road network |
+| Kuro Siwo / Sen1Floods11 | External training references; no images or labels loaded here |
+| EMSR927 | Independent evaluation only; excluded from prediction inputs |
+
 ```bash
 # Synthetic fixtures; no observations of the actual Nepal event
 uv run python scripts/analyze.py --mode demo
@@ -70,6 +81,8 @@ The supplied EMS observed-event polygons describe landslides. The evaluator comp
 ```bash
 uv run pytest -q
 node --check app/static/app.js
+# With the local server running; creates a clearly labeled synthetic run
+uv run python scripts/check_dashboard.py
 ```
 
 Existing case studies, model cards, reports and demo videos in `docs/` are **historical outputs from the removed baseline model**. Their scores/counts do not validate the current placeholder or a future model. Regenerate results and submission artifacts after adding and independently validating your model. The optional browser/demo scripts need Playwright, Chromium and, for video, ffmpeg.

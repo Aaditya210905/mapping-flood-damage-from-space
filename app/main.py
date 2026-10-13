@@ -86,7 +86,18 @@ def health():
 
 @app.get("/api/data-sources")
 def data_sources():
-    return {"sources": SOURCES, "water_model": model_status(), "training": "Managed outside this application"}
+    completed = {"live": 0, "demo": 0}
+    for path in DATA.glob("*/result.json"):
+        try:
+            record = json.loads(path.read_text())
+            mode = record.get("mode") if isinstance(record, dict) else None
+            if isinstance(mode, str) and mode in completed:
+                completed[mode] += 1
+        except (OSError, ValueError):
+            continue
+    return {"sources": SOURCES, "water_model": model_status(), "training": "Managed outside this application",
+            "workspace": {"completed_actual_runs": completed["live"], "completed_synthetic_runs": completed["demo"],
+                          "training_data_loading": False, "default_detection": "threshold"}}
 
 
 @app.get("/api/water-model")

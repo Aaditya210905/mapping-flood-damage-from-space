@@ -3,57 +3,208 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#173e34">
-  <meta name="description" content="An evidence-grounded satellite flood mapping prototype: inundation, infrastructure exposure and settlement road access.">
-  <title>Flood Lens — satellite flood intelligence</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23173e34'/%3E%3Cpath d='M7 22l8-14 5 8 5-3M7 25h18' fill='none' stroke='%23d5edbf' stroke-width='2'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#193d35">
+  <meta name="description" content="Satellite flood mapping, infrastructure exposure and modeled settlement road access.">
+  <title>Flood Lens — flood impact workspace</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23193d35'/%3E%3Cpath d='M7 22l8-14 5 8 5-3M7 25h18' fill='none' stroke='%23d5edbf' stroke-width='2'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/static/vendor/leaflet.css">
   <link rel="stylesheet" href="/static/styles.css">
   <script defer src="/static/vendor/leaflet.js"></script>
   <script defer src="/static/app.js"></script>
 </head>
 <body>
+  <a class="skip-link" href="#analysis-form">Skip to analysis controls</a>
   <header class="topbar">
-    <a class="brand" href="/" aria-label="Flood Lens home"><span class="brand-mark"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M5 21 14 7l6 10 6-4M5 26h22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>flood<span class="brand-light">lens</span><small>FROM SPACE. FOR THE GROUND.</small></span></a>
-    <nav class="topnav" aria-label="Main"><a href="#workspace" class="active">Analysis workspace</a><a href="#method-panel" id="method-link">Method & sources</a></nav>
-    <span class="prototype"><span class="status-dot"></span> Educational prototype</span>
+    <a class="brand" href="/" aria-label="Flood Lens home">
+      <span class="brand-mark"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M5 21 14 7l6 10 6-4M5 26h22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span>flood<span class="brand-light">lens</span><small>SATELLITE FLOOD INTELLIGENCE</small></span>
+    </a>
+    <nav class="topnav" aria-label="Workspace navigation">
+      <a id="workspace-link" href="#workspace" class="active" aria-current="page">Workspace</a>
+      <a href="#method-panel" id="method-link">Data sources</a>
+    </nav>
+    <span class="prototype"><span class="status-dot"></span> Local prototype</span>
   </header>
+
   <main id="workspace">
-    <div class="page-heading"><div><p class="eyebrow">SATELLITE FLOOD INTELLIGENCE / TRACK B</p><h1>A clearer picture.<br class="mobile-break"> A better starting point.</h1><p class="subtitle">Map the flood. Understand exposure. Find breaks in road access.</p></div><a id="report-link" class="button outline" href="#" aria-disabled="true"><span aria-hidden="true">↗</span> Situation report</a></div>
-    <div id="notice" class="notice live" role="status"><span class="notice-icon" aria-hidden="true">i</span><span><strong>Actual-data workspace</strong> · Sentinel imagery and pre-event OSM, with a threshold baseline or your external water model.</span></div>
+    <div class="page-heading">
+      <div>
+        <p class="eyebrow"><span class="eyebrow-line"></span> EARTH OBSERVATION / TRACK B</p>
+        <h1>Flood impact workspace<span>.</span></h1>
+        <p class="subtitle">Compare satellite observations. Assess exposure. Check road access.</p>
+      </div>
+      <a id="report-link" class="button outline" href="#" aria-disabled="true" tabindex="-1"><span aria-hidden="true">↗</span> Situation report</a>
+    </div>
+
+    <div class="workspace-status" aria-label="Workspace status">
+      <span><i class="status-dot"></i><strong id="workspace-data-status">Checking local observations…</strong></span>
+      <span class="status-separator" aria-hidden="true"></span>
+      <span id="model-availability">External model: checking</span>
+      <span class="workspace-status-note">Source dates and uncertainty stay with every result.</span>
+    </div>
+
     <div class="workspace-grid">
-      <aside class="sidebar">
+      <aside class="sidebar" aria-label="Analysis setup and layers">
         <section class="panel analysis-panel">
-          <div class="section-heading"><h2>Set up an analysis</h2><span class="step">01 / INPUTS</span></div>
+          <div class="section-heading"><div><span class="eyebrow">01 / SET UP</span><h2>Define your analysis</h2></div><span class="section-icon" aria-hidden="true">⌖</span></div>
           <form id="analysis-form">
-            <label for="region">Area of interest</label><select id="region"><option value="trishuli">Trishuli river corridor, Nepal</option><option value="custom">Custom area</option></select>
-            <label for="event-date">Flood date</label><input id="event-date" type="date" value="2026-08-26" required>
-            <label for="mode">Data source</label><select id="mode"><option value="live">Actual satellite data + historical OSM</option><option value="demo">Synthetic test fixtures</option></select>
-            <label for="satellite-provider">Satellite access</label><select id="satellite-provider"><option value="public">Public raw Sentinel mirror · local processing</option><option value="copernicus">Copernicus Sentinel Hub · account required</option></select>
-            <label for="water-model">Water detection</label><select id="water-model"><option value="threshold">Threshold baseline</option><option value="external" disabled>External model · not configured</option></select>
-            <p id="credential-note" class="field-note">Raw Sentinel-1 is processed locally using Copernicus DEM. The public mirror needs no satellite account.</p>
-            <details id="advanced"><summary>Area bounds & detection settings <span>+</span></summary><div class="bounds-inputs"><label>West<input id="west" aria-label="West longitude" type="number" step="0.001" value="85.19" required></label><label>South<input id="south" aria-label="South latitude" type="number" step="0.001" value="27.90" required></label><label>East<input id="east" aria-label="East longitude" type="number" step="0.001" value="85.41" required></label><label>North<input id="north" aria-label="North latitude" type="number" step="0.001" value="28.30" required></label></div><label for="area-name">Area name</label><input id="area-name" value="Trishuli river corridor" maxlength="120"><label for="resolution">Pixel resolution</label><select id="resolution"><option value="30">30 metres</option><option value="10">10 metres</option><option value="60">60 metres</option><option value="100">100 metres</option></select><label for="change">Radar change threshold <output id="change-value">3 dB</output></label><input id="change" type="range" min="1" max="8" value="3" step="0.5"><p class="field-note">Bounds use WGS84 coordinates. Larger areas need coarser resolution. Match orbit tracks before comparing radar pixels.</p></details>
+            <label for="region">Area of interest</label>
+            <select id="region"><option value="trishuli">Trishuli river corridor, Nepal</option><option value="custom">Custom area</option></select>
+            <label for="event-date">Flood date</label>
+            <input id="event-date" type="date" value="2026-08-26" required>
+            <label for="mode">Analysis data</label>
+            <select id="mode"><option value="live">Actual satellite observations</option><option value="demo">Synthetic demonstration</option></select>
+            <p class="field-note" id="mode-note">Observations are fetched when you run an analysis.</p>
+
+            <details id="advanced">
+              <summary>Area bounds & resolution <span aria-hidden="true">+</span></summary>
+              <div class="bounds-inputs">
+                <label for="west">West<input id="west" type="number" step="0.001" value="85.19" required></label>
+                <label for="south">South<input id="south" type="number" step="0.001" value="27.90" required></label>
+                <label for="east">East<input id="east" type="number" step="0.001" value="85.41" required></label>
+                <label for="north">North<input id="north" type="number" step="0.001" value="28.30" required></label>
+              </div>
+              <label for="area-name">Area name</label><input id="area-name" value="Trishuli river corridor" maxlength="120">
+              <label for="resolution">Pixel resolution</label><select id="resolution"><option value="30">30 metres</option><option value="10">10 metres</option><option value="60">60 metres</option><option value="100">100 metres</option></select>
+              <label for="change">Radar change threshold <output id="change-value">3 dB</output></label>
+              <input id="change" type="range" min="1" max="8" value="3" step="0.5">
+              <p class="field-note">WGS84 bounds. Maximum one degree and 2,500 pixels per side.</p>
+            </details>
+
+            <div class="form-divider"></div>
+            <label for="satellite-provider">Satellite access</label>
+            <select id="satellite-provider"><option value="public">Public Sentinel mirror</option><option value="copernicus">Copernicus account</option></select>
+            <p id="credential-note" class="field-note">Public access requires no satellite account. Historical OSM availability is checked separately.</p>
+            <label for="water-model">Water detection</label>
+            <select id="water-model"><option value="threshold">Threshold baseline</option><option value="external" disabled>External model · not connected</option></select>
+            <div class="model-callout"><i class="tiny-dot"></i><p id="model-note">The baseline works without model weights. Your external model can be connected later.</p></div>
             <button id="run-button" class="button primary" type="submit"><span aria-hidden="true">⌁</span> Run analysis <span class="button-arrow" aria-hidden="true">→</span></button>
-            <div id="job-progress" class="job-progress" hidden><div class="progress-track"><div id="progress-fill"></div></div><p id="progress-label" aria-live="polite">Preparing analysis…</p></div>
+            <div id="job-progress" class="job-progress" hidden>
+              <div id="progress-track" class="progress-track" role="progressbar" aria-label="Analysis progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-fill"></div></div>
+              <p id="progress-label" aria-live="polite">Preparing inputs…</p>
+            </div>
             <p id="form-error" class="error" role="alert" hidden></p>
           </form>
-          <div class="input-footnote"><span class="tiny-dot"></span><span>Pre-event inputs only.<br>Reference damage maps are evaluation-only.</span></div>
+          <div class="input-footnote"><span aria-hidden="true">◷</span><span>Historical inputs. Documented source dates.<br>Reference maps stay separate from predictions.</span></div>
         </section>
-        <section class="panel layers-panel"><div class="section-heading"><h2>Map layers</h2><span class="step">02 / EXPLORE</span></div><label class="layer-switch"><span><i class="swatch water"></i> Potential inundation</span><input type="checkbox" data-layer="water" checked></label><label class="layer-switch"><span><i class="swatch debris"></i> Possible debris</span><input type="checkbox" data-layer="debris" checked></label><label class="layer-switch"><span><i class="swatch road"></i> Road network</span><input type="checkbox" data-layer="roads" checked></label><label class="layer-switch"><span><i class="swatch building"></i> Exposed buildings</span><input type="checkbox" data-layer="buildings" checked></label><label class="layer-switch"><span><i class="swatch settlement"></i> Settlements & hospitals</span><input type="checkbox" data-layer="settlements" checked></label><p class="field-note">Click a map feature to inspect its evidence.</p></section>
-        <section class="panel datasets-panel"><div class="section-heading"><h2>Sources & model</h2></div><div id="dataset-status" class="field-note">Loading source links and model status…</div></section>
+
+        <section class="panel layers-panel">
+          <div class="section-heading"><div><span class="eyebrow">02 / EXPLORE</span><h2>Map layers</h2></div><span class="section-icon" aria-hidden="true">▱</span></div>
+          <label class="layer-switch"><span><i class="swatch water"></i> Potential inundation</span><input type="checkbox" data-layer="water" checked disabled></label>
+          <label class="layer-switch"><span><i class="swatch debris"></i> Possible debris</span><input type="checkbox" data-layer="debris" checked disabled></label>
+          <label class="layer-switch"><span><i class="swatch road"></i> Road network</span><input type="checkbox" data-layer="roads" checked disabled></label>
+          <label class="layer-switch"><span><i class="swatch building"></i> Exposed buildings</span><input type="checkbox" data-layer="buildings" checked disabled></label>
+          <label class="layer-switch"><span><i class="swatch settlement"></i> Settlements & hospitals</span><input type="checkbox" data-layer="settlements" checked disabled></label>
+          <p class="field-note">Available after analysis. Click features to inspect their evidence.</p>
+        </section>
+
+        <section class="panel datasets-panel">
+          <span class="eyebrow">SOURCE STATUS</span><h2>What feeds the map?</h2>
+          <div id="dataset-status" class="source-summary" aria-live="polite">Checking sources…</div>
+          <button id="inspect-sources" type="button" class="text-button">Inspect data sources <span aria-hidden="true">↗</span></button>
+        </section>
       </aside>
+
       <div class="results-column">
-        <section class="metrics" aria-label="Computed impact summary"><article><div class="metric-label">Potential inundation <span class="metric-symbol">≈</span></div><p><span id="stat-water">—</span><small>km²</small></p><span class="metric-detail">New water beyond the baseline</span></article><article><div class="metric-label">Buildings exposed <span class="metric-symbol">▥</span></div><p id="stat-buildings">—</p><span class="metric-detail">Intersecting mapped changes</span></article><article><div class="metric-label">Road length exposed <span class="metric-symbol">⌁</span></div><p><span id="stat-roads">—</span><small>km</small></p><span class="metric-detail">Potential interruption</span></article><article class="metric-alert"><div class="metric-label">Settlements cut off <span class="metric-symbol">↗</span></div><p id="stat-cutoff">—</p><span class="metric-detail">Assuming exposed roads are closed</span></article></section>
-        <section class="panel map-panel"><div class="map-header"><div class="tabs" role="tablist" aria-label="Analysis views"><button id="map-tab" role="tab" aria-selected="true" aria-controls="map-view" data-view="map" class="active">Impact map</button><button id="access-tab" role="tab" aria-selected="false" aria-controls="access-view" data-view="access">Road access</button><button id="method-tab" role="tab" aria-selected="false" aria-controls="method-view" data-view="method">Data & method</button></div><span id="map-badge" class="map-badge">AWAITING DATA</span></div>
-          <div id="map-view" role="tabpanel" aria-labelledby="map-tab"><div class="map-container"><div id="map" aria-label="Interactive map of satellite changes and settlement connectivity"></div><div id="map-empty" class="map-empty"><div class="empty-orbit" aria-hidden="true">⌁</div><h3>Your analysis starts here</h3><p>Load the saved actual-data case<br>or run a new analysis.</p></div><div class="map-tools"><button id="fit-map" title="Fit analysis area" aria-label="Fit analysis area">⌖</button><button id="trace-toggle" title="Trace a downhill path" aria-label="Trace a downhill path">↝</button></div><div class="map-caption"><span id="map-caption">Awaiting analysis</span><span class="north-arrow" aria-label="North">↑ N</span></div><div class="map-legend"><span><i class="swatch water"></i> New water</span><span><i class="swatch debris"></i> Debris candidate</span><span><i class="swatch cutoff"></i> Cut off</span></div></div><div class="timeline"><div><span class="eyebrow">RADAR COMPARISON</span><p id="pair-label">Same platform · same orbit track</p></div><div class="epoch-control" aria-label="Select radar image"><button id="before-button" data-epoch="before">Before <span id="before-date">—</span></button><button id="after-button" class="active" data-epoch="after">After <span id="after-date">—</span></button></div></div><div id="trace-result" class="trace-result" hidden></div></div>
-          <div id="access-view" class="tab-content" role="tabpanel" aria-labelledby="access-tab" hidden><div class="tab-intro"><span class="eyebrow">ROAD CONNECTIVITY</span><h3>Which settlements lose access?</h3><p>Compare pre-event road connections with a graph where exposed segments are removed. A settlement is newly cut off only if it previously had access.</p></div><div class="table-wrap"><table><thead><tr><th>Settlement</th><th>Road access</th><th>Nearest pre-event destination</th><th>Before / after</th></tr></thead><tbody id="settlement-table"></tbody></table></div><p class="table-footnote">Unassessed means no nearby mapped road or destination. Baseline disconnection is not counted as a flood impact. Routes beyond these bounds are unknown.</p></div>
-          <div id="method-view" class="tab-content" role="tabpanel" aria-labelledby="method-tab" hidden><div class="tab-intro" id="method-panel"><span class="eyebrow">REPRODUCIBLE BY DESIGN</span><h3>Every result has a source.</h3><p>Satellite change detection produces the extent. Historical OSM supplies infrastructure. Road graphs and map intersections supply all reported counts.</p></div><div id="provenance-content" class="provenance-content"><p>Run an analysis to inspect source metadata.</p></div><details class="limitations-details"><summary>What this system cannot establish</summary><ul id="limitations-list"></ul></details><div class="evaluation-note"><strong>EMSR927 case-study comparison</strong><p id="evaluation-status">Pending official reference geometry. No accuracy claim is made.</p><a href="https://mapping.emergency.copernicus.eu/activations/EMSR927/" target="_blank" rel="noreferrer">Open the reference activation ↗</a></div></div>
-          <div class="map-footer"><span><i class="tiny-dot"></i><span id="coverage-label">Waiting for inputs</span></span><div><a id="export-geojson" href="#" aria-disabled="true">GeoJSON ↓</a><a id="export-raster" href="#" aria-disabled="true">GeoTIFF ↓</a><a id="export-audit" href="#" aria-disabled="true">Audit JSON ↓</a></div></div>
+        <section class="metrics" aria-label="Computed impact summary">
+          <article><div class="metric-label"><i class="metric-dot water-dot"></i> Potential inundation</div><p><span id="stat-water">—</span><small>km²</small></p><span class="metric-detail">New water beyond the baseline</span></article>
+          <article><div class="metric-label"><i class="metric-dot building-dot"></i> Buildings exposed</div><p id="stat-buildings">—</p><span class="metric-detail">Intersecting mapped changes</span></article>
+          <article><div class="metric-label"><i class="metric-dot road-dot"></i> Road length exposed</div><p><span id="stat-roads">—</span><small>km</small></p><span class="metric-detail">Potentially affected segments</span></article>
+          <article class="metric-alert"><div class="metric-label"><i class="metric-dot cutoff-dot"></i> Modeled cutoffs</div><p id="stat-cutoff">—</p><span class="metric-detail">Assuming exposed roads are closed</span></article>
         </section>
-        <section class="panel copilot-panel"><div class="copilot-heading"><span class="copilot-icon" aria-hidden="true">✳</span><div><h2>Ask the map</h2><p>A bilingual copilot. Answers grounded in this analysis.</p></div><label class="language-control"><span class="sr-only">Answer language</span><select id="language"><option value="en">English</option><option value="ne">नेपाली</option></select></label></div><div class="question-chips"><button data-question="Which settlements are cut off?">Which settlements are cut off? <span>↗</span></button><button data-question="What infrastructure is exposed?">What infrastructure is exposed? <span>↗</span></button><button data-question="Write a situation report">Summarize this analysis <span>↗</span></button></div><div id="conversation" class="conversation" aria-live="polite"></div><form id="copilot-form" class="copilot-input"><label class="sr-only" for="question">Ask about this map</label><input id="question" placeholder="Ask about flood extent, infrastructure or road access…" maxlength="500" required autocomplete="off"><button id="ask-button" type="submit" aria-label="Ask the copilot">↑</button></form><div class="copilot-footnote"><span class="tiny-dot"></span>Counts are computed from the map. Unsupported questions return no estimate.<a id="nepali-report" href="#" aria-disabled="true">नेपाली प्रतिवेदन ↗</a></div></section>
+
+        <div id="notice" class="notice" role="status"><span class="notice-icon" aria-hidden="true">i</span><span><strong>No analysis loaded.</strong> Choose an area to acquire observations, or preview the interface with synthetic data.</span></div>
+
+        <section class="panel map-panel">
+          <div class="map-header">
+            <div class="tabs" role="tablist" aria-label="Analysis views">
+              <button id="map-tab" role="tab" aria-selected="true" aria-controls="map-view" data-view="map" class="active">Impact map</button>
+              <button id="access-tab" role="tab" aria-selected="false" aria-controls="access-view" data-view="access" tabindex="-1">Road access</button>
+              <button id="method-tab" role="tab" aria-selected="false" aria-controls="method-view" data-view="method" tabindex="-1">Data & method</button>
+            </div>
+            <span id="map-badge" class="map-badge">NO OBSERVATIONS</span>
+          </div>
+          <div class="run-context"><span id="run-title">Your area of interest</span><span id="run-meta">Results appear after analysis</span></div>
+
+          <div id="map-view" role="tabpanel" aria-labelledby="map-tab">
+            <div class="map-container">
+              <div id="map" aria-label="Interactive map of satellite changes and settlement connectivity"></div>
+              <div id="map-empty" class="map-empty">
+                <svg class="empty-terrain" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true">
+                  <g stroke="currentColor" stroke-width="1.1">
+                    <path d="M-90 400C70 270 110 440 270 335S410 165 560 230 690 340 840 165 1020 100 1100 130"/>
+                    <path d="M-90 377C75 245 125 420 280 311S417 141 570 207 702 312 850 142 1030 75 1110 106"/>
+                    <path d="M-90 354C81 220 140 400 290 287S424 117 580 184 714 284 860 119 1040 50 1120 82"/>
+                    <path d="M-90 331C87 195 155 380 300 263S431 93 590 161 726 256 870 96 1050 25 1130 58"/>
+                    <path d="M-90 308C93 170 170 360 310 239S438 69 600 138 738 228 880 73 1060 0 1140 34"/>
+                    <path d="M-90 423C65 295 95 460 260 359S403 189 550 253 678 368 830 188 1010 125 1090 154"/>
+                    <path d="M-90 446C60 320 80 480 250 383S396 213 540 276 666 396 820 211 1000 150 1080 178"/>
+                    <path d="M-90 469C55 345 65 500 240 407S389 237 530 299 654 424 810 234 990 175 1070 202"/>
+                    <path d="M-90 492C50 370 50 520 230 431S382 261 520 322 642 452 800 257 980 200 1060 226"/>
+                    <path d="M-90 515C45 395 35 540 220 455S375 285 510 345 630 480 790 280 970 225 1050 250"/>
+                    <path d="M-90 538C40 420 20 560 210 479S368 309 500 368 618 508 780 303 960 250 1040 274"/>
+                    <path d="M-90 561C35 445 5 580 200 503S361 333 490 391 606 536 770 326 950 275 1030 298"/>
+                  </g>
+                </svg>
+                <div class="empty-content">
+                  <span class="empty-icon"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="m5 11 7-4 8 4 7-4v18l-7 4-8-4-7 4V11Z" stroke="currentColor" stroke-width="1.5"/><path d="M12 7v18m8-14v18" stroke="currentColor" stroke-width="1.5"/></svg></span>
+                  <span class="eyebrow">READY FOR YOUR FIRST OBSERVATION</span>
+                  <h3>Start with a place.<br>See what changed.</h3>
+                  <p>No satellite observations have been loaded.<br>Set an area and flood date to begin.</p>
+                  <button id="preview-demo" class="button empty-demo" type="button">Preview synthetic demo <span aria-hidden="true">↗</span></button>
+                  <span class="empty-caption">Generated test data · no satellite downloads</span>
+                </div>
+              </div>
+              <div class="map-tools"><button id="fit-map" title="Fit analysis area" aria-label="Fit analysis area" disabled>⌖</button><button id="trace-toggle" title="Trace a downhill path" aria-label="Trace a downhill path" disabled>↝</button></div>
+              <div class="map-caption"><span id="map-caption">No map loaded</span><span class="north-arrow" aria-label="North">↑ N</span></div>
+              <div id="map-legend" class="map-legend" hidden><span><i class="swatch water"></i> New water</span><span><i class="swatch debris"></i> Debris candidate</span><span><i class="swatch cutoff"></i> Modeled cutoff</span></div>
+            </div>
+            <div class="timeline">
+              <div><span class="eyebrow">BEFORE / AFTER</span><p id="pair-label">Compatible radar geometry required</p></div>
+              <div class="epoch-control" aria-label="Select radar image"><button id="before-button" data-epoch="before" disabled>Before <span id="before-date">—</span></button><button id="after-button" class="active" data-epoch="after" disabled>After <span id="after-date">—</span></button></div>
+            </div>
+            <div id="trace-result" class="trace-result" hidden></div>
+          </div>
+
+          <div id="access-view" class="tab-content" role="tabpanel" aria-labelledby="access-tab" hidden>
+            <div class="tab-intro"><span class="eyebrow">ROAD CONNECTIVITY</span><h3>Who loses their road connection?</h3><p>Compare the pre-event network with candidate-exposed segments removed. Modeled cutoffs require a connection that existed before the event.</p></div>
+            <div class="access-summary" id="access-summary"><span>Run an analysis to inspect settlement access.</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Settlement</th><th>Road access</th><th>Nearest pre-event destination</th><th>Before / after</th></tr></thead><tbody id="settlement-table"><tr><td colspan="4" class="table-empty">No road-network results yet.</td></tr></tbody></table></div>
+            <p class="table-footnote">Unobserved routes stay uncertain. Already disconnected settlements are recorded separately. Connections beyond the analysis bounds are unknown.</p>
+          </div>
+
+          <div id="method-view" class="tab-content" role="tabpanel" aria-labelledby="method-tab" hidden>
+            <div class="tab-intro" id="method-panel"><span class="eyebrow">DATA & EVIDENCE</span><h3>Know what goes into the map.</h3><p>Live inputs, external training references and evaluation maps have different roles. Listed sources are fetched only when needed; listing a dataset does not mean it has been downloaded.</p></div>
+            <div id="source-inventory" class="source-inventory"><p class="field-note">Loading source information…</p></div>
+            <div class="provenance-heading"><h4>Evidence for this analysis</h4><span id="evidence-mode" class="tag">No run loaded</span></div>
+            <div id="provenance-content" class="provenance-content"><p class="field-note">Run an analysis to inspect acquisition dates, orbit geometry and the OSM snapshot.</p></div>
+            <details class="limitations-details"><summary>Limitations & unassessed areas <span aria-hidden="true">+</span></summary><ul id="limitations-list"><li>Satellite observations, infrastructure exposure and assumed road closures require independent validation.</li></ul></details>
+            <div class="evaluation-note"><div><span class="eyebrow">EVALUATION ONLY</span><h4>Copernicus EMSR927</h4></div><p id="evaluation-status">No comparison attached. Reference maps never supply model inputs or predictions.</p><a href="https://mapping.emergency.copernicus.eu/activations/EMSR927/" target="_blank" rel="noreferrer">Inspect official reference products ↗</a></div>
+          </div>
+
+          <div class="map-footer"><span><i class="tiny-dot"></i><span id="coverage-label">Observation coverage is shown after analysis</span></span><div><a id="export-geojson" href="#" aria-disabled="true" tabindex="-1">GeoJSON ↓</a><a id="export-raster" href="#" aria-disabled="true" tabindex="-1">GeoTIFF ↓</a><a id="export-audit" href="#" aria-disabled="true" tabindex="-1">Audit JSON ↓</a></div></div>
+        </section>
+
+        <section class="panel copilot-panel">
+          <div class="copilot-heading"><span class="copilot-icon" aria-hidden="true">✳</span><div><span class="eyebrow">03 / ASK THE EVIDENCE</span><h2>Ask the map</h2><p id="copilot-status">Available after analysis. English and Nepali answers use saved map facts.</p></div><label class="language-control"><span class="sr-only">Answer language</span><select id="language"><option value="en">English</option><option value="ne">नेपाली</option></select></label></div>
+          <div class="question-chips"><button data-question="Which settlements are cut off?" disabled>Which settlements are cut off? <span aria-hidden="true">↗</span></button><button data-question="What infrastructure is exposed?" disabled>What infrastructure is exposed? <span aria-hidden="true">↗</span></button><button data-question="Write a situation report" disabled>Summarize this analysis <span aria-hidden="true">↗</span></button></div>
+          <div id="conversation" class="conversation" aria-live="polite"></div>
+          <form id="copilot-form" class="copilot-input"><label class="sr-only" for="question">Ask about this map</label><input id="question" placeholder="Ask about flood extent, exposed infrastructure or road access…" maxlength="500" required autocomplete="off" disabled><button id="ask-button" type="submit" aria-label="Ask the copilot" disabled>↑</button></form>
+          <div class="copilot-footnote"><span class="tiny-dot"></span>Every count comes from the analysis.<a id="nepali-report" href="#" aria-disabled="true" tabindex="-1">नेपाली प्रतिवेदन ↗</a></div>
+        </section>
       </div>
     </div>
-    <footer class="page-footer"><div><strong>floodlens</strong><span>An educational prototype · Field verification required</span></div><details><summary>Data attribution & licenses</summary><p>Contains modified Copernicus Sentinel data 2026.</p><p>Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.</p><p>© OpenStreetMap contributors. OSM data: ODbL. Leaflet: BSD-2-Clause. Water-model training: Kuro Siwo (Bountos et al., 2024) and Sen1Floods11 (Bonafilia et al., 2020).</p><p>The optional test demonstration uses synthetic inputs. Copernicus EMS reference data is used for checking only; credit: European Union, Copernicus Emergency Management Service data.</p></details></footer>
+
+    <footer class="page-footer">
+      <div><strong>floodlens</strong><span>Educational prototype · Field verification required</span></div>
+      <details><summary>Data attribution & licenses <span aria-hidden="true">+</span></summary>
+        <p>Contains modified Copernicus Sentinel data 2026.</p>
+        <p>Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.</p>
+        <p>© OpenStreetMap contributors. OSM: ODbL. Leaflet: BSD-2-Clause.</p>
+        <p>Optional external-training references: Bountos et al., 2024 (Kuro Siwo); Bonafilia et al., 2020 (Sen1Floods11). Neither training dataset is loaded by this application.</p>
+        <p>EMSR927 is evaluation-only. Credit: European Union, Copernicus Emergency Management Service data. Synthetic demonstrations contain generated test inputs.</p>
+      </details>
+    </footer>
   </main>
 </body>
 </html>
