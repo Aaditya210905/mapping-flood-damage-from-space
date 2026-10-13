@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 import xarray as xr
 from rasterio.transform import from_origin
-from scipy import ndimage
 from shapely.geometry import box, mapping
 
 from app.geo import Grid, detect_changes
@@ -52,19 +51,17 @@ def test_sentinel2_mosaic_uses_same_acquisition_and_strict_event_dates():
     assert all(i["id"].startswith("2026-08-27") for i in post)
 
 
-def test_steep_observed_neighbors_are_not_missing_model_context(monkeypatch):
-    from app import geo, segmentation
+def test_radar_observations_and_water_slope_eligibility_are_separate(monkeypatch):
+    from app import geo
     grid = Grid("EPSG:32645", from_origin(400000, 3100000, 30, 30), 11, 11, 30)
     slopes = np.full((11, 11), 40.)
-    slopes[5, 5] = 0
+    slopes[4:7, 4:7] = 0
     monkeypatch.setattr(geo, "slope_degrees", lambda dem, resolution: slopes)
-    def predict(db, valid):
-        usable = ndimage.minimum_filter(valid.astype("uint8"), size=5, mode="constant", cval=0).astype(bool)
-        card = {k: [] for k in ["training_datasets", "citations", "limitations"]}
-        card.update(algorithm="test model", training_pixels=1, training_chip_count=1, artifact_sha256="test", threshold=.5)
-        return np.zeros(valid.shape), usable, card
-    monkeypatch.setattr(segmentation, "water_probabilities", predict)
-    radar = np.stack([np.full((11, 11), .1), np.ones((11, 11))])
-    result = detect_changes(radar, radar, grid, AnalysisRequest(water_model="external"), dem=np.zeros((11, 11)))
-    assert result["valid"].sum() == 1
+    before = np.stack([np.full((11, 11), .1), np.ones((11, 11))])
+    after = before.copy()
+    after[0] = 10 ** (-23 / 10)
+    result = detect_changes(before, after, grid, AnalysisRequest(), dem=np.zeros((11, 11)))
+    assert result["radar_valid"].all()
+    assert result["valid"].sum() == 9
     assert result["valid"][5, 5]
+    assert result["water"].sum() == 9

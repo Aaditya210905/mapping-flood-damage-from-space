@@ -1,7 +1,13 @@
-"""Source links and attribution only. There are no training-data loaders here."""
+"""Analysis inputs and independent references for the copilot route."""
 from app.storage import ROOT
 
 REFERENCE_FOLDER = ROOT / "data" / "reference_only" / "EMSR927"
+MAPPING_METHOD = {
+    "algorithm": "Rule-based radar and optical change detection",
+    "type": "rule_based",
+    "requires_model_weights": False,
+    "requires_training_datasets": False,
+}
 SOURCES = [
     {"id": "sentinel1", "name": "Sentinel-1 radar", "role": "before/after water detection", "category": "input",
      "description": "Same-track VV/VH radar observations, calibrated and terrain-corrected locally.",
@@ -15,12 +21,6 @@ SOURCES = [
     {"id": "copernicus_dem", "name": "Copernicus DEM GLO-30", "role": "terrain correction and downhill trace", "category": "input",
      "description": "Elevation for radar geometry, slope screening and the optional downhill path.",
      "url": "https://dataspace.copernicus.eu/", "license": "Copernicus DEM license and WorldDEM attribution"},
-    {"id": "kuro_siwo", "name": "Kuro Siwo", "role": "optional training outside this application", "category": "training_reference",
-     "url": "https://github.com/Orion-AI-Lab/KuroSiwo", "license": "Author dataset CC BY 4.0; repository code MIT",
-     "citation": "Bountos et al. (2024). Kuro Siwo: 33 billion m^2 under the water. NeurIPS 37, 38105-38121."},
-    {"id": "sen1floods11", "name": "Sen1Floods11", "role": "optional training outside this application", "category": "training_reference",
-     "url": "https://github.com/cloudtostreet/Sen1Floods11", "license": "Retain original attribution; original repository has no dataset license file",
-     "citation": "Bonafilia, Tellman, Anderson and Issenberg (2020). Sen1Floods11. CVPR Workshops, 210-211."},
     {"id": "emsr927", "name": "Copernicus EMSR927", "role": "case-study evaluation only", "category": "evaluation_only",
      "url": "https://mapping.emergency.copernicus.eu/activations/EMSR927/",
      "license": "European Union, Copernicus Emergency Management Service data"},

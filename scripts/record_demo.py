@@ -20,6 +20,7 @@ with sync_playwright() as playwright:
     setup.goto("http://127.0.0.1:8000", wait_until="networkidle")
     setup.wait_for_function("document.querySelector('#stat-water').textContent !== '—'", timeout=60000)
     assert setup.evaluate("state.run.mode") == "live", "Record only a completed actual-data run"
+    assert setup.evaluate("state.run.provenance.mapping?.type") == "rule_based", "Regenerate the case study using the current copilot route before recording"
     storage = setup.context.storage_state()
     setup.close()
     context = browser.new_context(viewport={"width":1280,"height":900}, storage_state=storage,
@@ -40,8 +41,8 @@ with sync_playwright() as playwright:
         if remaining > 0: page.wait_for_timeout(remaining*1000)
     caption("FLOOD LENS — actual Sentinel observations, pre-event OSM and Copernicus DEM for the August 2026 Nepal case. This is an educational prototype; mapping limits remain substantial.")
     until(16)
-    algorithm = page.evaluate("state.run.provenance.water_model.algorithm")
-    caption(f"Choose an area and flood date. The default provider processes original Sentinel GRD from a public mirror. Water detection for this saved run: {algorithm}. Training is managed outside the application.")
+    algorithm = page.evaluate("state.run.provenance.mapping?.algorithm || state.run.provenance.water_model?.algorithm")
+    caption(f"Choose an area and flood date. The default provider processes original Sentinel GRD from a public mirror. Mapping for this saved run: {algorithm}. The chosen AI component is the situation-report copilot.")
     page.locator("#advanced").evaluate("e => e.open = true")
     until(34)
     page.locator("#advanced").evaluate("e => e.open = false")
@@ -76,16 +77,16 @@ with sync_playwright() as playwright:
     page.locator("#map-view").scroll_into_view_if_needed()
     caption("The optional downhill tool follows D8 DEM terrain and lists settlements near the path. It does not simulate hydraulic depth, velocity or flood travel time.")
     page.locator("#trace-toggle").click()
-    # Click near the north/center of the actual synthetic raster.
+    # Click near the north/center of the actual analysis raster.
     page.evaluate("""() => {
       const c=state.run.bbox;
       map.fire('click',{latlng:L.latLng(c[3]-(c[3]-c[1])*.18,(c[0]+c[2])/2)});
     }""")
     until(158)
     page.get_by_role("tab",name="Data & method").click()
-    caption("Sentinel-1/2, Copernicus DEM and historical OSM supply the analysis. External model weights and training are supplied separately. Official EMSR927 products are evaluation-only; inspect their class definitions before interpreting overlap.")
+    caption("Sentinel-1/2, Copernicus DEM and historical OSM supply rule-based mapping. No flood-segmentation weights or training datasets are needed. Official EMSR927 products are evaluation-only; inspect their class definitions before interpreting overlap.")
     until(173)
-    caption("This tour demonstrates the saved run, not field accuracy. Review the displayed reference comparison, model limitations and observation coverage. Independent Himalayan validation and field review remain necessary.")
+    caption("This tour demonstrates the saved run, not field accuracy. Review the displayed reference comparison, change-detection limitations and observation coverage. Independent validation and field review remain necessary.")
     until(181)
     video=page.video
     page.close(); context.close()

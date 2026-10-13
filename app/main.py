@@ -13,13 +13,12 @@ from fastapi.responses import FileResponse, HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 import rasterio
 
-from app.copilot import answer, intent_model
+from app.copilot import COPILOT_INFO, answer, intent_model
 from app.geo import Grid, trace_downhill
 from app.models import AnalysisRequest, CopilotRequest, TraceRequest
 from app.pipeline import run_analysis
 from app.report import report_html, report_pdf
-from app.sources import SOURCES
-from app.segmentation import model_status, ensure_model_ready
+from app.sources import MAPPING_METHOD, SOURCES
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -80,8 +79,8 @@ def dashboard():
 @app.get("/api/health")
 def health():
     return {"status": "ok", "live_configured": bool(os.getenv("CDSE_CLIENT_ID") and os.getenv("CDSE_CLIENT_SECRET")),
-            "public_raw_provider": True, "water_model": model_status()["status"],
-            "osm_v2_configured": bool(os.getenv("OHSOME_API_KEY")), "copilot": "local bilingual intent model"}
+            "public_raw_provider": True, "mapping": MAPPING_METHOD["type"], "ai_component": COPILOT_INFO["component"],
+            "osm_v2_configured": bool(os.getenv("OHSOME_API_KEY")), "copilot": COPILOT_INFO["algorithm"]}
 
 
 @app.get("/api/data-sources")
@@ -95,14 +94,14 @@ def data_sources():
                 completed[mode] += 1
         except (OSError, ValueError):
             continue
-    return {"sources": SOURCES, "water_model": model_status(), "training": "Managed outside this application",
+    return {"sources": SOURCES, "mapping": MAPPING_METHOD, "copilot": COPILOT_INFO,
             "workspace": {"completed_actual_runs": completed["live"], "completed_synthetic_runs": completed["demo"],
-                          "training_data_loading": False, "default_detection": "threshold"}}
+                          "training_data_loading": False, "default_detection": "rule_based"}}
 
 
-@app.get("/api/water-model")
-def water_model_card():
-    return model_status()
+@app.get("/api/copilot")
+def copilot_info():
+    return COPILOT_INFO
 
 
 def dashboard_view(run):
@@ -136,11 +135,6 @@ def create_analysis(params: AnalysisRequest):
         Grid.for_bbox(params.bbox, params.resolution_m)
     except ValueError as error:
         raise HTTPException(422, str(error))
-    if params.mode == "live" and params.water_model == "external":
-        try:
-            ensure_model_ready()
-        except ValueError as error:
-            raise HTTPException(422, str(error)) from error
     if params.mode == "live" and params.satellite_provider == "copernicus" and not (os.getenv("CDSE_CLIENT_ID") and os.getenv("CDSE_CLIENT_SECRET")):
         raise HTTPException(422, "Live mode needs CDSE_CLIENT_ID and CDSE_CLIENT_SECRET. Configure the Copernicus Sentinel Hub OAuth client, then restart the server.")
     if not capacity.acquire(blocking=False):

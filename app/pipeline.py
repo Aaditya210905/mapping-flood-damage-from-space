@@ -9,17 +9,16 @@ from shapely import segmentize
 from shapely.geometry import box
 
 from app.demo import make_demo
+from app.copilot import COPILOT_INFO
 from app.geo import Grid, detect_changes, extent_features, image_bytes, clean_mask
 from app.impact import analyze_impacts
 from app.models import ATTRIBUTIONS, LIMITATIONS, validate_pair
 from app.providers import acquire_live
 from app.public_data import acquire_public
-from app.segmentation import ensure_model_ready
+from app.sources import MAPPING_METHOD
 
 
 def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
-    if params.mode != "demo" and params.water_model == "external":
-        ensure_model_ready()
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=True)
     grid = Grid.for_bbox(params.bbox, params.resolution_m)
@@ -36,8 +35,7 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
     if params.mode != "demo" and str(params.flood_date) == "2026-08-26" and str(inputs["snapshot"])[:10] > "2026-07-27":
         raise ValueError("The Nepal case requires historical OSM from 27 July 2026 or earlier. Reacquire an allowed snapshot before analysis.")
     progress("Mapping new inundation and possible debris", 72)
-    detected = detect_changes(inputs["before"], inputs["after"], grid, params, inputs["dem"], inputs["optical_before"], inputs["optical_after"],
-                              inputs.get("vh_before"), inputs.get("vh_after"))
+    detected = detect_changes(inputs["before"], inputs["after"], grid, params, inputs["dem"], inputs["optical_before"], inputs["optical_after"])
     # A geographic rectangle is not axis-aligned in UTM. Exclude padding cells
     # outside the requested AOI rather than counting the larger raster envelope.
     aoi = rasterize([(grid.project(segmentize(box(*params.bbox), max_segment_length=.001)), 1)], out_shape=(grid.height, grid.width),
@@ -69,9 +67,6 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
         "debris_eligible_coverage_pct": round(float(detected["debris_eligible"].sum()/max(1,aoi.sum()))*100,1),
     })
     warnings = inputs.get("warnings", [])
-    if "water_model" in detected:
-        warnings.append("Water inference uses a user-supplied model. Verify its input radiometry and Himalayan performance; no detected change does not establish absence of damage.")
-        warnings.extend(detected["water_model"].get("limitations", []))
     if params.mode == "demo":
         warnings.insert(0, "All satellite-like inputs, terrain and OSM-like features in this run are synthetic. No results describe the real Trishuli event.")
     if stats["settlements_unassessed"]:
@@ -83,20 +78,14 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
            "parameters": params.model_dump(mode="json"), "stats": stats, "layers": layers,
            "provenance": {"radar_scenes": [s.model_dump(mode="json") for s in inputs["scenes"]], "osm_snapshot": inputs["snapshot"],
                           "optical_scenes": inputs["optical_scenes"], "radar_processing": inputs.get("acquisition", {}).get("processing", "linear gamma0 terrain, Copernicus DEM 30, 3x3 median in dB"),
-                          "acquisition": inputs.get("acquisition", {}), "water_model": detected.get("water_model", {"algorithm": "threshold baseline"}),
+                          "acquisition": inputs.get("acquisition", {}), "mapping": MAPPING_METHOD,
                           "coverage_definitions": "radar_valid: physical screening/context; water_eligible: observed low-slope targets; debris_eligible: paired clear optical; valid: union of eligible water and debris targets",
                           "osm_source_api": inputs["osm"].get("metadata", {}).get("sourceApi", "synthetic"),
                           "crs": grid.crs, "resolution_m": grid.resolution, "grid_bounds": grid.bounds,
-                          "source_policy": "Only Sentinel-1, Sentinel-2, Copernicus DEM and pre-event OSM are inference inputs. External models must follow Track B training-data rules. Published damage maps are evaluation-only.",
-                          "ai_model": "Bilingual TF-IDF copilot with map-derived facts; " + detected.get("water_model", {}).get("algorithm", "threshold water baseline")},
+                          "source_policy": "Only Sentinel-1, Sentinel-2, Copernicus DEM and pre-event OSM are analysis inputs. No flood-segmentation model or external training dataset is used. Published damage maps are evaluation-only.",
+                          "ai_component": COPILOT_INFO},
            "warnings": warnings, "limitations": LIMITATIONS, "attributions": ATTRIBUTIONS,
            "evaluation": {"status": "pending", "activation": "EMSR927", "reason": "No official reference inundation geometry and reviewed coverage have been supplied. No accuracy claim is made."}}
-    if "water_model" in detected:
-        run["attributions"] = ATTRIBUTIONS + detected["water_model"].get("citations", [])
-        with rasterio.open(folder / "water-probability.tif", "w", driver="GTiff", height=grid.height, width=grid.width,
-                           count=2, dtype="float32", crs=grid.crs, transform=grid.transform, nodata=np.nan, compress="deflate") as dst:
-            dst.write(np.stack([detected["probability_before"], detected["probability_after"]]))
-            dst.update_tags(bands="1=pre-event water probability,2=post-event water probability", model=detected["water_model"]["algorithm"])
     progress("Saving maps, audit metadata and reports", 95)
     for epoch in ("before", "after"):
         png, display_bbox = image_bytes(detected, inputs["dem"], epoch, grid)

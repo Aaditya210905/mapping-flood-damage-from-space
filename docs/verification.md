@@ -1,5 +1,7 @@
 # Actual-data verification
 
+> Historical artifact from the removed segmentation implementation. Its counts, scores and reproduction instructions do not validate the current copilot route. See [current scope](COPILOT.md) and regenerate submission results.
+
 Verified locally on 12 October 2026. Final actual run: `0f54ad10-431a-4d91-bff9-7d8164fc1039`.
 
 | Check | Result |

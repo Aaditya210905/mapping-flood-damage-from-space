@@ -9,7 +9,7 @@ import numpy as np
 import rasterio
 from shapely.geometry import shape
 from shapely.ops import unary_union
-from app.copilot import answer,TRAINING
+from app.copilot import answer,INTENT_EXAMPLES
 from app.storage import save_json
 from app.geo import Grid
 
@@ -27,9 +27,9 @@ parser.add_argument('--output',type=Path,default=Path('docs/internal-review.json
 args=parser.parse_args()
 run=json.loads((args.run_folder/'result.json').read_text())
 language=[];issues=[]
-training_texts={q for values in TRAINING.values() for q in values}
+example_texts={q for values in INTENT_EXAMPLES.values() for q in values}
 for lang,question,intent in QUESTIONS:
-    assert question not in training_texts
+    assert question not in example_texts
     reply=answer(run,question,lang)
     for evidence in reply['evidence']:
         value=run

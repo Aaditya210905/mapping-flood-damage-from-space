@@ -45,8 +45,9 @@ def main():
             assert page.locator("#report-link").get_attribute("aria-disabled") == "true"
             assert "No actual observations acquired" in page.locator("#workspace-data-status").inner_text()
             checks["checks"].append("Empty workspace has no fabricated counts; result controls are gated")
-        ready = page.evaluate("state.sources.water_model.status === 'ready'")
-        assert page.locator('#water-model option[value="external"]').is_disabled() == (not ready)
+        assert page.locator("#water-model").count() == 0
+        assert page.evaluate("state.sources.copilot.component") == "situation_report_copilot"
+        assert "situation-report copilot" in page.locator("#ai-component-status").inner_text()
         assert not workspace["training_data_loading"]
         page.keyboard.press("Tab")
         assert page.locator(".skip-link").evaluate("node => node.matches(':focus-visible') && getComputedStyle(node).opacity === '1'")
@@ -55,14 +56,14 @@ def main():
         assert page.locator("#method-view").is_visible()
         assert page.locator("#method-tab").get_attribute("aria-selected") == "true"
         groups = page.locator(".source-group")
-        assert groups.count() == 3
+        assert groups.count() == 2
         assert groups.nth(0).locator(".source-card").count() == 4
-        assert groups.nth(1).locator(".source-card").count() == 2
-        assert groups.nth(2).locator(".source-card").count() == 1
-        assert "Not loaded" in groups.nth(1).inner_text()
-        assert "Never prediction inputs" in groups.nth(2).inner_text()
+        assert groups.nth(1).locator(".source-card").count() == 1
+        assert "Never prediction inputs" in groups.nth(1).inner_text()
+        assert "Kuro Siwo" not in page.locator("#source-inventory").inner_text()
+        assert "Selected AI component" in page.locator("#source-inventory").inner_text()
         page.screenshot(path=str(args.output / "data-sources-desktop.png"), full_page=True)
-        checks["checks"].append("Keyboard tabs and separate live/training/evaluation source groups")
+        checks["checks"].append("Keyboard tabs, input/evaluation separation and selected situation-report copilot")
         page.locator("#map-tab").click()
 
         def responsive(stage):
@@ -94,9 +95,10 @@ def main():
         assert page.locator("#stat-water").inner_text() == page.evaluate("state.run.stats.water_km2.toFixed(2)")
         assert page.locator("#ask-button").is_enabled()
         assert page.locator("#satellite-provider").is_disabled()
-        assert page.locator("#water-model").is_disabled()
         checks["run_id"] = page.evaluate("state.run.id")
-        checks["checks"].append("Explicit synthetic preview completes and keeps input/model disclosure accurate")
+        assert page.evaluate("state.run.provenance.mapping.requires_model_weights") is False
+        assert page.evaluate("'water_model' in state.run.parameters") is False
+        checks["checks"].append("Explicit synthetic preview completes through rule-based mapping without a segmentation model")
         responsive("synthetic")
         page.set_viewport_size({"width": 1280, "height": 900})
         page.locator("#before-button").click()
@@ -112,7 +114,7 @@ def main():
         page.screenshot(path=str(args.output / "road-access-desktop.png"), full_page=True)
         page.locator("#method-tab").click()
         assert page.locator("#evidence-mode").inner_text() == "Synthetic inputs"
-        assert "None for this run" in page.locator("#provenance-content").inner_text()
+        assert "Rule-based radar and optical change detection" in page.locator("#provenance-content").inner_text()
         assert "No official reference" in page.locator("#evaluation-status").inner_text()
         disclosure = page.evaluate("""() => {
             const original = state.run;

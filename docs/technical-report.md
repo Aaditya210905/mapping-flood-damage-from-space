@@ -1,5 +1,7 @@
 # Flood Lens: Mapping Flood Damage from Space
 
+> Historical artifact from the removed segmentation implementation. Its counts, scores and reproduction instructions do not validate the current copilot route. See [current scope](COPILOT.md) and regenerate submission results.
+
 ## 1. Objective and actual implementation
 
 Flood Lens implements the supplied Track B brief as a local FastAPI service, Leaflet dashboard, raster/vector pipeline and bilingual situation-report copilot. An area and event date produce a potential water/debris map, infrastructure intersections and modeled road-access changes. English PDF and English/Nepali printable reports use saved map facts.

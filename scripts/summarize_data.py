@@ -41,6 +41,7 @@ save_json(args.output, {
     "stats": run["stats"], "provenance": run["provenance"], "warnings": run["warnings"],
     "evaluation": evaluation, "attributions": run["attributions"],
     "raster_checksums": {p.name: sha256(p) for p in folder.glob("*.tif")},
-    "artifact_directory": str(folder.resolve()), "model_training": "Managed outside this application",
+    "artifact_directory": str(folder.resolve()), "ai_component": "situation_report_copilot",
+    "external_training_datasets": False,
 })
 print(f"Saved run summary: {args.output}")

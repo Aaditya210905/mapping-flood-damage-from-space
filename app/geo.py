@@ -75,7 +75,7 @@ def slope_degrees(dem, resolution):
     return np.degrees(np.arctan(np.hypot(dx, dy)))
 
 
-def detect_changes(before, after, grid, params, dem=None, optical_before=None, optical_after=None, vh_before=None, vh_after=None):
+def detect_changes(before, after, grid, params, dem=None, optical_before=None, optical_after=None):
     """S1 arrays are [VV linear gamma0, dataMask, shadowMask]. S2: B03,B04,B08,B11,SCL,dataMask."""
     valid = (before[1] > 0) & (after[1] > 0) & (before[0] > 0) & (after[0] > 0)
     valid &= np.isfinite(before[0]) & np.isfinite(after[0])
@@ -92,25 +92,6 @@ def detect_changes(before, after, grid, params, dem=None, optical_before=None, o
     drop = before_db - after_db
     permanent = valid & (before_db < params.water_threshold_db)
     water = valid & ~permanent & (after_db < params.water_threshold_db) & (drop > params.change_threshold_db)
-    learned = {}
-    if params.mode != "demo" and params.water_model == "external":
-        from app.segmentation import water_probabilities
-        # Terrain eligibility applies to the target pixel. Its observed radar
-        # neighbors remain valid feature context even when their slopes are high.
-        if vh_before is not None and vh_after is not None:
-            radar_valid &= np.isfinite(vh_before) & (vh_before > 0) & np.isfinite(vh_after) & (vh_after > 0)
-            pre_cross = {"vh_db":10*np.log10(np.maximum(vh_before,1e-10))}
-            post_cross = {"vh_db":10*np.log10(np.maximum(vh_after,1e-10))}
-        else:
-            pre_cross, post_cross = {}, {}
-        probability_before, pre_usable, card = water_probabilities(raw_before_db, radar_valid, **pre_cross)
-        probability_after, post_usable, _ = water_probabilities(raw_after_db, radar_valid, **post_cross)
-        radar_valid &= pre_usable & post_usable
-        valid &= pre_usable & post_usable
-        permanent = valid & (probability_before >= card["threshold"])
-        water = valid & ~permanent & (probability_after >= card["threshold"]) & (drop > params.change_threshold_db)
-        learned = {"water_model": card,
-                   "probability_before": probability_before, "probability_after": probability_after}
     debris = np.zeros_like(water)
     optical_valid = np.zeros_like(water)
     optical_water = np.zeros_like(water)
@@ -161,7 +142,6 @@ def detect_changes(before, after, grid, params, dem=None, optical_before=None, o
         "permanent": permanent, "before_db": before_db, "after_db": after_db,
         "optical_valid": optical_valid, "optical_water": optical_water,
         "radar_valid": radar_valid, "water_eligible": water_eligible, "debris_eligible": debris_eligible,
-        **learned,
     }
 
 

@@ -1,5 +1,7 @@
 # Actual-data EMSR927 case study
 
+> Historical artifact from the removed segmentation implementation. Its counts, scores and reproduction instructions do not validate the current copilot route. See [current scope](COPILOT.md) and regenerate submission results.
+
 Completed actual run: `0f54ad10-431a-4d91-bff9-7d8164fc1039`. Event date: 26 August 2026. Requested bounds: 85.19°E, 27.90°N to 85.41°E, 28.30°N. Analysis resolution: 30 m, EPSG:32645. This selected corridor does not cover the entire disaster area.
 
 ## Observed inputs

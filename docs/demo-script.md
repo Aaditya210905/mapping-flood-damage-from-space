@@ -1,15 +1,15 @@
-# Three-minute actual-data demonstration
+# Three-minute copilot-route demonstration
 
-The capture helper requires a completed actual-data run and refuses to record synthetic results. The recorded file is [demo-actual.mp4](demo-actual.mp4), 1280×900 H.264, exactly 180 seconds. It is captioned; no narration or victim imagery is included.
+Record a completed actual-data analysis produced by the current rule-based pipeline. The capture helper refuses synthetic and legacy segmentation runs. Existing videos describe earlier implementations and must be regenerated before submission.
 
 | Time | Demonstration |
 | --- | --- |
-| 0:00–0:34 | Area/date controls, public original-Sentinel processing and a water model trained on both real training datasets |
-| 0:34–1:04 | Actual radar before/after, optical support and 13.6% radar / 31.1% paired clear optical coverage |
+| 0:00–0:34 | Area/date controls, raw Sentinel processing and rule-based change detection; the selected AI component is the situation-report copilot |
+| 0:34–1:04 | Before/after radar, optical support and the current run's measured observation coverage |
 | 1:04–1:23 | Modeled road access, baseline connectivity and assumed closures |
-| 1:23–2:07 | English/Nepali map-derived answers; unsupported casualty questions return no estimate |
-| 2:07–2:22 | Actual Nepali situation report with source dates, uncertainty and attribution |
-| 2:22–2:38 | D8 downhill tracing; no hydraulic depth, speed or arrival-time simulation |
-| 2:38–3:00 | Source/evaluation separation, official landslide class mismatch, weak held-out recall and remaining independent validation |
+| 1:23–2:07 | English/Nepali map-derived answers with evidence paths; unsupported casualty questions receive no estimate |
+| 2:07–2:22 | One-page Nepali situation report with source dates, uncertainty and attribution |
+| 2:22–2:38 | Optional D8 downhill trace with its terrain-screening limitations |
+| 2:38–3:00 | Source/evaluation separation, independently measured EMS comparison and remaining validation |
 
-Run `python scripts/record_demo.py` using a Python environment with Playwright/Chromium and ffmpeg after starting the application. The earlier synthetic video remains a labeled test artifact, not real-event evidence. Nepali language review and independent field validation remain outstanding.
+Run `uv run python scripts/record_demo.py` with Playwright/Chromium and ffmpeg installed, after starting the application and completing the actual case study. Keep reference classes and observation coverage visible; a landslide comparison is not flood-water accuracy. Synthetic previews demonstrate software behavior only. Native-speaker Nepali review and field validation remain outstanding. Do not use victim imagery.

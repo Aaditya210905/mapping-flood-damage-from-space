@@ -31,7 +31,7 @@
       <div>
         <p class="eyebrow"><span class="eyebrow-line"></span> EARTH OBSERVATION / TRACK B</p>
         <h1>Flood impact workspace<span>.</span></h1>
-        <p class="subtitle">Compare satellite observations. Assess exposure. Check road access.</p>
+        <p class="subtitle">Map satellite changes. Check road access. Generate an evidence-based briefing.</p>
       </div>
       <a id="report-link" class="button outline" href="#" aria-disabled="true" tabindex="-1"><span aria-hidden="true">↗</span> Situation report</a>
     </div>
@@ -39,7 +39,7 @@
     <div class="workspace-status" aria-label="Workspace status">
       <span><i class="status-dot"></i><strong id="workspace-data-status">Checking local observations…</strong></span>
       <span class="status-separator" aria-hidden="true"></span>
-      <span id="model-availability">External model: checking</span>
+      <span id="ai-component-status">English / Nepali situation-report copilot</span>
       <span class="workspace-status-note">Source dates and uncertainty stay with every result.</span>
     </div>
 
@@ -75,9 +75,7 @@
             <label for="satellite-provider">Satellite access</label>
             <select id="satellite-provider"><option value="public">Public Sentinel mirror</option><option value="copernicus">Copernicus account</option></select>
             <p id="credential-note" class="field-note">Public access requires no satellite account. Historical OSM availability is checked separately.</p>
-            <label for="water-model">Water detection</label>
-            <select id="water-model"><option value="threshold">Threshold baseline</option><option value="external" disabled>External model · not connected</option></select>
-            <div class="model-callout"><i class="tiny-dot"></i><p id="model-note">The baseline works without model weights. Your external model can be connected later.</p></div>
+            <div class="method-callout"><i class="tiny-dot"></i><p id="mapping-method-note">Satellite change detection builds the map. The situation-report copilot answers questions and writes briefings from its results.</p></div>
             <button id="run-button" class="button primary" type="submit"><span aria-hidden="true">⌁</span> Run analysis <span class="button-arrow" aria-hidden="true">→</span></button>
             <div id="job-progress" class="job-progress" hidden>
               <div id="progress-track" class="progress-track" role="progressbar" aria-label="Analysis progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-fill"></div></div>
@@ -174,19 +172,19 @@
           </div>
 
           <div id="method-view" class="tab-content" role="tabpanel" aria-labelledby="method-tab" hidden>
-            <div class="tab-intro" id="method-panel"><span class="eyebrow">DATA & EVIDENCE</span><h3>Know what goes into the map.</h3><p>Live inputs, external training references and evaluation maps have different roles. Listed sources are fetched only when needed; listing a dataset does not mean it has been downloaded.</p></div>
+            <div class="tab-intro" id="method-panel"><span class="eyebrow">DATA & EVIDENCE</span><h3>Know what goes into the briefing.</h3><p>Satellite observations and historical map inputs supply the analysis. The copilot answers from saved map facts in English and Nepali. Independent reference maps are used only for evaluation.</p></div>
             <div id="source-inventory" class="source-inventory"><p class="field-note">Loading source information…</p></div>
             <div class="provenance-heading"><h4>Evidence for this analysis</h4><span id="evidence-mode" class="tag">No run loaded</span></div>
             <div id="provenance-content" class="provenance-content"><p class="field-note">Run an analysis to inspect acquisition dates, orbit geometry and the OSM snapshot.</p></div>
             <details class="limitations-details"><summary>Limitations & unassessed areas <span aria-hidden="true">+</span></summary><ul id="limitations-list"><li>Satellite observations, infrastructure exposure and assumed road closures require independent validation.</li></ul></details>
-            <div class="evaluation-note"><div><span class="eyebrow">EVALUATION ONLY</span><h4>Copernicus EMSR927</h4></div><p id="evaluation-status">No comparison attached. Reference maps never supply model inputs or predictions.</p><a href="https://mapping.emergency.copernicus.eu/activations/EMSR927/" target="_blank" rel="noreferrer">Inspect official reference products ↗</a></div>
+            <div class="evaluation-note"><div><span class="eyebrow">EVALUATION ONLY</span><h4>Copernicus EMSR927</h4></div><p id="evaluation-status">No comparison attached. Reference maps are used only to check completed predictions.</p><a href="https://mapping.emergency.copernicus.eu/activations/EMSR927/" target="_blank" rel="noreferrer">Inspect official reference products ↗</a></div>
           </div>
 
           <div class="map-footer"><span><i class="tiny-dot"></i><span id="coverage-label">Observation coverage is shown after analysis</span></span><div><a id="export-geojson" href="#" aria-disabled="true" tabindex="-1">GeoJSON ↓</a><a id="export-raster" href="#" aria-disabled="true" tabindex="-1">GeoTIFF ↓</a><a id="export-audit" href="#" aria-disabled="true" tabindex="-1">Audit JSON ↓</a></div></div>
         </section>
 
         <section class="panel copilot-panel">
-          <div class="copilot-heading"><span class="copilot-icon" aria-hidden="true">✳</span><div><span class="eyebrow">03 / ASK THE EVIDENCE</span><h2>Ask the map</h2><p id="copilot-status">Available after analysis. English and Nepali answers use saved map facts.</p></div><label class="language-control"><span class="sr-only">Answer language</span><select id="language"><option value="en">English</option><option value="ne">नेपाली</option></select></label></div>
+          <div class="copilot-heading"><span class="copilot-icon" aria-hidden="true">✳</span><div><span class="eyebrow">03 / AI COMPONENT</span><h2>Situation-report copilot</h2><p id="copilot-status">Available after analysis. English and Nepali answers use saved map facts.</p></div><label class="language-control"><span class="sr-only">Answer language</span><select id="language"><option value="en">English</option><option value="ne">नेपाली</option></select></label></div>
           <div class="question-chips"><button data-question="Which settlements are cut off?" disabled>Which settlements are cut off? <span aria-hidden="true">↗</span></button><button data-question="What infrastructure is exposed?" disabled>What infrastructure is exposed? <span aria-hidden="true">↗</span></button><button data-question="Write a situation report" disabled>Summarize this analysis <span aria-hidden="true">↗</span></button></div>
           <div id="conversation" class="conversation" aria-live="polite"></div>
           <form id="copilot-form" class="copilot-input"><label class="sr-only" for="question">Ask about this map</label><input id="question" placeholder="Ask about flood extent, exposed infrastructure or road access…" maxlength="500" required autocomplete="off" disabled><button id="ask-button" type="submit" aria-label="Ask the copilot" disabled>↑</button></form>
@@ -201,7 +199,7 @@
         <p>Contains modified Copernicus Sentinel data 2026.</p>
         <p>Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.</p>
         <p>© OpenStreetMap contributors. OSM: ODbL. Leaflet: BSD-2-Clause.</p>
-        <p>Optional external-training references: Bountos et al., 2024 (Kuro Siwo); Bonafilia et al., 2020 (Sen1Floods11). Neither training dataset is loaded by this application.</p>
+        <p>Selected AI component: situation-report copilot. Mapping uses radar and optical change-detection rules; no flood-segmentation training dataset or external model weights are required.</p>
         <p>EMSR927 is evaluation-only. Credit: European Union, Copernicus Emergency Management Service data. Synthetic demonstrations contain generated test inputs.</p>
       </details>
     </footer>

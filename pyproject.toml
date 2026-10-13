@@ -33,7 +33,7 @@ requires = ["hatchling>=1.26"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["app", "models"]
+packages = ["app"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

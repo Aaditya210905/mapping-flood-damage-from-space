@@ -66,6 +66,11 @@ def test_dashboard_job_exports_and_reports(tmp_path, monkeypatch):
             time.sleep(.05)
         assert state["status"] == "complete", state
         run = client.get(f"/api/analyses/{run_id}").json()
+        assert "water_model" not in run["parameters"]
+        assert "water_model" not in run["provenance"]
+        assert run["provenance"]["mapping"]["type"] == "rule_based"
+        assert run["provenance"]["ai_component"]["component"] == "situation_report_copilot"
+        assert not (tmp_path / run_id / "water-probability.tif").exists()
         assert run["stats"]["settlements_cut_off"] > 0
         base = f"/api/analyses/{run_id}"
         assert client.get(base + "/files/change-mask.tif").headers["content-type"] == "image/tiff"
@@ -79,6 +84,48 @@ def test_dashboard_job_exports_and_reports(tmp_path, monkeypatch):
         reply = client.post(base + "/copilot", json={"question":"Who is cut off?","language":"ne"})
         assert reply.status_code == 200
         assert reply.json()["intent"] == "access"
+
+
+@pytest.mark.parametrize("removed_mode", ["external", "trained"])
+def test_removed_segmentation_modes_fail_before_acquisition(removed_mode, monkeypatch):
+    called = []
+    monkeypatch.setattr(main, "run_analysis", lambda *args: called.append(args))
+    with TestClient(main.app) as client:
+        response = client.post("/api/analyses", json={"water_model": removed_mode})
+        assert response.status_code == 422
+        assert "situation-report copilot" in response.text
+    assert not called
+
+
+def test_copilot_route_needs_no_external_adapter_and_advertises_its_method(monkeypatch):
+    monkeypatch.setenv("FLOOD_LENS_MODEL_ADAPTER", "missing_optional_adapter")
+    with TestClient(main.app) as client:
+        health = client.get("/api/health").json()
+        assert health["mapping"] == "rule_based"
+        assert health["ai_component"] == "situation_report_copilot"
+        assert "water_model" not in health
+        info = client.get("/api/copilot").json()
+        assert info["languages"] == ["en", "ne"]
+        assert info["external_model_weights"] is False
+        assert info["external_training_datasets"] is False
+        assert client.get("/api/water-model").status_code == 404
+        schema = client.get("/openapi.json").json()["components"]["schemas"]["AnalysisRequest"]
+        assert "water_model" not in schema["properties"]
+
+
+def test_copilot_provenance_answers_resolve_current_map_evidence(synthetic_run):
+    run, _ = synthetic_run
+    run = json.loads(json.dumps(run))
+    run["mode"] = "live"  # Exercise the actual-mode wording with a controlled test fixture.
+    for language in ("en", "ne"):
+        reply = answer(run, "What data did you use?", language)
+        assert reply["intent"] == "sources"
+        assert run["provenance"]["mapping"]["algorithm"] in reply["answer"]
+        for evidence in reply["evidence"]:
+            value = run
+            for field in evidence["path"].split("."):
+                value = value[field]
+            assert value is not None
 
 
 def test_evaluation_does_not_change_prediction_and_demo_is_not_real_accuracy(synthetic_run, tmp_path):

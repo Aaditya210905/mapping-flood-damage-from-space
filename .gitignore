@@ -17,5 +17,3 @@ dist/
 docs/qa/
 datasets/
 data/reference_only/
-models/weights/*
-!models/weights/.gitkeep

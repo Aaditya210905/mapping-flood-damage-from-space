@@ -28,7 +28,6 @@ class AnalysisRequest(BaseModel):
     flood_date: date = date(2026, 8, 26)
     mode: Literal["demo", "live"] = "live"
     satellite_provider: Literal["public", "copernicus"] = "public"
-    water_model: Literal["external", "threshold"] = "threshold"
     resolution_m: int = Field(default=30, ge=10, le=100)
     search_days: int = Field(default=24, ge=12, le=60)
     water_threshold_db: float = Field(default=-17, ge=-30, le=-5)
@@ -38,9 +37,11 @@ class AnalysisRequest(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def legacy_model_name(cls, values):
-        if isinstance(values, dict) and values.get("water_model") == "trained":
-            return {**values, "water_model": "external"}
+    def reject_segmentation_mode(cls, values):
+        # Older baseline clients may still send water_model="threshold".
+        # Reject removed modes instead of silently changing their method.
+        if isinstance(values, dict) and values.get("water_model", "threshold") != "threshold":
+            raise ValueError("This project uses the situation-report copilot route with rule-based mapping. Flood-segmentation models are not supported.")
         return values
 
     @model_validator(mode="after")

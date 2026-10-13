@@ -37,7 +37,6 @@ function popup(title, pairs) {
 }
 
 function sourceUsage(source) {
-  if (source.category === "training_reference") return ["Not loaded", ""];
   if (source.category === "evaluation_only") return [state.run?.mode === "live" && state.run?.evaluation?.metrics ? "Comparison attached" : "Evaluation only", "reference"];
   if (!state.run) return ["On demand", ""];
   if (state.run.mode === "demo") return ["Synthetic fixture", "demo"];
@@ -50,19 +49,14 @@ function renderSources() {
   const data = state.sources;
   const inputs = data.sources.filter((source) => source.category === "input");
   const actualRuns = data.workspace?.completed_actual_runs || 0;
-  const ready = data.water_model.status === "ready";
   $("workspace-data-status").textContent = state.run ? (state.run.mode === "demo" ? "Synthetic demonstration loaded" : "Actual observations loaded") : (actualRuns ? `${actualRuns} saved actual-data ${actualRuns === 1 ? "run" : "runs"}` : "No actual observations acquired");
-  $("model-availability").textContent = ready ? "External model available" : "External model not connected";
-  const externalOption = $("water-model").querySelector('[value="external"]');
-  externalOption.disabled = !ready;
-  externalOption.textContent = ready ? "External model" : "External model · not connected";
+  $("ai-component-status").textContent = "English / Nepali situation-report copilot";
   $("dataset-status").innerHTML = inputs.map((source) => {
     const [label] = sourceUsage(source);
     return `<div class="source-summary-row"><strong>${escapeHTML(source.name)}</strong><span>${escapeHTML(label)}</span></div>`;
-  }).join("") + '<p>No training datasets are loaded by this application. Your model is supplied separately.</p>';
+  }).join("") + '<p>Satellite change detection supplies the map. The copilot uses its saved facts to answer questions and generate reports.</p>';
   const groups = [
     ["input", "Live analysis inputs", "Fetched when needed"],
-    ["training_reference", "External training references", "Outside this application"],
     ["evaluation_only", "Independent reference maps", "Never prediction inputs"],
   ];
   $("source-inventory").innerHTML = groups.map(([category, title, subtitle]) => {
@@ -70,22 +64,18 @@ function renderSources() {
       const [label, kind] = sourceUsage(source);
       return `<article class="source-card"><div class="source-card-header"><h4><a href="${escapeHTML(source.url)}" target="_blank" rel="noreferrer">${escapeHTML(source.name)} ↗</a></h4><span class="tag ${kind}">${escapeHTML(label)}</span></div><p>${escapeHTML(source.description || source.role)}</p><small>${escapeHTML(source.license)}</small></article>`;
     }).join("");
-    const note = category === "training_reference" ? '<p class="source-group-note">Kuro Siwo and Sen1Floods11 are links for external training. Their images and labels are not read here. A connected model can declare its actual training sources in its metadata.</p>' : "";
-    return `<section class="source-group"><div class="source-group-title"><h4>${title}</h4><span>${subtitle}</span></div><div class="source-list">${cards}</div>${note}</section>`;
-  }).join("") + `<article class="source-card"><div class="source-card-header"><h4>External water model</h4><span class="tag ${ready ? "active" : ""}">${ready ? "Available" : "Not connected"}</span></div><p>${ready ? escapeHTML(data.water_model.algorithm) : "The current app uses a threshold baseline. Add your model later to enable external inference."}</p>${data.water_model.message ? `<p>${escapeHTML(data.water_model.message)}</p>` : ""}<small><a href="/api/water-model" target="_blank" rel="noreferrer">Inspect model metadata and setup ↗</a></small></article>`;
+    return `<section class="source-group"><div class="source-group-title"><h4>${title}</h4><span>${subtitle}</span></div><div class="source-list">${cards}</div></section>`;
+  }).join("") + '<article class="source-card"><div class="source-card-header"><h4>Situation-report copilot</h4><span class="tag active">Selected AI component</span></div><p>Answers rescuers’ questions and writes English and Nepali briefings using areas, counts and settlement names from the saved maps. Unsupported questions receive no estimate.</p><small>Mapping uses change-detection rules. No flood-segmentation weights or training datasets are required. <a href="/api/copilot" target="_blank" rel="noreferrer">Inspect copilot method ↗</a></small></article>';
   syncSetup();
 }
 
 function syncSetup() {
   const demo = $("mode").value === "demo";
-  const ready = state.sources?.water_model?.status === "ready";
   document.querySelectorAll("#analysis-form input, #analysis-form select").forEach((control) => { control.disabled = state.busy; });
   $("satellite-provider").disabled = demo || state.busy;
-  $("water-model").disabled = demo || state.busy;
-  if (demo) $("water-model").value = "threshold";
   $("credential-note").hidden = demo;
   $("mode-note").textContent = demo ? "Generated test fixtures. No satellite data is downloaded." : "Observations are fetched when you run an analysis.";
-  $("model-note").textContent = demo ? "Synthetic mode uses generated inputs and baseline detection. The external model is not called." : ($("water-model").value === "external" && ready ? "Your connected model supplies water probabilities. Review its input requirements and validation." : "The baseline works without model weights. Your external model can be connected later.");
+  $("mapping-method-note").textContent = demo ? "Generated inputs supply the maps and facts for this synthetic copilot demonstration." : "Satellite change detection builds the map. The situation-report copilot answers questions and writes briefings from its results.";
   $("credential-note").textContent = $("satellite-provider").value === "copernicus" ? "This provider requires your Copernicus account credentials. Historical OSM is verified separately." : "Public access requires no satellite account. Historical OSM availability is checked separately.";
 }
 
@@ -175,7 +165,8 @@ function renderRun(run) {
   $("map-badge").textContent = run.mode === "demo" ? "DEMO DATA" : "SATELLITE ESTIMATE";
   $("map-badge").classList.toggle("demo", run.mode === "demo");
   $("run-title").textContent = run.name;
-  $("run-meta").textContent = `${dateLabel(run.flood_date)} · ${run.provenance.water_model?.algorithm || "Threshold baseline"}`;
+  const mappingMethod = run.provenance.mapping?.algorithm || run.provenance.water_model?.algorithm || "Rule-based change detection";
+  $("run-meta").textContent = `${dateLabel(run.flood_date)} · ${mappingMethod}`;
   $("evidence-mode").textContent = run.mode === "demo" ? "Synthetic inputs" : "Actual observations";
   $("evidence-mode").classList.toggle("demo", run.mode === "demo");
   $("notice").className = `notice ${run.mode}`;
@@ -204,11 +195,10 @@ function renderRun(run) {
     ["Historical OSM", `${run.provenance.osm_snapshot} · ${run.provenance.osm_source_api || "source recorded in snapshot"}`], ["Optical clear support", `${s.optical_clear_pct}% of grid; cloud/snow/shadow excluded`],
     ["Possible debris", `${s.debris_km2.toFixed(3)} km² · low-confidence change candidate`],
     ["Processing", run.provenance.radar_processing], ["Analysis projection", `${run.provenance.crs} · ${run.provenance.resolution_m} m`],
-    ["Water model", run.provenance.water_model?.algorithm || "Threshold baseline"],
-    ["Training datasets", (run.provenance.water_model?.training_datasets || []).join(" + ") || "None for this run"],
+    ["Mapping method", mappingMethod],
     ["Radar / water / debris eligibility", `${s.radar_valid_coverage_pct ?? s.valid_coverage_pct}% / ${s.water_eligible_coverage_pct ?? s.valid_coverage_pct}% / ${s.debris_eligible_coverage_pct ?? s.optical_clear_pct}%`],
     ["Uncertain road access", `${s.settlements_access_uncertain ?? "Not assessed"} settlements; unobserved segments are not confirmed intact`],
-    ["Copilot", "Local bilingual intent classifier; all facts rendered from saved analysis"],
+    ["AI component", "Situation-report copilot; bilingual intent classifier and map-derived fact templates"],
   ];
   $("provenance-content").innerHTML = rows.map(([k, v]) => `<div class="provenance-row"><span>${escapeHTML(k)}</span><strong>${escapeHTML(v)}</strong></div>`).join("") + run.warnings.map((w) => `<p class="field-note">${escapeHTML(w)}</p>`).join("");
   $("limitations-list").innerHTML = run.limitations.map((item) => `<li>${escapeHTML(item)}</li>`).join("");
@@ -244,7 +234,7 @@ async function runAnalysis() {
   $("form-error").hidden = true;
   $("progress-fill").style.width = "0%";
   $("progress-track").setAttribute("aria-valuenow", "0");
-  const payload = { name: $("area-name").value, bbox: ["west", "south", "east", "north"].map((id) => Number($(id).value)), flood_date: $("event-date").value, mode: $("mode").value, satellite_provider: $("satellite-provider").value, water_model: $("water-model").value, resolution_m: Number($("resolution").value), change_threshold_db: Number($("change").value) };
+  const payload = { name: $("area-name").value, bbox: ["west", "south", "east", "north"].map((id) => Number($(id).value)), flood_date: $("event-date").value, mode: $("mode").value, satellite_provider: $("satellite-provider").value, resolution_m: Number($("resolution").value), change_threshold_db: Number($("change").value) };
   try {
     const job = await post("/api/analyses", payload);
     while (true) {
@@ -328,7 +318,6 @@ $("preview-demo").addEventListener("click", () => {
 $("change").addEventListener("input", () => { $("change-value").textContent = `${$("change").value} dB`; });
 $("mode").addEventListener("change", syncSetup);
 $("satellite-provider").addEventListener("change", syncSetup);
-$("water-model").addEventListener("change", syncSetup);
 $("region").addEventListener("change", () => {
   if ($("region").value === "trishuli") {
     ["west", "south", "east", "north"].forEach((id, i) => { $(id).value = [85.19, 27.90, 85.41, 28.30][i]; });
@@ -365,7 +354,6 @@ async function initialize() {
     $("dataset-status").textContent = `Source status unavailable: ${error.message}`;
     $("source-inventory").textContent = "Source details could not be loaded. Check the local server and retry.";
     $("workspace-data-status").textContent = "Source status unavailable";
-    $("model-availability").textContent = "External model status unknown";
   }
   let saved;
   try { saved = localStorage.getItem("flood-lens-run"); } catch { saved = null; }
@@ -381,9 +369,6 @@ async function initialize() {
     if (!run) return;
     $("event-date").value = run.flood_date; $("mode").value = run.mode; $("area-name").value = run.name;
     $("satellite-provider").value = run.parameters.satellite_provider || "public";
-    const selectedModel = run.parameters.water_model === "trained" ? "external" : run.parameters.water_model || "threshold";
-    const option = $("water-model").querySelector(`[value="${selectedModel === "external" ? "external" : "threshold"}"]`);
-    $("water-model").value = option.disabled ? "threshold" : option.value;
     ["west", "south", "east", "north"].forEach((id, i) => { $(id).value = run.bbox[i]; });
     $("resolution").value = run.parameters.resolution_m;
     $("change").value = run.parameters.change_threshold_db;

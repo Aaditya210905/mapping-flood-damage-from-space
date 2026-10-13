@@ -11,7 +11,17 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 
 
-TRAINING = {
+COPILOT_INFO = {
+    "component": "situation_report_copilot",
+    "languages": ["en", "ne"],
+    "algorithm": "Local TF-IDF + logistic regression intent classifier with map-derived fact templates",
+    "external_model_weights": False,
+    "external_training_datasets": False,
+    "question_examples": "Authored bilingual examples bundled with the code",
+    "grounding": "Counts, areas, source dates and settlement names come from the saved analysis. Unsupported questions receive no estimate.",
+}
+
+INTENT_EXAMPLES = {
     "extent": ["Where did the flood hit?", "How much land is flooded?", "What is the flood extent?", "How many square kilometres are inundated?", "Show flooded areas", "Map water and debris", "What area is covered by debris?", "How much water was detected?", "बाढी कहाँ आयो?", "कति क्षेत्र डुबेको छ?", "बाढी प्रभावित क्षेत्र कति छ?", "पानी र भग्नावशेषको क्षेत्र देखाउनुहोस्"],
     "damage": ["What was damaged?", "How many buildings are affected?", "How many bridges are exposed?", "Which roads were hit?", "Show infrastructure exposure", "List damaged roads and bridges", "How much road length is affected?", "What happened to the buildings?", "कति भवन प्रभावित छन्?", "सडक र पुलमा कति क्षति भयो?", "प्रभावित पूर्वाधार देखाउनुहोस्", "कुन पुल प्रभावित छ?"],
     "access": ["Who is cut off?", "Which villages are isolated?", "Which settlements lost road access?", "Can settlements reach a hospital?", "How many villages are disconnected?", "Show cut off settlements", "Which villages can reach a town?", "List isolated villages and their nearest hospital", "कुन गाउँ सम्पर्कविहीन छन्?", "कति गाउँको सडक सम्पर्क टुटेको छ?", "अस्पताल पुग्न नसक्ने बस्ती कुन हुन्?", "सडक सम्पर्क गुमाएका बस्ती देखाउनुहोस्"],
@@ -25,7 +35,7 @@ TRAINING = {
 @lru_cache(maxsize=1)
 def intent_model():
     texts, labels = [], []
-    for intent, examples in TRAINING.items():
+    for intent, examples in INTENT_EXAMPLES.items():
         texts.extend(examples)
         labels.extend([intent] * len(examples))
     model = make_pipeline(TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 5), sublinear_tf=True), LogisticRegression(C=20, max_iter=1000, random_state=927))
@@ -62,13 +72,10 @@ def render_fact(run, intent, language="en"):
             "unsupported": "These maps cannot support an answer to that question. Ask about flood extent, infrastructure exposure, road access, data sources or limitations. Deaths, injuries, missing people and population estimates are unavailable.",
         }
     if run["mode"] != "demo":
-        water_model = p.get("water_model", {})
         optical = "Sentinel-2" if p.get("optical_scenes") else ("उपलब्ध छैन" if language == "ne" else "unavailable")
-        facts["sources"] += f" Copernicus DEM GLO-30. Optical: {optical}. Water model: {water_model.get('algorithm', 'threshold baseline')}."
-        training = water_model.get("training_datasets", [])
-        if training:
-            facts["sources"] += " Training sources: " + ", ".join(training) + "."
-        facts["limitations"] += (" मोडेलको विश्वसनीयता भूभागअनुसार फरक पर्न सक्छ; अवलोकन नभएको क्षेत्रको क्षति अज्ञात छ।" if language == "ne" else " Model performance varies across terrain and processing; damage outside eligible observations remains unknown.")
+        method = p.get("mapping", p.get("water_model", {"algorithm": "threshold baseline"}))["algorithm"]
+        facts["sources"] += f" Copernicus DEM GLO-30. Optical: {optical}. Mapping: {method}."
+        facts["limitations"] += (" भूभाग र प्रशोधनअनुसार परिवर्तन पहिचान फरक पर्न सक्छ; अवलोकन नभएको क्षेत्रको क्षति अज्ञात छ।" if language == "ne" else " Change detection varies across terrain and processing; damage outside eligible observations remains unknown.")
     text = "\n\n".join(facts[k] for k in ("extent", "damage", "access", "sources", "limitations")) if intent == "summary" else facts[intent]
     if run["mode"] == "demo":
         text = ("कृत्रिम प्रदर्शन तथ्याङ्क — वास्तविक घटनाको नतिजा होइन।\n\n" if language == "ne" else "SYNTHETIC DEMO — these are not observations of the real event.\n\n") + text
@@ -86,7 +93,7 @@ def answer(run, question, language="en"):
         "extent": ["stats.water_km2", "stats.debris_km2", "stats.valid_coverage_pct", "stats.optical_clear_pct", "layers.extent"],
         "damage": ["stats.buildings_exposed", "stats.roads_exposed", "stats.bridges_exposed", "stats.road_exposed_km"],
         "access": ["stats.settlements_cut_off", "stats.settlements_unassessed", "layers.settlements"],
-        "sources": ["provenance.radar_scenes", "provenance.osm_snapshot", "provenance.optical_scenes", "provenance.water_model"],
+        "sources": ["provenance.radar_scenes", "provenance.osm_snapshot", "provenance.optical_scenes", "provenance.mapping" if "mapping" in run["provenance"] else "provenance.water_model"],
         "limitations": ["limitations"], "unsupported": [],
         "summary": ["stats", "layers.settlements", "provenance", "limitations"],
     }
@@ -94,4 +101,4 @@ def answer(run, question, language="en"):
         evidence[intent].append("stats.settlements_access_uncertain")
     return {"answer": render_fact(run, intent, language), "intent": intent, "intent_confidence": round(score, 3),
             "evidence": [{"path": field, "run_id": run["id"]} for field in evidence[intent]],
-            "model": "Local TF-IDF + logistic regression intent model; fact-only templates"}
+            "method": COPILOT_INFO["algorithm"]}
