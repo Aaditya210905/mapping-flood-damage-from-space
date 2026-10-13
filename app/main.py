@@ -18,8 +18,8 @@ from app.geo import Grid, trace_downhill
 from app.models import AnalysisRequest, CopilotRequest, TraceRequest
 from app.pipeline import run_analysis
 from app.report import report_html, report_pdf
-from app.datasets import SOURCES, DATASETS
-from app.segmentation import model_status
+from app.sources import SOURCES
+from app.segmentation import model_status, ensure_model_ready
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -86,13 +86,7 @@ def health():
 
 @app.get("/api/data-sources")
 def data_sources():
-    sources = []
-    for source in SOURCES:
-        path = DATASETS / ("evaluation/EMSR927" if source["id"] == "emsr927" else f"training/{source['id']}") / "manifest.json"
-        manifest = json.loads(path.read_text()) if path.exists() else {}
-        sources.append({**source, "downloaded_records": len(manifest.get("records", manifest.get("products", []))),
-                        "selection": manifest.get("selection"), "download_manifest": str(path.relative_to(ROOT)) if path.exists() else None})
-    return {"sources": sources, "water_model": model_status()}
+    return {"sources": SOURCES, "water_model": model_status(), "training": "Managed outside this application"}
 
 
 @app.get("/api/water-model")
@@ -131,6 +125,11 @@ def create_analysis(params: AnalysisRequest):
         Grid.for_bbox(params.bbox, params.resolution_m)
     except ValueError as error:
         raise HTTPException(422, str(error))
+    if params.mode == "live" and params.water_model == "external":
+        try:
+            ensure_model_ready()
+        except ValueError as error:
+            raise HTTPException(422, str(error)) from error
     if params.mode == "live" and params.satellite_provider == "copernicus" and not (os.getenv("CDSE_CLIENT_ID") and os.getenv("CDSE_CLIENT_SECRET")):
         raise HTTPException(422, "Live mode needs CDSE_CLIENT_ID and CDSE_CLIENT_SECRET. Configure the Copernicus Sentinel Hub OAuth client, then restart the server.")
     if not capacity.acquire(blocking=False):

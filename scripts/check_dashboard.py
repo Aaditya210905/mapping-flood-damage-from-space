@@ -21,7 +21,7 @@ with sync_playwright() as playwright:
     checks["run_id"] = page.evaluate("state.run.id")
     for name in ("Kuro Siwo", "Sen1Floods11", "Copernicus EMSR927"):
         assert name in page.locator("#dataset-status").inner_text()
-    checks["checks"].append("Actual case loads by default; both training datasets and official evaluation downloads displayed")
+    checks["checks"].append("Actual case loads by default; source links and external model status displayed")
     for width in (360, 768, 1280, 1440):
         page.set_viewport_size({"width": width, "height": 900})
         page.wait_for_timeout(200)

@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-import json
 
 import numpy as np
 import pytest
@@ -8,34 +7,10 @@ from rasterio.transform import from_origin
 from scipy import ndimage
 from shapely.geometry import box, mapping
 
-from app.datasets import load_sample, validate_training_splits
 from app.geo import Grid, detect_changes
 from app.models import AnalysisRequest
 from app.providers import interval_snapshot
 from app.public_data import Calibration, optical_pair
-
-
-def test_kuro_linear_units_and_ignore_label_are_preserved(tmp_path):
-    intensity = np.array([[.01, .1], [1, .001]], dtype="float32")
-    labels = np.array([[0, 1], [2, 3]], dtype="uint8")
-    fields = {"flood_vv": intensity, "mask": labels, "valid_mask": np.ones((2, 2))}
-    for name, values in fields.items():
-        np.save(tmp_path / f"{name}.npy", values)
-    vv, water, valid = load_sample({"dataset": "kuro_siwo", "files": {n: f"{n}.npy" for n in fields}}, tmp_path)
-    np.testing.assert_allclose(vv, [[-20, -10], [0, -30]], atol=1e-5)
-    np.testing.assert_array_equal(water, [[False, True], [True, False]])
-    assert not valid[1, 1]  # class 3 is ignored even when SAR is observed
-
-
-def test_chip_content_leakage_is_detected_even_when_ids_differ():
-    train = {"dataset": "kuro_siwo", "split": "train", "event": "one", "id": "train-a", "sha256": {"flood_vv": "same", "mask": "same"}}
-    test = {**train, "split": "test", "event": "two", "id": "test-b"}
-    with pytest.raises(ValueError, match="Identical labeled chip"):
-        validate_training_splits([train, test])
-    test["sha256"] = {"flood_vv": "different", "mask": "different"}
-    test["event"] = "one"
-    with pytest.raises(ValueError, match="share a flood event"):
-        validate_training_splits([train, test])
 
 
 def test_history_interval_boundary_and_duplicate_versions():
@@ -90,6 +65,6 @@ def test_steep_observed_neighbors_are_not_missing_model_context(monkeypatch):
         return np.zeros(valid.shape), usable, card
     monkeypatch.setattr(segmentation, "water_probabilities", predict)
     radar = np.stack([np.full((11, 11), .1), np.ones((11, 11))])
-    result = detect_changes(radar, radar, grid, AnalysisRequest(), dem=np.zeros((11, 11)))
+    result = detect_changes(radar, radar, grid, AnalysisRequest(water_model="external"), dem=np.zeros((11, 11)))
     assert result["valid"].sum() == 1
     assert result["valid"][5, 5]

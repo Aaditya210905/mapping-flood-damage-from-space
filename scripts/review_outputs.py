@@ -10,7 +10,7 @@ import rasterio
 from shapely.geometry import shape
 from shapely.ops import unary_union
 from app.copilot import answer,TRAINING
-from app.datasets import save_json
+from app.storage import save_json
 from app.geo import Grid
 
 QUESTIONS=[('en','How large is the newly detected water area?','extent'),('ne','नयाँ डुबानको क्षेत्रफल कति छ?','extent'),

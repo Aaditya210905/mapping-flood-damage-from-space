@@ -61,8 +61,13 @@ def render_fact(run, intent, language="en"):
             "limitations": "This educational prototype cannot give minute-ahead warnings. Radar shadow, layover, vegetation, cloud, seasonal changes and incomplete OSM roads can affect results. Exposure and road interruption are hypotheses requiring field verification. Population and casualty estimates are unavailable.",
             "unsupported": "These maps cannot support an answer to that question. Ask about flood extent, infrastructure exposure, road access, data sources or limitations. Deaths, injuries, missing people and population estimates are unavailable.",
         }
-    if run["mode"] != "demo" and p.get("water_model", {}).get("training_datasets"):
-        facts["sources"] += (" Copernicus DEM GLO-30; Sentinel-2; Kuro Siwo + Sen1Floods11." if language == "ne" else " Terrain: Copernicus DEM GLO-30. Optical: Sentinel-2. Water-model training: Kuro Siwo and Sen1Floods11.")
+    if run["mode"] != "demo":
+        water_model = p.get("water_model", {})
+        optical = "Sentinel-2" if p.get("optical_scenes") else ("उपलब्ध छैन" if language == "ne" else "unavailable")
+        facts["sources"] += f" Copernicus DEM GLO-30. Optical: {optical}. Water model: {water_model.get('algorithm', 'threshold baseline')}."
+        training = water_model.get("training_datasets", [])
+        if training:
+            facts["sources"] += " Training sources: " + ", ".join(training) + "."
         facts["limitations"] += (" मोडेलको विश्वसनीयता भूभागअनुसार फरक पर्न सक्छ; अवलोकन नभएको क्षेत्रको क्षति अज्ञात छ।" if language == "ne" else " Model performance varies across terrain and processing; damage outside eligible observations remains unknown.")
     text = "\n\n".join(facts[k] for k in ("extent", "damage", "access", "sources", "limitations")) if intent == "summary" else facts[intent]
     if run["mode"] == "demo":

@@ -256,12 +256,15 @@ map.on("click", async (event) => {
 
 async function initialize() {
   try {
-    const health = await api("/api/health");
-    if (health.water_model !== "trained") $("credential-note").textContent = "The water model is not trained yet. Download the two training datasets and run scripts/train_water_model.py.";
     const data = await api("/api/data-sources");
-    const scores = Object.entries(data.water_model.scores || {}).map(([name, score]) => `${escapeHTML(name)}: IoU ${score.iou.toFixed(3)}, recall ${score.recall?.toFixed(3) ?? "undefined"}`).join("<br>");
-    $("dataset-status").innerHTML = data.sources.map((s) => `<p><a href="${escapeHTML(s.url)}" target="_blank" rel="noreferrer"><strong>${escapeHTML(s.name)} ↗</strong></a><br>${escapeHTML(s.role)}${s.downloaded_records ? ` · ${s.downloaded_records} downloaded records` : ""}</p>`).join("") + `<p>Water model: ${escapeHTML(data.water_model.status)}. Initial training subsets; ${data.water_model.training_chip_count || 0} training chips.<br>${scores}<br><a href="/api/water-model" target="_blank" rel="noreferrer">Model card and limitations ↗</a></p>`;
-  } catch { /* Analysis requests display connection errors explicitly. */ }
+    const ready = data.water_model.status === "ready";
+    const externalOption = $("water-model").querySelector('[value="external"]');
+    externalOption.disabled = !ready;
+    externalOption.textContent = ready ? "External model" : "External model · not configured";
+    $("dataset-status").innerHTML = data.sources.map((s) => `<p><a href="${escapeHTML(s.url)}" target="_blank" rel="noreferrer"><strong>${escapeHTML(s.name)} ↗</strong></a><br>${escapeHTML(s.role)}</p>`).join("") + `<p>External model: ${escapeHTML(data.water_model.status)}. Training is managed separately.<br>${escapeHTML(data.water_model.message || "")}<br><a href="/api/water-model" target="_blank" rel="noreferrer">Model status and setup ↗</a></p>`;
+  } catch (error) {
+    $("dataset-status").textContent = `Source/model status unavailable: ${error.message}`;
+  }
   const saved = localStorage.getItem("flood-lens-run");
   try {
       let run;
@@ -271,7 +274,9 @@ async function initialize() {
       if (!run || run.mode === "demo") run = await api("/api/analyses/latest-real?view=dashboard");
       $("event-date").value = run.flood_date; $("mode").value = run.mode; $("area-name").value = run.name;
       $("satellite-provider").value = run.parameters.satellite_provider || "copernicus";
-      $("water-model").value = run.parameters.water_model || "threshold";
+      const selectedModel = run.parameters.water_model === "trained" ? "external" : run.parameters.water_model || "threshold";
+      const modelOption = $("water-model").querySelector(`[value="${selectedModel === "external" ? "external" : "threshold"}"]`);
+      $("water-model").value = modelOption.disabled ? "threshold" : modelOption.value;
       ["west", "south", "east", "north"].forEach((id, i) => { $(id).value = run.bbox[i]; });
       $("resolution").value = run.parameters.resolution_m;
       $("change").value = run.parameters.change_threshold_db;

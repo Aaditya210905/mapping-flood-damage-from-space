@@ -1,5 +1,7 @@
 # Data attribution and licenses
 
+The current application uses a user-supplied water-model adapter. Training-data downloaders and parsers are removed. The dataset distributions and six-product local case mentioned below describe the historical baseline; supply the citations for your own model through its metadata. EMSR927 remains evaluation-only.
+
 Include these credits in every submission and generated report:
 
 > Contains modified Copernicus Sentinel data 2026.

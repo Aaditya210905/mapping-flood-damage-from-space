@@ -88,3 +88,22 @@ def test_v2_requires_key_when_v1_is_unavailable(monkeypatch):
     monkeypatch.delenv('OHSOME_API_KEY',raising=False)
     with pytest.raises(ValueError,match='OHSOME_API_KEY'):
         providers.osm_snapshot(AnalysisRequest())
+
+
+@pytest.mark.parametrize("last_edit,rejected", [("2026-07-01T00:00:00Z", False), ("2026-08-01T00:00:00Z", True)])
+def test_nepal_snapshot_cap_remains_enforced_when_provider_history_advances(monkeypatch, last_edit, rejected):
+    original = httpx.Client
+    requests = []
+    def respond(request):
+        requests.append(request)
+        if request.url.path.endswith("metadata"):
+            return httpx.Response(200, json={"temporalExtent": {"end": "2026-10-09T00:00:00Z"}})
+        return httpx.Response(200, json={"type": "FeatureCollection", "features": [{"properties": {"@lastEdit": last_edit}}]})
+    monkeypatch.setattr(providers.httpx, "Client", lambda **kw: original(transport=httpx.MockTransport(respond), **kw))
+    if rejected:
+        with pytest.raises(ValueError, match="requested historical snapshot"):
+            providers.osm_snapshot(AnalysisRequest())
+    else:
+        _, stamp = providers.osm_snapshot(AnalysisRequest())
+        assert stamp == "2026-07-27T23:59:59Z"
+    assert parse_qs(requests[-1].content.decode())["time"] == ["2026-07-27T23:59:59Z"]

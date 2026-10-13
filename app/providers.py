@@ -20,6 +20,7 @@ PROCESS_URL = "https://sh.dataspace.copernicus.eu/process/v1"
 TOKEN_URL = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
 OSM_URL = "https://api.ohsome.org/v1"
 OSM_V2_URL = "https://api.heigit.org/ohsome-api/v2-rc"
+NEPAL_OSM_CUTOFF = datetime(2026, 7, 27, 23, 59, 59, tzinfo=timezone.utc)
 OSM_FILTER = "building=* or highway=* or bridge=* or place in (village,hamlet,isolated_dwelling,town,city) or amenity=hospital"
 
 
@@ -109,7 +110,10 @@ def metadata_times(body):
 
 def choose_snapshot(body, event, hint=None):
     earliest, latest = metadata_times(body)
-    snapshot = min(latest, event - timedelta(seconds=1), hint) if hint else min(latest, event - timedelta(seconds=1))
+    limit = event - timedelta(seconds=1)
+    if event.date().isoformat() == "2026-08-26":
+        limit = min(limit, NEPAL_OSM_CUTOFF)
+    snapshot = min(latest, limit, hint) if hint else min(latest, limit)
     if earliest and snapshot < earliest:
         raise ValueError("The event predates the historical OSM service coverage.")
     return snapshot
@@ -181,8 +185,12 @@ def osm_snapshot(params):
     # Defensive check on metadata; never silently substitute present-day OSM.
     for feature in data["features"]:
         edited = feature.get("properties", {}).get("@lastEdit")
-        if edited and datetime.fromisoformat(edited.replace("Z", "+00:00")) >= event:
-            raise ValueError("OSM feature was edited after the event; refusing this input.")
+        if edited:
+            edited_at = datetime.fromisoformat(edited.replace("Z", "+00:00"))
+            if edited_at >= event:
+                raise ValueError("OSM feature was edited after the event; refusing this input.")
+            if edited_at > datetime.fromisoformat(timestamp.replace("Z", "+00:00")):
+                raise ValueError("OSM feature was edited after the requested historical snapshot; refusing this input.")
     return data, timestamp
 
 

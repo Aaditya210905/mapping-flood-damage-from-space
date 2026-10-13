@@ -14,10 +14,12 @@ from app.impact import analyze_impacts
 from app.models import ATTRIBUTIONS, LIMITATIONS, validate_pair
 from app.providers import acquire_live
 from app.public_data import acquire_public
-from app.datasets import TRAINING_CITATIONS
+from app.segmentation import ensure_model_ready
 
 
 def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
+    if params.mode != "demo" and params.water_model == "external":
+        ensure_model_ready()
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=True)
     grid = Grid.for_bbox(params.bbox, params.resolution_m)
@@ -31,6 +33,8 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
     validate_pair(*inputs["scenes"], params.flood_date)
     if str(inputs["snapshot"])[:10] >= str(params.flood_date):
         raise ValueError("OSM snapshot must predate the event.")
+    if params.mode != "demo" and str(params.flood_date) == "2026-08-26" and str(inputs["snapshot"])[:10] > "2026-07-27":
+        raise ValueError("The Nepal case requires historical OSM from 27 July 2026 or earlier. Reacquire an allowed snapshot before analysis.")
     progress("Mapping new inundation and possible debris", 72)
     detected = detect_changes(inputs["before"], inputs["after"], grid, params, inputs["dem"], inputs["optical_before"], inputs["optical_after"],
                               inputs.get("vh_before"), inputs.get("vh_after"))
@@ -47,7 +51,7 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
         detected[kind] = clean_mask(detected[kind], params.min_component_pixels)
         detected["classes"][(detected["classes"] == number) & ~detected[kind]] = 0
     if not detected["valid"].any():
-        raise ValueError("No jointly valid radar pixels remain after quality and terrain masks.")
+        raise ValueError("No eligible radar or clear optical pixels remain after quality and terrain masks.")
     extent = extent_features(detected, grid)
     progress("Intersecting infrastructure and testing road connectivity", 86)
     layers, stats = analyze_impacts(inputs["osm"], extent, grid, assessment_mask=detected["valid"])
@@ -66,7 +70,8 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
     })
     warnings = inputs.get("warnings", [])
     if "water_model" in detected:
-        warnings.append("Water inference uses both listed training datasets. Review held-out scores and radiometry/terrain differences in the model card; no detected change does not establish absence of damage.")
+        warnings.append("Water inference uses a user-supplied model. Verify its input radiometry and Himalayan performance; no detected change does not establish absence of damage.")
+        warnings.extend(detected["water_model"].get("limitations", []))
     if params.mode == "demo":
         warnings.insert(0, "All satellite-like inputs, terrain and OSM-like features in this run are synthetic. No results describe the real Trishuli event.")
     if stats["settlements_unassessed"]:
@@ -82,12 +87,12 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
                           "coverage_definitions": "radar_valid: physical screening/context; water_eligible: observed low-slope targets; debris_eligible: paired clear optical; valid: union of eligible water and debris targets",
                           "osm_source_api": inputs["osm"].get("metadata", {}).get("sourceApi", "synthetic"),
                           "crs": grid.crs, "resolution_m": grid.resolution, "grid_bounds": grid.bounds,
-                          "source_policy": "Only Sentinel-1, Sentinel-2, Copernicus DEM, pre-event OSM and the two listed training datasets. Published damage maps are evaluation-only.",
+                          "source_policy": "Only Sentinel-1, Sentinel-2, Copernicus DEM and pre-event OSM are inference inputs. External models must follow Track B training-data rules. Published damage maps are evaluation-only.",
                           "ai_model": "Bilingual TF-IDF copilot with map-derived facts; " + detected.get("water_model", {}).get("algorithm", "threshold water baseline")},
            "warnings": warnings, "limitations": LIMITATIONS, "attributions": ATTRIBUTIONS,
            "evaluation": {"status": "pending", "activation": "EMSR927", "reason": "No official reference inundation geometry and reviewed coverage have been supplied. No accuracy claim is made."}}
     if "water_model" in detected:
-        run["attributions"] = ATTRIBUTIONS + TRAINING_CITATIONS
+        run["attributions"] = ATTRIBUTIONS + detected["water_model"].get("citations", [])
         with rasterio.open(folder / "water-probability.tif", "w", driver="GTiff", height=grid.height, width=grid.width,
                            count=2, dtype="float32", crs=grid.crs, transform=grid.transform, nodata=np.nan, compress="deflate") as dst:
             dst.write(np.stack([detected["probability_before"], detected["probability_after"]]))

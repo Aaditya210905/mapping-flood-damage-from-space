@@ -11,12 +11,13 @@ import rasterio
 from shapely.geometry import shape,box
 from shapely.ops import unary_union
 from shapely.strtree import STRtree
-from app.datasets import DATASETS,save_json,sha256
+from app.storage import save_json,sha256
+from app.sources import REFERENCE_FOLDER
 from app.geo import Grid
 
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('run_folder',type=Path)
-parser.add_argument('--reference',type=Path,default=DATASETS/'evaluation/EMSR927')
+parser.add_argument('--reference',type=Path,default=REFERENCE_FOLDER)
 args=parser.parse_args()
 folder=args.run_folder
 before={p.name:sha256(p) for p in (folder/'result.json',folder/'change-mask.tif',folder/'extent.geojson')}

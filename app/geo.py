@@ -93,7 +93,7 @@ def detect_changes(before, after, grid, params, dem=None, optical_before=None, o
     permanent = valid & (before_db < params.water_threshold_db)
     water = valid & ~permanent & (after_db < params.water_threshold_db) & (drop > params.change_threshold_db)
     learned = {}
-    if params.mode != "demo" and params.water_model == "trained":
+    if params.mode != "demo" and params.water_model == "external":
         from app.segmentation import water_probabilities
         # Terrain eligibility applies to the target pixel. Its observed radar
         # neighbors remain valid feature context even when their slopes are high.
@@ -109,7 +109,7 @@ def detect_changes(before, after, grid, params, dem=None, optical_before=None, o
         valid &= pre_usable & post_usable
         permanent = valid & (probability_before >= card["threshold"])
         water = valid & ~permanent & (probability_after >= card["threshold"]) & (drop > params.change_threshold_db)
-        learned = {"water_model": {k: card[k] for k in ("algorithm", "training_datasets", "training_pixels", "training_chip_count", "artifact_sha256", "threshold", "citations", "limitations")},
+        learned = {"water_model": card,
                    "probability_before": probability_before, "probability_after": probability_after}
     debris = np.zeros_like(water)
     optical_valid = np.zeros_like(water)

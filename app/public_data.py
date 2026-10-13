@@ -21,7 +21,7 @@ from rasterio.vrt import WarpedVRT
 from rasterio.warp import Resampling
 from scipy.interpolate import interp1d
 
-from app.datasets import ROOT, save_json, sha256
+from app.storage import ROOT, save_json, sha256
 from app.providers import osm_snapshot, select_pair, interval_snapshot
 
 STAC = "https://planetarycomputer.microsoft.com/api/stac/v1/search"

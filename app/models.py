@@ -28,13 +28,20 @@ class AnalysisRequest(BaseModel):
     flood_date: date = date(2026, 8, 26)
     mode: Literal["demo", "live"] = "live"
     satellite_provider: Literal["public", "copernicus"] = "public"
-    water_model: Literal["trained", "threshold"] = "trained"
+    water_model: Literal["external", "threshold"] = "threshold"
     resolution_m: int = Field(default=30, ge=10, le=100)
     search_days: int = Field(default=24, ge=12, le=60)
     water_threshold_db: float = Field(default=-17, ge=-30, le=-5)
     change_threshold_db: float = Field(default=3, ge=1, le=12)
     max_slope_deg: float = Field(default=20, ge=5, le=45)
     min_component_pixels: int = Field(default=9, ge=1, le=1000)
+
+    @model_validator(mode="before")
+    @classmethod
+    def legacy_model_name(cls, values):
+        if isinstance(values, dict) and values.get("water_model") == "trained":
+            return {**values, "water_model": "external"}
+        return values
 
     @model_validator(mode="after")
     def valid_extent(self):

@@ -13,11 +13,12 @@ from shapely import from_wkt, make_valid
 from shapely.geometry import mapping, shape
 from shapely.ops import unary_union
 
-from app.datasets import DATASETS, download, save_json, sha256
+from app.storage import download, save_json, sha256
+from app.sources import REFERENCE_FOLDER
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--activation", default="EMSR927")
-parser.add_argument("--output", type=Path, default=DATASETS / "evaluation" / "EMSR927")
+parser.add_argument("--output", type=Path, default=REFERENCE_FOLDER)
 args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 activation_url = f"https://rapidmapping.emergency.copernicus.eu/backend/dashboard-api/public-activations/?code={args.activation}"
