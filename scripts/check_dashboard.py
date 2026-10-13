@@ -126,6 +126,9 @@ def main():
         assert "Synthetic sanity check" in disclosure
         assert "IoU undefined" in disclosure
         page.locator("#map-tab").click()
+        page.wait_for_function("!state.needsMapFit")
+        assert page.evaluate("map.getBounds().contains(L.latLngBounds(boundsFor(state.run)))")
+        checks['checks'].append('Results rendered while the map tab is hidden fit the selected area when the map reopens')
         page.get_by_role("button", name="Which settlements are cut off?").click()
         page.wait_for_selector(".chat-answer")
         count = str(page.evaluate("state.run.stats.settlements_cut_off"))
@@ -136,6 +139,28 @@ def main():
         page.wait_for_function("document.querySelectorAll('.chat-answer').length === 2 && !state.asking")
         assert str(page.evaluate("state.run.stats.bridges_exposed")) in page.locator(".chat-answer").last.inner_text()
         checks["checks"].append("Before/after, layer switches, access table, provenance and bilingual map answers")
+        assert page.locator('.generation-status').count()==2
+        page.locator('.evidence summary').last.click()
+        assert checks['run_id'] in page.locator('.evidence').last.inner_text()
+        page.locator('#language').select_option('en')
+        loading=page.evaluate("""() => { ask('Which roads are exposed and which settlements are isolated?'); return document.querySelector('.chat-loading')?.textContent; }""")
+        assert loading=='Checking analysis evidence…'
+        page.wait_for_function("document.querySelectorAll('.chat-answer').length === 3 && !state.asking")
+        compound=page.locator('.chat-answer').last.inner_text()
+        assert 'Potential infrastructure exposure' in compound and 'Modeled settlement connectivity' in compound
+        page.evaluate("ask('How many people died?')")
+        page.wait_for_function("document.querySelectorAll('.chat-answer').length === 4 && !state.asking")
+        assert 'unavailable' in page.locator('.chat-answer').last.inner_text().lower()
+        assert page.evaluate('state.history.length')==6
+        page.locator('#language').select_option('ne')
+        page.locator('#generate-report').click()
+        page.wait_for_function("!state.asking && document.querySelectorAll('.report-downloads a').length >= 3")
+        pdf_url=page.locator('.report-downloads a').filter(has_text='PDF').last.get_attribute('href')
+        assert checks['run_id'] in pdf_url
+        pdf=context.request.get(base+pdf_url)
+        assert pdf.ok and pdf.body().startswith(b'%PDF')
+        page.screenshot(path=str(args.output/'copilot-report-ne.png'),full_page=True)
+        checks['checks'].append('Loading indicator, expanded run-bound evidence, compound query, unsupported casualty request, bounded history and Nepali PDF download')
         report = context.request.get(base + f"/api/analyses/{checks['run_id']}/report?language=en")
         assert report.ok
         assert "synthetic" in report.text().lower()

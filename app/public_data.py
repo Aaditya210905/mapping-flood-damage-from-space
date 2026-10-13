@@ -294,6 +294,7 @@ def acquire_public(params, grid, folder, progress):
         write_grid(Path(folder) / f"s1-vh-{'before' if index == 0 else 'after'}.tif", cross, grid)
         write_grid(Path(folder) / f"terrain-{'before' if index == 0 else 'after'}.tif", quality, grid)
     optical_before, optical_after, optical_scenes = None, None, []
+    optical_observations = []
     warnings = ["Annotation-driven local layover/self-shadow and DEM ray screening are applied over a 1.92 km horizon. Visibility is approximate; distant occlusion and subpixel terrain remain uncertain."]
     progress("Downloading actual Sentinel-2 clear-sky support", 63)
     try:
@@ -307,6 +308,7 @@ def acquire_public(params, grid, folder, progress):
                 array = optical_mosaic(tiles, grid, cache); optical_arrays.append(array)
                 write_grid(Path(folder) / f"s2-{'before' if index == 0 else 'after'}.tif", array, grid)
             optical_before, optical_after = optical_arrays; optical_scenes = [i["id"] for tiles in pair for i in tiles]
+            optical_observations = [{"id": item["id"], "acquired": item["properties"]["datetime"]} for tiles in pair for item in tiles]
             if any(abs((datetime.fromisoformat(tiles[0]["properties"]["datetime"].replace("Z", "+00:00")).date()-params.flood_date).days) > 12 for tiles in pair):
                 warnings.append("A Sentinel-2 observation is more than 12 days from the event. Optical change can include other intervening changes; cloud masks apply pixel by pixel.")
         else:
@@ -315,7 +317,7 @@ def acquire_public(params, grid, folder, progress):
         warnings.append(f"Sentinel-2 retrieval failed ({type(error).__name__}); no fabricated optical inputs were substituted. Debris estimation is unavailable.")
     return {"before": arrays[0], "after": arrays[1], "dem": dem, "osm": osm, "snapshot": timestamp, "scenes": scenes,
             "vh_before": cross_arrays[0], "vh_after": cross_arrays[1], "terrain_before": quality_arrays[0], "terrain_after": quality_arrays[1],
-            "optical_before": optical_before, "optical_after": optical_after, "optical_scenes": optical_scenes, "warnings": warnings,
+            "optical_before": optical_before, "optical_after": optical_after, "optical_scenes": optical_scenes, "optical_observations": optical_observations, "warnings": warnings,
             "acquisition": {"provider": "Original ESA Sentinel GRD via the Microsoft public mirror; locally processed",
                 "radar_assets": [i["assets"]["vv"]["href"] for i in selected], "catalog": STAC,
                 "radar_assets_vh": [i["assets"]["vh"]["href"] for i in selected],

@@ -6,4 +6,7 @@ if ! command -v uv >/dev/null 2>&1; then
   exit 1
 fi
 uv sync --frozen --python 3.12
+if [[ -f .env ]]; then
+  exec uv run --frozen --env-file .env python -m uvicorn app.main:app --host 127.0.0.1 --port "${FLOOD_LENS_PORT:-8000}"
+fi
 exec .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port "${FLOOD_LENS_PORT:-8000}"

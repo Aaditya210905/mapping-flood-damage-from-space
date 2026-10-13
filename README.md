@@ -30,7 +30,7 @@ uv run python scripts/analyze.py --mode demo
 uv run python scripts/analyze.py
 ```
 
-Actual analysis retrieves original Sentinel-1 VV/VH measurements and annotations from the public Microsoft mirror, processes radar locally using Copernicus DEM GLO-30, and uses Sentinel-2 L2A reflectance/cloud classifications when available. Network/provider availability is required. Failed acquisition never substitutes synthetic inputs. The public path requires no satellite account; the optional Copernicus Sentinel Hub provider needs `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET`. The historical ohsome v2 fallback needs `OHSOME_API_KEY` when v1 is unavailable. Export variables in your shell; `.env` is not loaded automatically.
+Actual analysis retrieves original Sentinel-1 VV/VH measurements and annotations from the public Microsoft mirror, processes radar locally using Copernicus DEM GLO-30, and uses Sentinel-2 L2A reflectance/cloud classifications when available. Network/provider availability is required. Failed acquisition never substitutes synthetic inputs. The public path requires no satellite account; the optional Copernicus Sentinel Hub provider needs `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET`. The historical ohsome v2 fallback needs `OHSOME_API_KEY` when v1 is unavailable. `./run.sh` loads an optional `.env` using uv. Direct CLI commands use exported variables or `uv run --env-file .env`.
 
 Historical OSM is selected strictly before the event. The Nepal case uses 27 July 2026 or earlier. Published damage maps and post-event OSM edits are excluded from inference inputs. Ready-made mirror radar RTC using PlanetDEM is excluded; the local processor uses Copernicus DEM. EGM2008 is used only for vertical-datum conversion.
 
@@ -38,7 +38,9 @@ Historical OSM is selected strictly before the event. The Nepal case uses 27 Jul
 
 Ask questions about flood extent, infrastructure exposure, road access, acquisition dates or limitations, and request a short briefing in English or Nepali. Every reported area, count and settlement name comes from the saved analysis; responses include evidence paths and the run ID. Unsupported casualty and population questions return no estimate.
 
-The copilot uses a small local question-intent classifier fitted from authored bilingual examples bundled with the code, followed by fact templates. It requires no downloaded language-model weights or external training dataset. It is a bounded assistant rather than an open-ended text generator. Native-speaker Nepali review remains necessary.
+The optional generative integration uses **Groq’s official SDK**, defaulting to hosted `openai/gpt-oss-120b`. Groq selects approved read-only tools and structured claims; Python validates run, subject, field and interpretation, then inserts authoritative values into authored English/Nepali text. The existing TF-IDF/logistic-regression classifier and templates remain the labeled fallback. No language-model weights or satellite training datasets are downloaded. Native-speaker Nepali review remains necessary.
+
+Copy `.env.example` to a new private `.env`, set `LLM_ENABLED=true` and `GROQ_API_KEY`, then restart `./run.sh`. Without credentials, or on provider/validation failure, the application stays usable. Each response identifies which engine actually produced it. Configuration and limitations: [Copilot documentation](docs/COPILOT.md).
 
 See **[copilot scope and grounding](docs/COPILOT.md)**. `/api/copilot` reports its method and supported languages. The removed segmentation-model API/CLI option is no longer available; requests for external or trained segmentation explicitly fail before acquisition.
 
@@ -48,7 +50,7 @@ Rule-based detection compares pre/post radar and clear optical water indices. Ra
 
 Exposure denotes intersection with historical OSM, not confirmed structural damage. A directed road graph honors one-way and basic vehicle restrictions, removes candidate-intersecting segments under an assumed closure scenario, and tests alternative destinations. Unobserved routes are uncertain. Turn restrictions, complete node identity, facility operation and routes outside the area remain unverified.
 
-English PDF and bilingual printable HTML reports include provenance, uncertainty and attribution. The D8 downhill trace is terrain screening, not hydraulic simulation.
+English and Nepali **one-page PDFs**, printable HTML and typed JSON reports include provenance, uncertainty and attribution. **Generate report** stores a separate snapshot with download links. PDFs use WeasyPrint/Pango and bundled Noto Devanagari fonts. Missing measurements remain unavailable; incomplete reports are visibly labeled. The D8 downhill trace is terrain screening, not hydraulic simulation.
 
 Exports include class rasters, eligibility masks, source metadata, GeoJSON and audit JSON. Processing is bounded to two concurrent jobs, one degree per side and 2,500 raster pixels per side. Runs persist; in-flight job state does not. `FLOOD_LENS_DATA` changes the run directory and `FLOOD_LENS_PORT` changes the local server port.
 
@@ -75,9 +77,15 @@ uv run pytest -q
 node --check app/static/app.js
 # With the local server running; creates a clearly labeled synthetic run
 uv run python scripts/check_dashboard.py
+# A real saved analysis and configured Groq; fail if it falls back
+uv run python scripts/verify_copilot.py --require-llm
+# Explicitly synthetic software checks on an existing demo run
+uv run python scripts/verify_copilot.py --run-id RUN_ID --allow-demo
 ```
 
 Existing case studies, model cards, reports and demo videos in `docs/` are **historical outputs from the removed segmentation model**. Their scores/counts do not validate the current rule-based pipeline. Regenerate the Nepal case study, independent reference comparison and submission artifacts for the copilot route. The browser/demo scripts use Playwright and Chromium; video also requires ffmpeg.
+
+See the [Copilot implementation report](docs/COPILOT_IMPLEMENTATION_REPORT.md) for executed checks and remaining live-validation requirements.
 
 API documentation is at `/docs`. Useful endpoints include `/api/health`, `/api/data-sources`, `/api/copilot`, `/api/analyses/latest-real`, `POST /api/analyses`, and per-run status, copilot, report, trace and file exports.
 

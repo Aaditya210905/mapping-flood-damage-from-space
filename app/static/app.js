@@ -1,7 +1,7 @@
 "use strict";
 
 const $ = (id) => document.getElementById(id);
-const state = { run: null, sources: null, epoch: "after", layers: {}, rasters: {}, tracing: false, busy: false, asking: false, trace: null };
+const state = { run: null, sources: null, epoch: "after", layers: {}, rasters: {}, tracing: false, busy: false, asking: false, trace: null, history: [], needsMapFit: false };
 const map = L.map("map", { zoomControl: true, attributionControl: true, preferCanvas: true, minZoom: 3, maxZoom: 19, zoomSnap: 0.25 }).setView([28.10, 85.30], 10);
 map.createPane("radar");
 map.getPane("radar").style.zIndex = 250;
@@ -14,8 +14,12 @@ function escapeHTML(value) {
 }
 
 async function api(url, options) {
-  const response = await fetch(url, options);
-  const data = await response.json();
+  let response;
+  try { response = await fetch(url, options); }
+  catch { throw new Error("Unable to reach FloodLens. Check that the local server is running, then retry."); }
+  let data;
+  try { data = await response.json(); }
+  catch { throw new Error("FloodLens could not complete this request. Please retry or check the server status."); }
   if (!response.ok) {
     const detail = data.detail;
     throw new Error(Array.isArray(detail) ? detail.map((e) => e.msg).join("; ") : detail || `Request failed (${response.status})`);
@@ -86,7 +90,10 @@ function syncResultControls() {
   $("run-button").disabled = state.busy;
   $("preview-demo").disabled = state.busy;
   $("map-legend").hidden = !state.run;
-  $("copilot-status").textContent = state.run ? "English and Nepali answers use the facts in this saved analysis." : "Available after analysis. English and Nepali answers use saved map facts.";
+  $("generate-report").disabled = !available || state.asking;
+  $("language").disabled = state.asking;
+  const engine = state.sources?.copilot?.llm?.configured ? "Groq with validated map facts" : "Deterministic fallback with saved map facts";
+  $("copilot-status").textContent = state.run ? engine + ". English and Nepali supported." : "Available after analysis. English and Nepali answers use saved map facts.";
   syncSetup();
 }
 
@@ -135,10 +142,19 @@ function renderMap(run) {
   state.layers.settlements = L.layerGroup([settlements, destinations]);
   state.epoch = "after";
   updateLayers();
-  map.fitBounds(bounds, { padding: [23, 28], animate: false });
+  fitSelectedMap();
   $("map-empty").hidden = true;
   $("before-button").classList.remove("active");
   $("after-button").classList.add("active");
+}
+
+function fitSelectedMap() {
+  if (!state.run) return;
+  const container = map.getContainer();
+  if (!container.clientWidth || !container.clientHeight) { state.needsMapFit = true; return; }
+  map.invalidateSize();
+  map.fitBounds(boundsFor(state.run), { padding: [23, 28], animate: false });
+  state.needsMapFit = false;
 }
 
 function updateLayers() {
@@ -156,6 +172,7 @@ function updateLayers() {
 
 function renderRun(run) {
   state.run = run;
+  state.history = [];
   try { localStorage.setItem("flood-lens-run", run.id); } catch { /* Results work without persistent browser storage. */ }
   const s = run.stats;
   $("stat-water").textContent = s.water_km2.toFixed(2);
@@ -198,7 +215,7 @@ function renderRun(run) {
     ["Mapping method", mappingMethod],
     ["Radar / water / debris eligibility", `${s.radar_valid_coverage_pct ?? s.valid_coverage_pct}% / ${s.water_eligible_coverage_pct ?? s.valid_coverage_pct}% / ${s.debris_eligible_coverage_pct ?? s.optical_clear_pct}%`],
     ["Uncertain road access", `${s.settlements_access_uncertain ?? "Not assessed"} settlements; unobserved segments are not confirmed intact`],
-    ["AI component", "Situation-report copilot; bilingual intent classifier and map-derived fact templates"],
+    ["AI component", "Situation-report copilot; optional Groq tool calling, validated claims and deterministic fallback"],
   ];
   $("provenance-content").innerHTML = rows.map(([k, v]) => `<div class="provenance-row"><span>${escapeHTML(k)}</span><strong>${escapeHTML(v)}</strong></div>`).join("") + run.warnings.map((w) => `<p class="field-note">${escapeHTML(w)}</p>`).join("");
   $("limitations-list").innerHTML = run.limitations.map((item) => `<li>${escapeHTML(item)}</li>`).join("");
@@ -222,7 +239,7 @@ function setView(view) {
   $("method-link").classList.toggle("active", view === "method");
   $("workspace-link").setAttribute("aria-current", view === "method" ? "false" : "page");
   $("method-link").setAttribute("aria-current", view === "method" ? "page" : "false");
-  if (view === "map") setTimeout(() => map.invalidateSize(), 0);
+  if (view === "map") setTimeout(() => { map.invalidateSize(); if (state.needsMapFit) fitSelectedMap(); }, 0);
 }
 
 async function runAnalysis() {
@@ -266,25 +283,68 @@ async function ask(question) {
   state.asking = true;
   syncResultControls();
   const queriedRun = state.run.id;
+  const language = $("language").value;
   const container = $("conversation");
   const q = document.createElement("div"); q.className = "chat-question"; q.textContent = question; container.append(q);
   $("question").value = "";
+  const loading = document.createElement("p"); loading.className = "chat-loading"; loading.setAttribute("role", "status"); loading.textContent = language === "ne" ? "प्रमाण जाँचिँदै…" : "Checking analysis evidence…"; container.append(loading);
   try {
-    const response = await post(`${analysisBase()}/copilot`, { question, language: $("language").value });
+    const response = await post(`/api/analyses/${queriedRun}/copilot`, { question, language, history: state.history });
     if (state.run.id !== queriedRun) return;
+    if (response.run_id !== queriedRun || response.language !== language) throw new Error("The response does not match the selected analysis or language. Please retry.");
+    if (response.facts.some((fact) => fact.run_id !== queriedRun) || response.evidence.some((item) => item.run_id !== queriedRun)) throw new Error("Evidence belongs to a different analysis. Please retry.");
     const text = document.createElement("div"); text.className = "chat-answer"; text.textContent = response.answer; container.append(text);
-    const evidence = document.createElement("div"); evidence.className = "evidence";
-    evidence.textContent = response.evidence.length ? `Evidence: ${response.evidence.map((e) => e.path).join(" · ")} · Run ${queriedRun.slice(0, 8)}` : "No estimate supplied: this question is outside the mapped evidence.";
+    const status = document.createElement("p"); status.className = "generation-status";
+    status.textContent = response.generation.mode === "llm" ? (language === "ne" ? "Groq · प्रमाणसँग जाँचिएका तथ्य" : "Groq · evidence-validated claims") : (language === "ne" ? "निश्चित वैकल्पिक उत्तर · सुरक्षित तथ्य" : "Deterministic fallback · evidence-backed answer"); container.append(status);
+    const evidence = document.createElement("details"); evidence.className = "evidence";
+    const summary = document.createElement("summary"); summary.textContent = `${language === "ne" ? "प्रमाण" : "Supporting evidence"} · ${response.facts.length} · Run ${queriedRun.slice(0, 8)}`; evidence.append(summary);
+    for (const fact of response.facts) {
+      const item = document.createElement("dl");
+      const heading = document.createElement("dt"); heading.textContent = `${language === "ne" ? fact.label_ne : fact.label_en} · ${fact.subject_name || fact.subject_id}`; item.append(heading);
+      const value = document.createElement("dd"); value.textContent = fact.status === "available" ? `${JSON.stringify(fact.value)} ${fact.unit || ""}` : (language === "ne" ? "उपलब्ध छैन" : "Unavailable"); item.append(value);
+      const source = document.createElement("dd"); source.textContent = `${fact.fact_id} · ${fact.path} · ${fact.source_ids.join(" · ")} · ${fact.method}`; item.append(source); evidence.append(item);
+    }
+    const credits = document.createElement("p"); credits.textContent = (response.attributions || []).join(" "); evidence.append(credits);
     container.append(evidence);
+    appendReportLinks(container, response.report_links, queriedRun, language);
+    if (response.report_error) { const note = document.createElement("p"); note.className = "error"; note.textContent = response.report_error; container.append(note); }
+    state.history = [...state.history, {role: "user", content: question, run_id: queriedRun}, {role: "assistant", content: response.answer.slice(0, 2000), run_id: queriedRun}].slice(-6);
   } catch (error) {
     if (state.run.id !== queriedRun) return;
     const p = document.createElement("p"); p.className = "error"; p.textContent = error.message; container.append(p);
   } finally {
+    loading.remove();
     state.asking = false;
     syncResultControls();
     container.scrollTop = container.scrollHeight;
   }
 }
+
+function appendReportLinks(container, links, runId, language) {
+  if (!links) return;
+  const row = document.createElement("div"); row.className = "report-downloads";
+  for (const format of ["html", "pdf", "json"]) {
+    if (!links[format] || !links[format].startsWith(`/api/analyses/${runId}/`)) continue;
+    const link = document.createElement("a"); link.href = links[format]; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = `${language === "ne" ? "प्रतिवेदन" : "Report"} ${format.toUpperCase()} ↗`; row.append(link);
+  }
+  container.append(row);
+}
+
+$("generate-report").addEventListener("click", async () => {
+  if (!state.run || state.busy || state.asking) return;
+  const runId = state.run.id, language = $("language").value;
+  state.asking = true; syncResultControls();
+  const note = document.createElement("p"); note.className = "chat-loading"; note.setAttribute("role", "status"); note.textContent = language === "ne" ? "प्रतिवेदन तयार हुँदै…" : "Preparing situation report…"; $("conversation").append(note);
+  try {
+    const response = await post(`/api/analyses/${runId}/report`, {language});
+    if (state.run.id !== runId) return;
+    if (response.run_id !== runId || response.language !== language) throw new Error("Report does not match the selected analysis.");
+    const label = language === "ne" ? (response.status === "partial" ? "अपूर्ण प्रतिवेदन · नभएका तथ्य उपलब्ध छैनन्" : "प्रतिवेदन तयार भयो") : (response.status === "partial" ? "Incomplete report · missing facts marked unavailable" : "Report ready");
+    note.textContent = `${label} · ${response.generation.mode === "llm" ? "Groq" : language === "ne" ? "निश्चित वैकल्पिक उत्तर" : "Deterministic fallback"}`; note.className = "generation-status";
+    appendReportLinks($("conversation"), response.links, runId, language);
+  } catch (error) { note.className = "error"; note.textContent = error.message; }
+  finally { state.asking = false; syncResultControls(); }
+});
 
 $("analysis-form").addEventListener("submit", (event) => { event.preventDefault(); runAnalysis(); });
 $("copilot-form").addEventListener("submit", (event) => { event.preventDefault(); ask($("question").value); });
@@ -296,7 +356,7 @@ document.querySelectorAll("[data-epoch]").forEach((button) => button.addEventLis
   document.querySelectorAll("[data-epoch]").forEach((b) => b.classList.toggle("active", b === button));
   updateLayers();
 }));
-$("fit-map").addEventListener("click", () => { if (state.run) map.fitBounds(boundsFor(state.run), { padding: [23, 28], animate: false }); });
+$("fit-map").addEventListener("click", fitSelectedMap);
 $("method-link").addEventListener("click", () => setView("method"));
 $("workspace-link").addEventListener("click", () => setView("map"));
 $("inspect-sources").addEventListener("click", () => { setView("method"); $("method-panel").scrollIntoView({block: "start"}); });

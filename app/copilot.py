@@ -82,13 +82,18 @@ def render_fact(run, intent, language="en"):
     return text
 
 
-def answer(run, question, language="en"):
+def classify_question(question):
     model = intent_model()
     probabilities = model.predict_proba([question])[0]
     best = int(probabilities.argmax())
     intent, score = model.classes_[best], float(probabilities[best])
     if score < .34 or re.search(r"death|dead|casualt|injur|missing people|population|how many people|मृत|घाइते|बेपत्ता|जनसङ्ख्या|जनसंख्या", question, re.I):
         intent = "unsupported"
+    return intent, score
+
+
+def deterministic_answer(run, question, language="en"):
+    intent, score = classify_question(question)
     evidence = {
         "extent": ["stats.water_km2", "stats.debris_km2", "stats.valid_coverage_pct", "stats.optical_clear_pct", "layers.extent"],
         "damage": ["stats.buildings_exposed", "stats.roads_exposed", "stats.bridges_exposed", "stats.road_exposed_km"],
@@ -102,3 +107,8 @@ def answer(run, question, language="en"):
     return {"answer": render_fact(run, intent, language), "intent": intent, "intent_confidence": round(score, 3),
             "evidence": [{"path": field, "run_id": run["id"]} for field in evidence[intent]],
             "method": COPILOT_INFO["algorithm"]}
+
+
+def answer(run, question, language="en", history=None):
+    from app.copilot_service import respond
+    return respond(run, question, language, history)

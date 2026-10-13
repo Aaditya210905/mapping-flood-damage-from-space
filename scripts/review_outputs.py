@@ -31,10 +31,15 @@ example_texts={q for values in INTENT_EXAMPLES.values() for q in values}
 for lang,question,intent in QUESTIONS:
     assert question not in example_texts
     reply=answer(run,question,lang)
+    facts={fact['fact_id']:fact for fact in reply.get('facts',[])}
     for evidence in reply['evidence']:
         value=run
-        for part in evidence['path'].split('.'):
-            value=value[part]
+        try:
+            for part in evidence['path'].split('.'):
+                value=value[int(part)] if isinstance(value,list) else value[part]
+        except (KeyError,IndexError,TypeError):
+            fact=facts.get(evidence.get('fact_id'))
+            assert fact and fact['status'] in ('missing','invalid') and fact['value'] is None, evidence
     required=[];s=run['stats']
     if intent in ('extent','summary'):required.extend([f'{s["water_km2"]:.3f}',f'{s["debris_km2"]:.3f}'])
     if intent in ('damage','summary'):required.extend([str(s['buildings_exposed']),str(s['bridges_exposed']),f'{s["road_exposed_km"]:.3f}'])

@@ -297,6 +297,7 @@ def acquire_live(params, grid, folder, progress):
     progress("Fetching Copernicus DEM", 50)
     dem = provider.process("dem", "dem")[0]
     optical_before, optical_after, optical_scenes = None, None, []
+    optical_observations = []
     warnings = []
     progress("Checking clear-sky Sentinel-2 support", 60)
     try:
@@ -313,10 +314,11 @@ def acquire_live(params, grid, folder, progress):
             optical_before = provider.process("sentinel-2-l2a", "s2-before", pre_item)
             optical_after = provider.process("sentinel-2-l2a", "s2-after", post_item)
             optical_scenes = [pre_item["id"], post_item["id"]]
+            optical_observations = [{"id": item["id"], "acquired": item["properties"]["datetime"]} for item in (pre_item, post_item)]
         else:
             warnings.append("No suitable pre/post optical pair. Debris candidates are unavailable; radar water analysis continues.")
     except (httpx.HTTPError, ValueError, KeyError):
         warnings.append("Optical provider unavailable. Radar water analysis continues without debris candidates.")
         optical_before, optical_after = None, None
     return {"before": before, "after": after, "vh_before": before[3], "vh_after": after[3], "dem": dem, "osm": osm, "scenes": scenes, "snapshot": timestamp,
-            "optical_before": optical_before, "optical_after": optical_after, "optical_scenes": optical_scenes, "warnings": warnings}
+            "optical_before": optical_before, "optical_after": optical_after, "optical_scenes": optical_scenes, "optical_observations": optical_observations, "warnings": warnings}

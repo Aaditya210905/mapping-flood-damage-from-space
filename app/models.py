@@ -69,6 +69,18 @@ class Scene(BaseModel):
 class CopilotRequest(BaseModel):
     question: str = Field(min_length=1, max_length=500)
     language: Literal["en", "ne"] = "en"
+    history: list["ConversationTurn"] = Field(default_factory=list, max_length=6)
+
+
+class ConversationTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=2000)
+    run_id: str = Field(min_length=36, max_length=36)
+
+
+class ReportRequest(BaseModel):
+    language: Literal["en", "ne"] = "en"
+    use_llm: bool = True
 
 
 class TraceRequest(BaseModel):

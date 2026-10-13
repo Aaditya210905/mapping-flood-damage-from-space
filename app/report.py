@@ -1,59 +1,125 @@
+"""Typed, evidence-backed one-page HTML/PDF reports in English and Nepali."""
+from datetime import datetime, timezone
 from html import escape
-from io import BytesIO
-import textwrap
+from pathlib import Path
+from uuid import uuid4
 
-from reportlab.lib.colors import HexColor
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
+from app.copilot_types import SituationReport, ReportSection, GenerationInfo
+from app.evidence import EvidenceContext, FLOOD_FIELDS, INFRA_FIELDS, ACCESS_FIELDS
+from app.grounding import format_value, EXPLANATIONS
+from app.models import ATTRIBUTIONS
 
-from app.copilot import render_fact
-
-
-def report_html(run, language="en"):
-    heading = "बाढी स्थिति प्रतिवेदन" if language == "ne" else "Flood situation report"
-    labels = ["Flood extent", "Infrastructure exposure", "Road access", "Data provenance", "Limitations"] if language == "en" else ["डुबान क्षेत्र", "पूर्वाधार", "सडक सम्पर्क", "तथ्याङ्कका स्रोत", "सीमाहरू"]
-    blocks = "".join(f"<section><h2>{escape(label)}</h2><p>{escape(render_fact(run, intent, language).split(chr(10)+chr(10))[-1]).replace(chr(10), '<br>')}</p></section>" for label, intent in zip(labels, ["extent", "damage", "access", "sources", "limitations"]))
-    demo_notice = ""
-    if run["mode"] == "demo":
-        demo_notice = '<p style="color:#a25315">' + ("कृत्रिम प्रदर्शन तथ्याङ्क — वास्तविक घटनाको नतिजा होइन।" if language == "ne" else "SYNTHETIC DEMO — not observations or results for the actual event.") + "</p>"
-    attributions = "<br>".join(escape(t) for t in run["attributions"])
-    return f"""<!doctype html><html lang="{language}"><meta charset="utf-8"><title>{heading}</title>
-<style>body{{font:13px/1.5 Arial,sans-serif;max-width:760px;margin:35px auto;color:#173b36;padding:20px}}h1{{font-size:30px;margin-bottom:0}}h2{{font-size:14px;margin:16px 0 3px}}p{{margin:3px 0}}small{{font-size:10px}}header{{border-bottom:3px solid #23775e;padding-bottom:16px}}button{{padding:10px 16px;background:#23775e;color:white;border:0;cursor:pointer}}@page{{size:A4;margin:14mm}}@media print{{body{{margin:0;padding:0;font-size:10pt}}button{{display:none}}section{{break-inside:avoid}}}}</style>
-<button onclick="window.print()">Print / Save PDF</button><header><p>FLOOD LENS · {escape(run['mode'].upper())}</p><h1>{heading}</h1><p>{escape(run['name'])} · {escape(run['flood_date'])}</p><small>Run {escape(run['id'])} · {escape(run['created_at'])}</small>{demo_notice}</header>{blocks}<hr><small>{attributions}</small></html>"""
+FONTS = Path(__file__).resolve().parent / 'static' / 'fonts'
 
 
-def report_pdf(run):
-    stream = BytesIO()
-    pdf = canvas.Canvas(stream, pagesize=A4)
-    width, height = A4
-    pdf.setTitle(f"Flood Lens situation report — {run['name']}")
-    y = height - 45
-    pdf.setFillColor(HexColor("#23775e"))
-    pdf.setFont("Helvetica-Bold", 10); pdf.drawString(42, y, "FLOOD LENS / SITUATION REPORT")
-    y -= 30
-    pdf.setFillColor(HexColor("#163b35"))
-    pdf.setFont("Helvetica-Bold", 20); pdf.drawString(42, y, run["name"][:45])
-    y -= 21
-    pdf.setFont("Helvetica", 10); pdf.drawString(42, y, f"Event date: {run['flood_date']} | Mode: {run['mode'].upper()}")
-    y -= 20
-    if run["mode"] == "demo":
-        pdf.setFillColor(HexColor("#a25315")); pdf.drawString(42, y, "SYNTHETIC DEMO: not observations or results for the actual event."); y -= 20
-    for label, intent in zip(["Flood extent", "Infrastructure exposure", "Road access", "Data provenance", "Limitations"], ["extent", "damage", "access", "sources", "limitations"]):
-        pdf.setFillColor(HexColor("#23775e")); pdf.setFont("Helvetica-Bold", 11); pdf.drawString(42, y, label); y -= 16
-        pdf.setFillColor(HexColor("#243832")); pdf.setFont("Helvetica", 9)
-        content = render_fact(run, intent).split("\n\n")[-1]
-        # Long lists remain available in HTML and GeoJSON; the PDF stays one page.
-        if intent == "access" and len(content) > 500:
-            content = content[:400].rsplit(" ", 1)[0] + ". Full settlement list: see exported GeoJSON."
-        content = content.replace("²", "2").replace("—", "-")
-        for line in textwrap.wrap(content, 99):
-            pdf.drawString(42, y, line); y -= 12
-        y -= 13
-    y = min(y, 145)
-    pdf.setFont("Helvetica", 7)
-    for attribution in run["attributions"]:
-        for line in textwrap.wrap(attribution, 119):
-            pdf.drawString(42, y, line); y -= 10
-    pdf.drawString(42, 28, f"Run {run['id']} | Generated {run['created_at']} | Educational prototype")
-    pdf.showPage(); pdf.save()
-    return stream.getvalue()
+class ReportDataError(ValueError):
+    pass
+
+
+class ReportRenderingError(ValueError):
+    pass
+
+
+def build_report_data(run, language='en', response=None):
+    if language not in ('en','ne'):raise ReportDataError('Use English or Nepali')
+    context=EvidenceContext(run)
+    context.call('event_summary',{})
+    i=language=='ne'
+    for key in ('analysis_name','event_date'):
+        if context.global_fields[key].status!='available':
+            raise ReportDataError('Cannot create a situation report: analysis area or event date is unavailable.')
+    if response and (response.get('run_id')!=context.run_id or response.get('language')!=language):
+        raise ReportDataError('Report response belongs to a different analysis or language.')
+    selected=[];sections=[]
+    def add(heading, keys, extra=None):
+        facts=[context.global_fields[key] for key in keys]
+        selected.extend(facts)
+        lines=[f"{fact.label_ne if i else fact.label_en}: {format_value(fact,language)}" for fact in facts]
+        lines.extend(extra or [])
+        sections.append(ReportSection(heading=heading[i],lines=lines,fact_ids=[fact.fact_id for fact in facts]))
+    add(('Satellite observations','उपग्रह अवलोकन'),('radar_before_acquired','radar_after_acquired','optical_scene_ids','optical_acquisition_dates'))
+    add(('Flood and surface-change findings','डुबान र भूआवरण परिवर्तन'),FLOOD_FIELDS,
+        [EXPLANATIONS['surface_change_uncertain'][i],EXPLANATIONS['coverage_limits'][i]])
+    add(('Potential infrastructure exposure','पूर्वाधारमा सम्भावित प्रभाव'),INFRA_FIELDS,[EXPLANATIONS['potential_damage'][i]])
+    settlement_facts=[]
+    for (layer,identifier),feature in context.index.items():
+        if layer=='settlements' and feature['properties'].get('status')=='cut_off':
+            settlement_facts.extend(f for f in context.feature_facts(layer,identifier) if f.field_name=='name')
+            if len(settlement_facts)>=3:break
+    selected.extend(settlement_facts)
+    names=', '.join(f"{f.value} [{f.subject_id}]" for f in settlement_facts if f.status=='available')
+    extra=[EXPLANATIONS['modeled_closure'][i]]
+    if names:extra.append(('उदाहरण बस्ती: ' if i else 'Example settlements: ')+names+('. पूर्ण सूची नक्सा निर्यातमा छ।' if i else '. Complete list remains in map exports.'))
+    add(('Modeled settlement connectivity','मोडेल अनुसार बस्तीको सडक सम्पर्क'),ACCESS_FIELDS,extra)
+    add(('Sources and evidence','स्रोत र प्रमाण'),('radar_before_id','radar_after_id','osm_snapshot','mapping_method'),
+        [('प्रमाण: चयन गरिएको विश्लेषणको result.json, extent.geojson र पूर्वाधार/सडक सम्पर्क अभिलेख।' if i else 'Evidence: result.json, extent.geojson and the selected analysis’s infrastructure/connectivity layers.')])
+    # Always include these authored limitations, even when the LLM requests a shorter briefing.
+    codes=('satellite_limits','routing_limits','coverage_limits')
+    limits=[EXPLANATIONS[code][i] for code in codes]
+    limits.append('जनसङ्ख्या, मृत्यु, घाइते वा बेपत्ताको अनुमान उपलब्ध छैन। स्थल निरीक्षण र नेपाली भाषा समीक्षा आवश्यक छ।' if i else 'Population and casualty estimates are unavailable. Field verification and native-speaker Nepali review remain necessary.')
+    sections.append(ReportSection(heading='सीमाहरू' if i else 'Important limitations',lines=limits,fact_ids=[]))
+    unique=list({fact.fact_id:fact for fact in selected}.values())
+    missing=[fact.field_name for fact in unique if fact.status!='available']
+    recorded_credits=run.get('attributions')
+    attributions=list(dict.fromkeys(ATTRIBUTIONS+[text for text in (recorded_credits if isinstance(recorded_credits,list) else []) if isinstance(text,str)]))
+    generation=GenerationInfo.model_validate(response['generation']) if response else GenerationInfo(mode='deterministic_fallback',provider=None,model=None,reason='deterministic_report',validation='deterministic_facts')
+    return SituationReport(report_id=str(uuid4()),run_id=context.run_id,language=language,
+        title='बाढी स्थिति प्रतिवेदन' if i else 'Flood situation report',
+        generated_at=datetime.now(timezone.utc).isoformat(timespec='seconds'),
+        analysis_name=str(context.global_fields['analysis_name'].value),event_date=str(context.global_fields['event_date'].value),
+        data_mode=run['mode'],status='partial' if missing else 'complete',sections=sections,facts=unique,
+        attributions=attributions,generation=generation,missing_fields=missing)
+
+
+def report_html(run, language='en', data=None, *, font_size=9.5):
+    data=data or build_report_data(run,language)
+    if data.run_id!=str(run['id']) or data.language!=language:
+        raise ReportDataError('Report does not belong to the selected analysis/language.')
+    i=language=='ne'
+    demo=('<p class="notice">'+('कृत्रिम प्रदर्शन — वास्तविक घटनाको अवलोकन वा नतिजा होइन।' if i else 'SYNTHETIC DEMO — not observations or results of the real event.')+'</p>') if data.data_mode=='demo' else ''
+    missing_labels=[f.label_ne if i else f.label_en for f in data.facts if f.field_name in data.missing_fields]
+    partial=('<p class="notice">'+('अपूर्ण प्रतिवेदन — उपलब्ध नभएका मापन शून्य होइनन्।' if i else 'INCOMPLETE REPORT — unavailable measurements are not zero.')+' '+escape(', '.join(missing_labels))+'</p>') if data.status=='partial' else ''
+    sections=''.join('<section><h2>'+escape(section.heading)+'</h2>'+''.join('<p>'+escape(line)+'</p>' for line in section.lines)+'</section>' for section in data.sections)
+    credits='<br>'.join(escape(text) for text in data.attributions)
+    mode_label=('Groq-assisted; values verified from map facts' if data.generation.mode=='llm' else 'Deterministic evidence-backed report') if not i else ('Groq सहयोग; मापन नक्साको तथ्यबाट जाँचिएको' if data.generation.mode=='llm' else 'नक्साको प्रमाणमा आधारित निश्चित प्रतिवेदन')
+    return f'''<!doctype html><html lang="{language}"><head><meta charset="utf-8"><title>{escape(data.title)}</title>
+<style>
+@font-face{{font-family:NotoDevanagari;src:url('/static/fonts/NotoSansDevanagari-Regular.ttf')}}
+@font-face{{font-family:NotoDevanagari;font-weight:700;src:url('/static/fonts/NotoSansDevanagari-Bold.ttf')}}
+@page{{size:A4;margin:12mm}}
+*{{box-sizing:border-box}}body{{font:{font_size}pt/1.32 Arial,NotoDevanagari,sans-serif;color:#193d35;max-width:760px;margin:24px auto;padding:0 14px}}
+body:lang(ne){{font-family:NotoDevanagari,Arial,sans-serif;line-height:1.38}}
+h1{{font-size:21pt;margin:4px 0}}h2{{font-size:10pt;margin:9px 0 3px;color:#286e56}}p{{margin:2px 0;overflow-wrap:anywhere}}section{{break-inside:avoid}}
+header{{border-bottom:2px solid #286e56;padding-bottom:8px}}small{{font-size:7.2pt}}.notice{{color:#8b551c;font-weight:700;margin:4px 0}}
+footer{{border-top:1px solid #cbd8c9;margin-top:10px;padding-top:6px;font-size:6.8pt;line-height:1.25}}button{{padding:9px 14px;background:#286e56;color:white;border:0;margin-bottom:12px;cursor:pointer}}
+@media print{{body{{margin:0;padding:0;max-width:none}}button{{display:none}}}}
+</style></head><body><button onclick="window.print()">Print / Save PDF</button>
+<header><small>FLOODLENS AI · {escape(data.data_mode.upper())} · {escape(mode_label)}</small><h1>{escape(data.title)}</h1>
+<p>{escape(data.analysis_name)} · {escape(data.event_date)}</p><small>{'तयार भएको समय' if i else 'Generated'}: {escape(data.generated_at)}<br>Run {escape(data.run_id)} · Report {escape(data.report_id)}</small>{demo}{partial}</header>
+{sections}<footer>{credits}<br>{'शैक्षिक नमुना; क्षेत्रीय सत्यापन आवश्यक।' if i else 'Educational prototype; independent field verification required.'}</footer></body></html>'''
+
+
+def report_pdf(run, language='en', data=None):
+    data=data or build_report_data(run,language)
+    try:
+        from weasyprint import HTML
+        from weasyprint.urls import URLFetcherResponse
+        from weasyprint.text.fonts import FontConfiguration
+    except (ImportError,OSError):
+        raise ReportRenderingError('PDF rendering is unavailable. Install the documented Pango dependencies; printable HTML remains available.') from None
+    allowed={(FONTS/name).resolve().as_uri(): FONTS/name for name in ('NotoSansDevanagari-Regular.ttf','NotoSansDevanagari-Bold.ttf')}
+    if not all((FONTS/name).is_file() for name in ('NotoSansDevanagari-Regular.ttf','NotoSansDevanagari-Bold.ttf')):
+        raise ReportRenderingError('Bundled Nepali fonts are unavailable; restore app/static/fonts.')
+    def fetch(url,**kwargs):
+        if url not in allowed:raise ValueError('Report resource access is not allowed')
+        return URLFetcherResponse(url, body=allowed[url].read_bytes(), headers={"Content-Type": "font/ttf"})
+    for size in (9.5,9,8.5):
+        html=report_html(run,language,data,font_size=size)
+        for name in ('NotoSansDevanagari-Regular.ttf','NotoSansDevanagari-Bold.ttf'):
+            html=html.replace('/static/fonts/'+name,(FONTS/name).resolve().as_uri())
+        try:
+            document=HTML(string=html,url_fetcher=fetch).render(font_config=FontConfiguration())
+            if len(document.pages)==1:return document.write_pdf()
+        except Exception:
+            raise ReportRenderingError('The report could not be rendered. Use the printable HTML report and check the documented PDF dependencies.') from None
+    raise ReportRenderingError('This analysis contains too much text for a readable one-page PDF. Use the HTML report or the full JSON evidence export.')

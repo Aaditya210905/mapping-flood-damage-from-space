@@ -78,6 +78,7 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
            "parameters": params.model_dump(mode="json"), "stats": stats, "layers": layers,
            "provenance": {"radar_scenes": [s.model_dump(mode="json") for s in inputs["scenes"]], "osm_snapshot": inputs["snapshot"],
                           "optical_scenes": inputs["optical_scenes"], "radar_processing": inputs.get("acquisition", {}).get("processing", "linear gamma0 terrain, Copernicus DEM 30, 3x3 median in dB"),
+                          "optical_observations": inputs.get("optical_observations", []),
                           "acquisition": inputs.get("acquisition", {}), "mapping": MAPPING_METHOD,
                           "coverage_definitions": "radar_valid: physical screening/context; water_eligible: observed low-slope targets; debris_eligible: paired clear optical; valid: union of eligible water and debris targets",
                           "osm_source_api": inputs["osm"].get("metadata", {}).get("sourceApi", "synthetic"),

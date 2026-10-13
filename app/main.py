@@ -15,9 +15,12 @@ import rasterio
 
 from app.copilot import COPILOT_INFO, answer, intent_model
 from app.geo import Grid, trace_downhill
-from app.models import AnalysisRequest, CopilotRequest, TraceRequest
+from app.models import AnalysisRequest, CopilotRequest, ReportRequest, TraceRequest, ATTRIBUTIONS
 from app.pipeline import run_analysis
-from app.report import report_html, report_pdf
+from app.report import report_html, report_pdf, build_report_data, ReportDataError, ReportRenderingError
+from app.copilot_types import SituationReport
+from app.evidence import EvidenceContext, EvidenceError, TOOL_REGISTRY
+from app.llm import provider_status
 from app.sources import MAPPING_METHOD, SOURCES
 
 
@@ -47,7 +50,7 @@ app.mount("/static", StaticFiles(directory=ROOT / "app" / "static"), name="stati
 def run_folder(run_id):
     try:
         uuid.UUID(run_id)
-    except ValueError:
+    except (ValueError, TypeError, AttributeError):
         raise HTTPException(404, "Unknown run")
     return DATA / run_id
 
@@ -56,18 +59,32 @@ def saved_run(run_id):
     path = run_folder(run_id) / "result.json"
     if not path.exists():
         raise HTTPException(404, "Analysis result is not available")
-    run = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        run = json.loads(path.read_text(encoding="utf-8"))
+        EvidenceContext(run, run_id)
+    except (OSError, ValueError, TypeError):
+        raise HTTPException(422, "Saved analysis data are invalid or do not belong to the requested run.") from None
+    run = {**run, "processing_status": "stored_result"}
     evaluation = path.with_name("evaluation.json")
     if evaluation.exists():
-        comparison = json.loads(evaluation.read_text())
-        if comparison.get("run_id") == run["id"]:
+        try:
+            comparison = json.loads(evaluation.read_text())
+            if not isinstance(comparison, dict) or comparison.get("run_id") != run["id"]:
+                raise ValueError("Evaluation ownership mismatch")
             run["evaluation"] = comparison
-            run["attributions"] = run["attributions"] + [comparison["attribution"]]
+            credits = run.get("attributions")
+            run["attributions"] = (credits if isinstance(credits, list) else ATTRIBUTIONS) + ([comparison["attribution"]] if isinstance(comparison.get("attribution"), str) else [])
+        except (ValueError, OSError):
+            run["warnings"] = list(run.get("warnings") or []) + ["Optional reference evaluation is invalid or belongs to another run; it was not attached."]
     assets = path.with_name("asset-evaluation.json")
     if assets.exists():
-        comparison = json.loads(assets.read_text())
-        if comparison.get("run_id") == run["id"]:
+        try:
+            comparison = json.loads(assets.read_text())
+            if not isinstance(comparison, dict) or comparison.get("run_id") != run["id"]:
+                raise ValueError("Evaluation ownership mismatch")
             run["asset_evaluation"] = comparison
+        except (ValueError, OSError):
+            run["warnings"] = list(run.get("warnings") or []) + ["Optional asset evaluation is invalid or belongs to another run; it was not attached."]
     return run
 
 
@@ -80,7 +97,7 @@ def dashboard():
 def health():
     return {"status": "ok", "live_configured": bool(os.getenv("CDSE_CLIENT_ID") and os.getenv("CDSE_CLIENT_SECRET")),
             "public_raw_provider": True, "mapping": MAPPING_METHOD["type"], "ai_component": COPILOT_INFO["component"],
-            "osm_v2_configured": bool(os.getenv("OHSOME_API_KEY")), "copilot": COPILOT_INFO["algorithm"]}
+            "osm_v2_configured": bool(os.getenv("OHSOME_API_KEY")), "copilot": COPILOT_INFO["algorithm"], "llm": provider_status()}
 
 
 @app.get("/api/data-sources")
@@ -94,14 +111,14 @@ def data_sources():
                 completed[mode] += 1
         except (OSError, ValueError):
             continue
-    return {"sources": SOURCES, "mapping": MAPPING_METHOD, "copilot": COPILOT_INFO,
+    return {"sources": SOURCES, "mapping": MAPPING_METHOD, "copilot": {**COPILOT_INFO, "llm": provider_status()},
             "workspace": {"completed_actual_runs": completed["live"], "completed_synthetic_runs": completed["demo"],
                           "training_data_loading": False, "default_detection": "rule_based"}}
 
 
 @app.get("/api/copilot")
 def copilot_info():
-    return COPILOT_INFO
+    return {**COPILOT_INFO, "llm": provider_status(), "tools": list(TOOL_REGISTRY)}
 
 
 def dashboard_view(run):
@@ -188,7 +205,71 @@ def result(run_id: str, view: Literal["full", "dashboard"] = "full"):
 
 @app.post("/api/analyses/{run_id}/copilot")
 def ask_copilot(run_id: str, request: CopilotRequest):
-    return answer(saved_run(run_id), request.question, request.language)
+    run = saved_run(run_id)
+    try:
+        response = answer(run, request.question, request.language,
+                          [turn.model_dump() for turn in request.history])
+    except (EvidenceError, ValueError):
+        raise HTTPException(422, "The question or conversation history does not match valid evidence for this analysis.") from None
+    if response.get("intent") == "summary":
+        try:
+            data = build_report_data(run, request.language, response)
+            response["report_links"] = persist_report(data)
+        except (ReportDataError, OSError):
+            response["report_links"] = None
+            response["report_error"] = "Report unavailable: verify the analysis area, event date and report storage."
+    return response
+
+
+@app.get("/api/analyses/{run_id}/feature-evidence")
+def feature_evidence(run_id: str, layer: Literal["buildings", "roads", "bridges", "settlements", "destinations"], feature_id: str):
+    try:
+        return EvidenceContext(saved_run(run_id), run_id).call("feature_evidence", {"layer": layer, "feature_id": feature_id})
+    except (ValueError, TypeError):
+        raise HTTPException(422, "Use a valid feature identifier and layer from this analysis.") from None
+
+
+def persist_report(data):
+    # Only server-generated report UUIDs choose filenames. These derived reports
+    # are separate from immutable result.json and never become analysis inputs.
+    folder = DATA / ".reports" / data.run_id
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / f"{data.report_id}.json").write_text(data.model_dump_json(), encoding="utf-8")
+    base = f"/api/analyses/{data.run_id}/reports/{data.report_id}"
+    return {"html": base + "?format=html", "pdf": base + "?format=pdf", "json": base + "?format=json"}
+
+
+@app.post("/api/analyses/{run_id}/report")
+def generate_report(run_id: str, request: ReportRequest):
+    run = saved_run(run_id)
+    try:
+        response = answer(run, "Generate a short situation report", request.language) if request.use_llm else None
+        data = build_report_data(run, request.language, response)
+        return {"run_id": data.run_id, "language": data.language, "generation": data.generation,
+                "status": data.status, "report": data, "links": persist_report(data)}
+    except (ValueError, OSError):
+        raise HTTPException(422, "Report could not be created: verify the analysis area, event date and saved data.") from None
+
+
+@app.get("/api/analyses/{run_id}/reports/{report_id}")
+def generated_report(run_id: str, report_id: str, format: Literal["html", "pdf", "json"] = "html"):
+    run = saved_run(run_id)
+    try:
+        identifier = str(uuid.UUID(report_id))
+        path = DATA / ".reports" / str(uuid.UUID(run_id)) / f"{identifier}.json"
+        if not path.exists():
+            raise HTTPException(404, "Generated report is not available.")
+        data = SituationReport.model_validate_json(path.read_text())
+        if data.run_id != str(uuid.UUID(run_id)) or data.report_id != identifier:
+            raise ValueError("Mismatched report")
+    except (ValueError, OSError):
+        raise HTTPException(422, "Invalid report identifier or data.") from None
+    if format == "json": return data
+    try:
+        if format == "pdf": return Response(report_pdf(run, data.language, data), media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="flood-lens-{data.language}-{identifier}.pdf"'})
+        return HTMLResponse(report_html(run, data.language, data))
+    except ReportRenderingError as error:
+        raise HTTPException(422, str(error)) from None
 
 
 @app.get("/api/analyses/{run_id}/report")
@@ -196,11 +277,12 @@ def report(run_id: str, language: str = "en", format: str = "html"):
     if language not in ("en", "ne") or format not in ("html", "pdf"):
         raise HTTPException(422, "Use language=en|ne and format=html|pdf")
     run = saved_run(run_id)
-    if format == "pdf":
-        if language == "ne":
-            raise HTTPException(422, "Open the Nepali HTML report and choose Print / Save PDF to preserve Devanagari text.")
-        return Response(report_pdf(run), media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="flood-lens-situation-report.pdf"'})
-    return HTMLResponse(report_html(run, language))
+    try:
+        if format == "pdf":
+            return Response(report_pdf(run, language), media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="flood-lens-situation-report-{language}.pdf"'})
+        return HTMLResponse(report_html(run, language))
+    except (ReportDataError, ReportRenderingError) as error:
+        raise HTTPException(422, str(error)) from None
 
 
 @app.get("/api/analyses/{run_id}/files/{filename}")
