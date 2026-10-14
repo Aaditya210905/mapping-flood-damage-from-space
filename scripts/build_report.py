@@ -1,4 +1,5 @@
-"""Render the editable technical report into an explicit six-page PDF."""
+"""Render the current Copilot submission report into a six-page PDF."""
+import argparse
 from html import escape
 from pathlib import Path
 
@@ -10,7 +11,11 @@ from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer
 
 
 root = Path(__file__).resolve().parent.parent
-source = (root / "docs/technical-report.md").read_text(encoding="utf-8")
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--source', type=Path, default=root / 'docs/technical-report.md')
+parser.add_argument('--output', type=Path, default=root / 'output/pdf/copilot-technical-report.pdf')
+args = parser.parse_args()
+source = args.source.read_text(encoding="utf-8")
 sections = source.split("<!-- page -->")
 assert len(sections) == 6
 ink, green = colors.HexColor("#183e35"), colors.HexColor("#23775d")
@@ -31,10 +36,11 @@ for index, section in enumerate(sections):
 
 def footer(canvas, document):
     canvas.setFillColor(green); canvas.setFont("Helvetica",8)
-    canvas.drawString(42,27,"FLOOD LENS / EDUCATIONAL PROTOTYPE / ACTUAL-DATA BASELINE")
+    canvas.drawString(42,27,"FLOODLENS AI / SITUATION-REPORT COPILOT / EDUCATIONAL PROTOTYPE")
     canvas.drawRightString(A4[0]-42,27,f"{document.page} / 6")
 
-document = SimpleDocTemplate(str(root / "docs/technical-report.pdf"),pagesize=A4,topMargin=46,bottomMargin=47,leftMargin=42,rightMargin=42,
-                             title="Flood Lens technical report",author="Flood Lens contributors")
+args.output.parent.mkdir(parents=True, exist_ok=True)
+document = SimpleDocTemplate(str(args.output),pagesize=A4,topMargin=46,bottomMargin=47,leftMargin=42,rightMargin=42,
+                             title="FloodLens AI: Situation-report Copilot",author="FloodLens contributors")
 document.build(story,onFirstPage=footer,onLaterPages=footer)
-print(root / "docs/technical-report.pdf")
+print(args.output)

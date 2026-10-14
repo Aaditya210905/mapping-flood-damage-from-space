@@ -72,6 +72,8 @@ Reports are separate UUID-named JSON snapshots under `data/runs/.reports`, exclu
 
 ## Verification and troubleshooting
 
+For prepared non-test submission materials, report exports and the three-minute recording, see [COPILOT_SUBMISSION.md](COPILOT_SUBMISSION.md). The report exporter accepts a saved run and does not train a model, fetch new observations or run tests. Synthetic reports and recordings require explicit flags and retain visible labels.
+
 ```bash
 uv run pytest -q
 node --check app/static/app.js

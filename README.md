@@ -83,7 +83,18 @@ uv run python scripts/verify_copilot.py --require-llm
 uv run python scripts/verify_copilot.py --run-id RUN_ID --allow-demo
 ```
 
-Existing case studies, model cards, reports and demo videos in `docs/` are **historical outputs from the removed segmentation model**. Their scores/counts do not validate the current rule-based pipeline. Regenerate the Nepal case study, independent reference comparison and submission artifacts for the copilot route. The browser/demo scripts use Playwright and Chromium; video also requires ffmpeg.
+The current six-page Copilot submission report is [technical-report.pdf](docs/technical-report.pdf), with editable [source](docs/technical-report.md). Prepared materials and commands are listed in [Copilot submission setup](docs/COPILOT_SUBMISSION.md). English/Nepali PDF, offline HTML and JSON previews are under `output/pdf/copilot-preview`. These reports are explicitly synthetic. The user will record the three-minute video using the [timed presenter script](docs/demo-script.md); no new video is claimed as complete. No new application tests were run during submission preparation.
+
+Older case studies, model cards, situation reports and videos in `docs/` remain **historical outputs from the removed segmentation model**. Their scores/counts do not validate the current rule-based pipeline. The previous technical report is preserved in `docs/archive/segmentation-technical-report.*`. Real Nepal results and independent reference comparisons still require a real current-pipeline analysis. Recording uses Playwright, isolated Chromium and ffmpeg.
+
+```bash
+# Real saved analysis; no tests or new acquisitions are run by the exporter
+uv run --env-file .env python scripts/export_copilot_reports.py data/runs/REAL_RUN_UUID --output output/pdf/copilot-real --use-llm
+uv run python scripts/record_demo.py --run-id REAL_RUN_UUID --output output/video/copilot-demo.mp4
+# Synthetic software walkthrough requires explicit permission
+uv run python scripts/record_demo.py --run-id DEMO_RUN_UUID --preview --output output/video/copilot-preview.mp4
+uv run python scripts/build_report.py
+```
 
 See the [Copilot implementation report](docs/COPILOT_IMPLEMENTATION_REPORT.md) for executed checks and remaining live-validation requirements.
 

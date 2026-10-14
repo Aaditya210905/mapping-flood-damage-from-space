@@ -82,7 +82,7 @@ These are **synthetic software-check results**, not observations of the Nepal fl
 
 ## 11. Incomplete validation and limitations
 
-Live Groq responses and real satellite-analysis end-to-end behavior have **not** been executed: there is no private `.env`, exported Groq key, exported CDSE OAuth configuration or real saved analysis in the workspace. User-owned Sentinel APIs must be configured locally; keys should never be shared in messages. Actual satellite processing may be used through the existing public or Copernicus path once a real run is available.
+At the implementation verification stage, live Groq responses and real satellite-analysis end-to-end behavior had **not** been executed: there was no private `.env`, exported Groq key, exported CDSE OAuth configuration or real saved analysis in the workspace. User-owned Sentinel APIs must be configured locally; keys should never be shared in messages. Actual satellite processing may be used through the existing public or Copernicus path once a real run is available.
 
 Native Nepali review, Nepal case-study evaluation and field verification remain outstanding. Existing historical model cards/case-study/video outputs were preserved and do not validate this implementation. There is no unrestricted generated prose/free translation path; controlled bilingual narrative is deliberate. Missing historical metadata cannot be reconstructed safely. Provider availability, rate limits and language/tool-selection quality require live validation. Very long reports may require HTML.
 
@@ -97,3 +97,7 @@ uv run python scripts/verify_copilot.py --run-id REAL_RUN_UUID --require-llm
 ```
 
 The command rejects synthetic runs unless explicitly authorized with `--allow-demo`, and rejects fallback for supported checks when `--require-llm` is used. Run fallback checks after setting `LLM_ENABLED=false` and restarting. Review Nepali terminology with a native speaker and independently validate mapping/access hypotheses before operational use. Detailed setup, API contracts and troubleshooting are in [COPILOT.md](COPILOT.md).
+
+## Subsequent submission preparation
+
+The user subsequently requested remaining non-test work and chose to record the video personally. A private owner-only `.env` now contains the user-supplied Groq key; sanitized configuration reports enabled/configured with `openai/gpt-oss-120b`, and localhost was restarted to load it. No live provider call or new application test was made. The current six-page technical report, English/Nepali synthetic PDF/HTML/JSON previews, source-checksum manifest, timed narration, judge Q&A, glossary and export helper are prepared. The previous segmentation technical report was archived. Real-event report exports still require a real analysis. See [submission materials](COPILOT_SUBMISSION.md).

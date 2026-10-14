@@ -1,97 +1,145 @@
-"""Record a captioned actual-data UI tour. Requires Playwright + Chromium and ffmpeg.
+"""Record the current Copilot interface into a captioned three-minute video.
 
-Start the application on 127.0.0.1:8000 first. This script does not validate
-field accuracy. It requires a completed actual-data run and retains coverage limitations.
+Defaults to real data. --preview explicitly permits a labeled synthetic walkthrough.
+No model keys or private browser profiles are recorded.
 """
+import argparse
+import json
 from pathlib import Path
+import shutil
 import subprocess
 import time
 
+import httpx
 from playwright.sync_api import sync_playwright
 
+ROOT = Path(__file__).resolve().parent.parent
 
-root = Path(__file__).resolve().parent.parent
-output = root / "docs" / "qa" / "recording"
-output.mkdir(parents=True, exist_ok=True)
-with sync_playwright() as playwright:
-    browser = playwright.chromium.launch(headless=True)
-    # Load the completed actual-data case before starting the recording.
-    setup = browser.new_page()
-    setup.goto("http://127.0.0.1:8000", wait_until="networkidle")
-    setup.wait_for_function("document.querySelector('#stat-water').textContent !== '—'", timeout=60000)
-    assert setup.evaluate("state.run.mode") == "live", "Record only a completed actual-data run"
-    assert setup.evaluate("state.run.provenance.mapping?.type") == "rule_based", "Regenerate the case study using the current copilot route before recording"
-    storage = setup.context.storage_state()
-    setup.close()
-    context = browser.new_context(viewport={"width":1280,"height":900}, storage_state=storage,
-                                  record_video_dir=str(output), record_video_size={"width":1280,"height":900})
-    page = context.new_page()
-    page.goto("http://127.0.0.1:8000", wait_until="networkidle")
-    page.wait_for_function("document.querySelector('#stat-water').textContent !== '—'")
-    started = time.monotonic()
-    def caption(text):
-        page.evaluate("""text => {
-          let el = document.querySelector('#demo-caption');
-          if (!el) { el = document.createElement('div'); el.id = 'demo-caption'; document.body.append(el); }
-          el.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:99999;padding:16px 30px;background:#163d34f5;color:#eef4e7;font:15px/1.6 Arial;box-shadow:0 -2px 15px #132f201a;pointer-events:none';
-          el.textContent = text;
-        }""",text)
-    def until(seconds):
-        remaining=seconds-(time.monotonic()-started)
-        if remaining > 0: page.wait_for_timeout(remaining*1000)
-    caption("FLOOD LENS — actual Sentinel observations, pre-event OSM and Copernicus DEM for the August 2026 Nepal case. This is an educational prototype; mapping limits remain substantial.")
-    until(16)
-    algorithm = page.evaluate("state.run.provenance.mapping?.algorithm || state.run.provenance.water_model?.algorithm")
-    caption(f"Choose an area and flood date. The default provider processes original Sentinel GRD from a public mirror. Mapping for this saved run: {algorithm}. The chosen AI component is the situation-report copilot.")
-    page.locator("#advanced").evaluate("e => e.open = true")
-    until(34)
-    page.locator("#advanced").evaluate("e => e.open = false")
-    page.locator("#map-view").scroll_into_view_if_needed()
-    coverage = page.evaluate("({eligible: state.run.stats.valid_coverage_pct, optical: state.run.stats.optical_clear_pct})")
-    caption(f"Before / after radar observations are paired by compatible orbit geometry. Eligible coverage: {coverage['eligible']}%; paired clear optical coverage: {coverage['optical']}%. Unobserved areas remain uncertain.")
-    page.locator("#before-button").click(); until(43)
-    page.locator("#after-button").click(); until(53)
-    page.locator('[data-layer="debris"]').uncheck(); until(58)
-    page.locator('[data-layer="debris"]').check(); until(64)
-    caption("Road access compares the baseline network with exposed segments removed. Intact alternatives stay connected. Pre-existing disconnection is reported separately; closures are assumptions requiring field checks.")
-    page.get_by_role("tab",name="Road access").click(); until(83)
-    page.get_by_role("tab",name="Impact map").click()
-    page.locator(".copilot-panel").scroll_into_view_if_needed()
-    caption("Ask the map: a locally trained English/Nepali intent model selects the topic. Templates fill every number and settlement name from the saved run and expose the evidence paths.")
-    page.get_by_role("button",name="Which settlements are cut off?").click()
-    page.wait_for_selector(".chat-answer"); until(100)
-    page.locator("#language").select_option("ne")
-    page.get_by_role("button",name="What infrastructure is exposed?").click()
-    page.wait_for_function("document.querySelectorAll('.chat-answer').length === 2"); until(114)
-    page.locator("#language").select_option("en")
-    page.locator("#question").fill("How many people died?")
-    page.locator("#ask-button").click()
-    caption("Unsupported questions return no estimate. These input maps cannot establish deaths, injuries, missing people or population. Exposure is not confirmed structural damage.")
-    until(127)
-    run_id=page.evaluate("localStorage.getItem('flood-lens-run')")
-    page.goto(f"http://127.0.0.1:8000/api/analyses/{run_id}/report?language=ne", wait_until="networkidle")
-    caption("One-page situation reports are generated from the same facts in English and Nepali. Browser printing preserves Nepali script. Reports retain provenance, uncertainty and required data attribution.")
-    until(142)
-    page.goto("http://127.0.0.1:8000",wait_until="networkidle")
-    page.wait_for_function("document.querySelector('#stat-water').textContent !== '—'")
-    page.locator("#map-view").scroll_into_view_if_needed()
-    caption("The optional downhill tool follows D8 DEM terrain and lists settlements near the path. It does not simulate hydraulic depth, velocity or flood travel time.")
-    page.locator("#trace-toggle").click()
-    # Click near the north/center of the actual analysis raster.
-    page.evaluate("""() => {
-      const c=state.run.bbox;
-      map.fire('click',{latlng:L.latLng(c[3]-(c[3]-c[1])*.18,(c[0]+c[2])/2)});
-    }""")
-    until(158)
-    page.get_by_role("tab",name="Data & method").click()
-    caption("Sentinel-1/2, Copernicus DEM and historical OSM supply rule-based mapping. No flood-segmentation weights or training datasets are needed. Official EMSR927 products are evaluation-only; inspect their class definitions before interpreting overlap.")
-    until(173)
-    caption("This tour demonstrates the saved run, not field accuracy. Review the displayed reference comparison, change-detection limitations and observation coverage. Independent validation and field review remain necessary.")
-    until(181)
-    video=page.video
-    page.close(); context.close()
-    source=Path(video.path())
-    browser.close()
-destination=root / "docs" / "demo-actual.mp4"
-subprocess.run(["ffmpeg","-y","-hide_banner","-loglevel","error","-i",str(source),"-t","180","-c:v","libx264","-preset","fast","-crf","24","-pix_fmt","yuv420p","-movflags","+faststart",str(destination)],check=True)
-print(f"Captioned three-minute ACTUAL-DATA demo: {destination}",flush=True)
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--base-url', default='http://127.0.0.1:8000')
+    parser.add_argument('--run-id')
+    parser.add_argument('--preview', action='store_true')
+    parser.add_argument('--output', type=Path)
+    args = parser.parse_args()
+    base = args.base_url.rstrip('/')
+    with httpx.Client(base_url=base, timeout=20) as client:
+        selected = client.get('/api/analyses/' + args.run_id if args.run_id else '/api/analyses/latest-real')
+        if not selected.is_success:
+            parser.error('A completed real analysis is required. Select an existing demo UUID with --preview only for a labeled software walkthrough.')
+        run = selected.json()
+        health = client.get('/api/health').json()
+    if run.get('mode') == 'demo' and not args.preview:
+        parser.error('Synthetic runs require --preview and cannot be represented as actual observations.')
+    if run.get('mode') not in ('live', 'demo') or run.get('provenance', {}).get('mapping', {}).get('type') != 'rule_based':
+        parser.error('Select a saved analysis from the current Copilot route, not the archived segmentation pipeline.')
+    for executable in ('ffmpeg', 'ffprobe'):
+        if not shutil.which(executable):
+            parser.error(executable + ' is required for video export.')
+    destination = args.output or ROOT / 'output/video' / ('copilot-preview.mp4' if run['mode'] == 'demo' else 'copilot-demo.mp4')
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    recordings = ROOT / 'output/qa/copilot-recording'
+    recordings.mkdir(parents=True, exist_ok=True)
+    synthetic = run['mode'] == 'demo'
+    label = 'SYNTHETIC SOFTWARE PREVIEW - no real disaster observations' if synthetic else 'SAVED SATELLITE ANALYSIS - estimates require field verification'
+    segments = []
+    with sync_playwright() as playwright:
+        options = {'headless': True, 'chromium_sandbox': True}
+        if shutil.which('chromium'):
+            options['executable_path'] = shutil.which('chromium')
+        browser = playwright.chromium.launch(**options)
+        context = browser.new_context(viewport={'width': 1280, 'height': 900},
+                                      record_video_dir=str(recordings), record_video_size={'width': 1280, 'height': 900})
+        context.add_init_script('localStorage.setItem("flood-lens-run",' + json.dumps(run['id']) + ')')
+        page = context.new_page()
+        started = time.monotonic()
+
+        def caption(text):
+            segments.append({'capture_seconds': round(time.monotonic() - started, 2), 'caption': text})
+            page.evaluate("""([label,text]) => {
+                let banner = document.getElementById('demo-banner');
+                if (!banner) { banner=document.createElement('div'); banner.id='demo-banner'; document.body.append(banner); }
+                banner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999999;padding:10px 24px;background:#173d35;color:white;font:700 13px/1.4 Arial;pointer-events:none';
+                banner.textContent=label;
+                let box=document.getElementById('demo-caption');
+                if (!box) { box=document.createElement('div'); box.id='demo-caption'; document.body.append(box); }
+                box.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:999999;padding:14px 28px;background:#173d35f5;color:#f6f8f1;font:14px/1.55 Arial;pointer-events:none';
+                box.textContent=text;
+            }""", [label, text])
+
+        def until(seconds):
+            remaining = seconds - (time.monotonic() - started)
+            while remaining > 0:
+                page.wait_for_timeout(min(remaining, 20) * 1000)
+                remaining = seconds - (time.monotonic() - started)
+
+        def ask(question, language):
+            page.locator('#language').select_option(language)
+            page.locator('#question').fill(question)
+            page.locator('#ask-button').click()
+            page.wait_for_function('!state.asking', timeout=45000)
+            page.locator('#conversation').evaluate('element => element.scrollTop=element.scrollHeight')
+
+        page.goto(base, wait_until='networkidle')
+        page.wait_for_function('state.run !== null', timeout=30000)
+        provider = health.get('llm', {})
+        caption('FloodLens AI: Situation-Report Copilot. Select an analysis, ask about mapped findings and produce a bilingual briefing. ' +
+                ('This walkthrough uses generated inputs and the displayed response engine.' if synthetic else 'All numerical statements come from this selected saved analysis.'))
+        until(16)
+        page.locator('#copilot-form').scroll_into_view_if_needed()
+        caption('Every question stays attached to the selected run. Groq is available when configured; the deterministic fallback remains usable. Current configuration: ' +
+                ('Groq enabled with a local key.' if provider.get('configured') else 'Groq is not configured; this recording demonstrates fallback.'))
+        ask('How large is the newly detected water area?', 'en')
+        until(38)
+        page.locator('.evidence summary').last.click()
+        caption('Supporting evidence exposes fact identifiers, source paths, canonical values and computation methods. Potential change is not confirmed damage.')
+        page.locator('#conversation').evaluate('element => element.scrollTop=element.scrollHeight')
+        until(55)
+        caption('The explicit language selector controls the answer. Nepali preserves saved measurements, names, identifiers and uncertainty.')
+        ask('कति भवन प्रभावित छन्?', 'ne')
+        until(78)
+        caption('Compound questions retrieve infrastructure and settlement facts separately. Modeled disconnection assumes intersecting roads are impassable; actual closures remain unverified.')
+        ask('Which roads are exposed and which settlements are isolated?', 'en')
+        until(104)
+        caption('Unsupported questions receive no invented statistics. These map inputs cannot establish deaths, injuries, missing people or population.')
+        ask('How many people died?', 'en')
+        until(119)
+        page.locator('#language').select_option('ne')
+        page.locator('#generate-report').click()
+        page.wait_for_function('!state.asking && document.querySelector(".report-downloads a") !== null', timeout=45000)
+        page.locator('#conversation').evaluate('element => element.scrollTop=element.scrollHeight')
+        caption('Generate an English or Nepali one-page report. HTML, PDF and JSON links retain the selected-run snapshot, source information, unavailable fields and attribution.')
+        until(134)
+        report_url = page.locator('.report-downloads a').filter(has_text='HTML').last.get_attribute('href')
+        page.goto(base + report_url, wait_until='networkidle')
+        caption('Nepali rendering uses bundled Devanagari fonts. This report clearly marks synthetic observations and unavailable dates. Independent native-speaker review remains pending.' if synthetic else
+                'The report uses recorded acquisitions and computed map facts. Missing measurements remain unavailable. Independent language and field review remain necessary.')
+        until(150)
+        page.goto(base + '/api/analyses/' + run['id'] + '/report?language=en', wait_until='networkidle')
+        caption('English and Nepali reports use the same underlying measurements. The validator binds each claim to its run, subject, field and interpretation; it does not prove physical truth.')
+        until(160)
+        credits = 'Contains modified Copernicus Sentinel data 2026. Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. © OpenStreetMap contributors.'
+        page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+        caption(credits + ' Educational prototype. Reference damage maps are evaluation-only. No satellite training dataset is used.')
+        until(181)
+        video = page.video
+        page.close()
+        context.close()
+        source = Path(video.path())
+        browser.close()
+    duration = float(subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                                             '-of', 'default=noprint_wrappers=1:nokey=1', str(source)], text=True).strip())
+    subprocess.run(['ffmpeg', '-y', '-hide_banner', '-loglevel', 'error', '-i', str(source),
+                    '-vf', f'setpts={180 / duration:.10f}*PTS,fps=25,tpad=stop_mode=clone:stop_duration=1',
+                    '-t', '180', '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23',
+                    '-pix_fmt', 'yuv420p', '-movflags', '+faststart', str(destination)], check=True)
+    manifest = {'run_id': run['id'], 'data_mode': run['mode'], 'synthetic_preview': synthetic, 'duration_seconds': 180,
+                'captioned': True, 'narration': False, 'llm_configuration': provider, 'segments': segments,
+                'attributions': [credits], 'limitations': 'Interface walkthrough, not a test or evidence of field accuracy. Actual response-engine labels remain visible.'}
+    destination.with_suffix('.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
+    print(json.dumps({'video': str(destination.resolve()), 'data_mode': run['mode'], 'bytes': destination.stat().st_size}, indent=2))
+
+
+if __name__ == '__main__':
+    main()
