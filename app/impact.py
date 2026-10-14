@@ -27,7 +27,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
     off-road connector, exterior route, or missing OSM junction is invented.
     """
     minimum_overlap = grid.resolution / 2 if closure_min_length_m is None else float(closure_min_length_m)
-    if snap_distance < 0 or minimum_overlap <= 0:
+    if not math.isfinite(snap_distance) or not math.isfinite(minimum_overlap) or snap_distance < 0 or minimum_overlap <= 0:
         raise ValueError("Snap distance must be nonnegative and closure overlap must be positive.")
     masks = {name: np.asarray(mask, dtype=bool) for name, mask in (assessment_masks or {}).items()}
     for mask in [*masks.values(), *([] if assessment_mask is None else [assessment_mask])]:
@@ -94,6 +94,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
     hazard = unary_union(list(hazards.values()))
     debris_hazard = hazards.get("debris", shapely.GeometryCollection())
     buildings, roads, settlements, destinations, bridges = [], [], [], [], []
+    exposed_road_length_m = 0.
     seen = set()
     for index, source in enumerate(osm["features"]):
         if not source.get("geometry"):
@@ -114,6 +115,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
         props["exposed"] = intersection.area > .001 if geom.geom_type in ("Polygon", "MultiPolygon") else intersection.length > .001 if geom.geom_type in ("LineString", "MultiLineString") else not intersection.is_empty
         fraction = observed_fraction(geom)
         props["assessment_fraction"] = round(fraction, 3)
+        props["assessment_complete"] = fraction >= 1-1e-9
         props["assessment_fraction_by_hazard"] = {kind: round(observed_fraction(geom, mask), 3) for kind, mask in masks.items()}
         props["assessment_scope"] = sorted(available_masks) if masks else ["supplied assessment mask"]
         props["unavailable_hazards"] = unavailable_hazards
@@ -126,6 +128,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
             props["length_m"] = round(geom.length, 2)
             props["exposed_length_m"] = round(intersection.length, 2)
             props["overlap_fraction"] = round(intersection.length/geom.length, 3) if geom.length else 0
+            exposed_road_length_m += intersection.length
             roads.append(feature)
         if props.get("bridge") not in (None, "no") or props.get("man_made") == "bridge":
             props["bridge_assessment"] = "potential exposure only; water beneath a bridge does not establish deck failure or closure"
@@ -147,6 +150,23 @@ def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
                 if start[:2] != end[:2]:
                     segments.append((LineString([start[:2], end[:2]]), road["properties"]["id"]))
     road_props = {road["properties"]["id"]: road["properties"] for road in roads}
+    closure_spans = {}
+    for road in roads:
+        props = road["properties"]
+        geom = grid.project(shape(road["geometry"]))
+        is_bridge = props.get("bridge") not in (None, "no")
+        is_tunnel = props.get("tunnel") not in (None, "no")
+        candidate_hazard = shapely.GeometryCollection() if is_tunnel else debris_hazard if is_bridge else hazard
+        intersection = geom.intersection(candidate_hazard)
+        # Apply the threshold to continuous overlap on the mapped way, before
+        # graph subdivision. Adding a settlement anchor must not change closure.
+        linear = shapely.line_merge(intersection)
+        parts = list(linear.geoms) if hasattr(linear, "geoms") else [linear]
+        qualified = [part for part in parts if part.geom_type == "LineString" and part.length >= minimum_overlap-1e-6]
+        closure_spans[props["id"]] = unary_union(qualified)
+        props["closure_candidate"] = bool(qualified)
+        props["closure_min_length_m"] = minimum_overlap
+        props["closure_assessment"] = "assumed impassable candidate overlap; not field-confirmed" if qualified else ("availability uncertain where candidate overlap is below threshold or water lies beneath bridge" if props["exposed"] else "no mapped closure candidate; not verified open")
 
     def level(road_id):
         props = road_props[road_id]
@@ -203,10 +223,8 @@ def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
             a, b = segment.interpolate(left), segment.interpolate(right)
             u, v = node_for(a, road_id), node_for(b, road_id)
             part = LineString([a, b])
-            is_bridge = road_props[road_id].get("bridge") not in (None, "no")
             overlap = part.intersection(hazard).length
-            debris_overlap = part.intersection(debris_hazard).length
-            blocked = (debris_overlap if is_bridge else overlap) >= minimum_overlap
+            blocked = part.intersection(closure_spans[road_id]).length > .001
             uncertain_overlap = overlap > .001 and not blocked
             properties = {"weight": part.length, "blocked": blocked, "closure_uncertain": uncertain_overlap, "road_id": road_id, "overlap_length_m": overlap,
                           "observed": observed_fraction(part) >= 1-1e-9 and not uncertain_overlap}
@@ -248,7 +266,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
         pre = nx.multi_source_dijkstra(baseline.reverse(copy=False), sources, weight="weight") if sources else ({}, {})
         post = nx.multi_source_dijkstra(after.reverse(copy=False), sources, weight="weight") if sources else ({}, {})
         observed_sources = [node for node, features in target_features.items() if any(props["snap_status"] == "on_mapped_road" for props in features)]
-        observed = nx.multi_source_dijkstra_path_length(observed_after.reverse(copy=False), observed_sources, weight="weight") if observed_sources else {}
+        observed = nx.multi_source_dijkstra(observed_after.reverse(copy=False), observed_sources, weight="weight") if observed_sources else ({}, {})
         return target_features, pre, post, observed
 
     groups = {"all": destination_maps(destinations)}
@@ -256,12 +274,14 @@ def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
     same_target_distances = {}
 
     def connectivity(props, group):
-        targets, (pre_dist, pre_paths), (post_dist, post_paths), observed_dist = groups[group]
+        targets, (pre_dist, pre_paths), (post_dist, post_paths), (observed_dist, observed_paths) = groups[group]
         node = props.get("_node")
         result = {"status": "unassessed", "nearest_destination": None, "before_destination_id": None, "before_destination_type": None,
                   "after_destination": None, "after_destination_id": None, "after_destination_type": None, "before_distance_km": None, "after_distance_km": None,
                   "same_destination_after_distance_km": None, "same_destination_extra_distance_km": None, "nearest_destination_access_lost": None,
                   "assessment_reason": "no_mapped_destination" if not targets else "settlement_not_snapped_to_mapped_motorable_road"}
+        if not targets and any(group == "all" or destination["properties"]["destination_type"] == group for destination in destinations):
+            result["assessment_reason"] = "no_destination_within_mapped_road_snap_limit"
         if node in pre_dist:
             before_target = pre_paths[node][0]
             before_feature = targets[before_target][0]
@@ -269,9 +289,13 @@ def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
                           before_distance_km=round(pre_dist[node]/1000, 2), baseline_route=route_evidence(pre_paths[node], baseline),
                           status="connected" if node in post_dist else "cut_off", assessment_reason="assumed_road_overlap_closure_scenario")
             if node in post_dist:
-                after_feature = targets[post_paths[node][0]][0]
+                # If an observed route exists, display that route rather than a
+                # shorter optimistic route containing unknown segments.
+                use_observed = node in observed_dist and props["snap_status"] == "on_mapped_road"
+                distances, paths, graph = (observed_dist, observed_paths, observed_after) if use_observed else (post_dist, post_paths, after)
+                after_feature = min(targets[paths[node][0]], key=lambda item: (item["snap_status"] != "on_mapped_road", item["id"]))
                 result.update(after_destination=after_feature["name"], after_destination_id=after_feature["id"], after_destination_type=after_feature["destination_type"],
-                              after_distance_km=round(post_dist[node]/1000, 2), after_route=route_evidence(post_paths[node], after))
+                              after_distance_km=round(distances[node]/1000, 2), after_route=route_evidence(paths[node], graph))
                 if node not in observed_dist or props["snap_status"] != "on_mapped_road":
                     result.update(status="uncertain_access", assessment_reason="unobserved_or_unverified_route_or_connector")
             if before_target not in same_target_distances:
@@ -294,6 +318,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
         props.update(connectivity(props, "all"))
         props["closure_min_length_m"] = minimum_overlap
         props["access_mode"] = "mapped motorable roads; no footpath or off-road travel assumed"
+        props["operational_verification"] = "no current road restrictions, border opening, facility operations or structural damage verified"
         props["topology_method"] = "shared coordinate vertices with grade-separation heuristic; OSM node IDs and turn restrictions unavailable"
         props.pop("_node", None)
     for item in destinations:
@@ -302,15 +327,15 @@ def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
     stats = {
         "buildings_total": len(buildings), "buildings_exposed": sum(item["properties"]["exposed"] for item in buildings),
         "roads_total": len(roads), "roads_exposed": sum(item["properties"]["exposed"] for item in roads),
-        "road_exposed_km": round(sum(item["properties"]["exposed_length_m"] for item in roads)/1000, 3),
+        "road_exposed_km": round(exposed_road_length_m/1000, 3),
         "bridges_total": len(bridges), "bridges_exposed": sum(item["properties"]["exposed"] for item in bridges),
         "settlements_total": len(settlements), "settlements_cut_off": sum(item["properties"]["status"] == "cut_off" for item in settlements),
         "settlements_unassessed": sum(item["properties"]["status"] == "unassessed" for item in settlements),
         "settlements_baseline_disconnected": sum(item["properties"]["status"] == "baseline_disconnected" for item in settlements),
         "settlements_access_uncertain": sum(item["properties"]["status"] == "uncertain_access" for item in settlements),
-        "roads_unassessed_or_partial": sum(item["properties"]["assessment_fraction"] < 1 for item in roads),
-        "buildings_unassessed_or_partial": sum(item["properties"]["assessment_fraction"] < 1 for item in buildings),
-        "bridges_unassessed_or_partial": sum(item["properties"]["assessment_fraction"] < 1 for item in bridges),
+        "roads_unassessed_or_partial": sum(not item["properties"]["assessment_complete"] for item in roads),
+        "buildings_unassessed_or_partial": sum(not item["properties"]["assessment_complete"] for item in buildings),
+        "bridges_unassessed_or_partial": sum(not item["properties"]["assessment_complete"] for item in bridges),
         "destinations_total": len(destinations),
     }
     def fc(features):

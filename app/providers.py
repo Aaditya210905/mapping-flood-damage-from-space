@@ -21,7 +21,7 @@ TOKEN_URL = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/
 OSM_URL = "https://api.ohsome.org/v1"
 OSM_V2_URL = "https://api.heigit.org/ohsome-api/v2-rc"
 NEPAL_OSM_CUTOFF = datetime(2026, 7, 27, 23, 59, 59, tzinfo=timezone.utc)
-OSM_FILTER = "building=* or highway=* or bridge=* or place in (village,hamlet,isolated_dwelling,town,city) or amenity=hospital"
+OSM_FILTER = "building=* or highway=* or bridge=* or man_made=bridge or place in (village,hamlet,isolated_dwelling,town,city) or amenity=hospital"
 
 
 def historical_request(client, method, url, **kwargs):

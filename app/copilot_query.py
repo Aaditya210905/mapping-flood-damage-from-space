@@ -99,6 +99,8 @@ def plan_question(context, question, history):
         # counts or prose as current evidence. Singular references require one ID.
         reference_layers = ["roads"] if "roads" in wanted_layers else wanted_layers
         for message in reversed(history):
+            if message["role"] != "user":
+                continue
             candidates = mentions(context, message["content"], reference_layers)
             if candidates:
                 plural = bool(re.search(r"\b(?:those|these|them|their)\b|तिन|यी", question, re.I))
@@ -160,6 +162,10 @@ def plan_question(context, question, history):
         plan.destination_type = "town"
     if plan.destination_type != "all" and "connectivity" in plan.topics:
         plan.assets = []
+    if not plan.references and not plan.road_id and re.search(
+            r"\b(?:is|about|status of|for|from)\s+[A-Z][\w .'-]*?\s+(?:village|settlement|road|bridge|building)\b|"
+            r"\b(?:road|bridge|settlement|building)\s+(?:[rsb]-\d+|(?:way|node)/\d+)\b", question):
+        plan.clarification = True
 
     # Required facts provide a relevance check as well as grounded values.
     field_patterns = {

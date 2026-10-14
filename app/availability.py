@@ -41,6 +41,8 @@ def normalize_analysis_availability(run):
                 stats[field] = coverage
             if status == "unavailable":
                 stats[kind + "_km2"] = None
+                if kind == "water":
+                    stats["permanent_water_km2"] = None
                 entry["missing_reason"] = entry.get("missing_reason") or (
                     "No pixels were eligible for this class; its area is unavailable, not zero."
                 )
@@ -51,6 +53,9 @@ def normalize_analysis_availability(run):
     if stats.get("valid_coverage_pct") is not None and _percentage(stats["valid_coverage_pct"]):
         partial |= stats["valid_coverage_pct"] < 100
     result["stats"] = stats
+    if all(availability.get(kind, {}).get("status") == "unavailable" for kind in ("water", "debris")):
+        for field in ("buildings_exposed", "roads_exposed", "bridges_exposed", "road_exposed_km", "settlements_cut_off"):
+            stats[field] = None
     if availability:
         result["class_availability"] = availability
     if partial:

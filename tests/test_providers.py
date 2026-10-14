@@ -69,6 +69,7 @@ def test_real_ohsome_v1_schema_and_strict_pre_event_snapshot(monkeypatch,event,e
     assert payload["time"] == [expected]
     assert payload["properties"] == ["tags,metadata"]
     assert "bridge=*" in payload["filter"][0]
+    assert "man_made=bridge" in payload["filter"][0]
 
 
 def test_unknown_metadata_shape_fails_without_current_osm_fallback(monkeypatch):

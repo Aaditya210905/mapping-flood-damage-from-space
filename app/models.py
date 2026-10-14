@@ -15,8 +15,10 @@ LIMITATIONS = [
     "Satellite revisits take days; this system cannot warn of a sudden glacier collapse minutes ahead.",
     "Radar shadow, layover, vegetation and urban double-bounce affect inference. Annotation/orbit and DEM screening covers local geometry and a 1.92 km horizon; distant occlusion and subpixel terrain remain uncertain. Water targets use a separate slope eligibility mask.",
     "Optical cloud, snow and cloud-shadow pixels are excluded. Debris is a low-confidence change candidate, not a confirmed debris-flow classification.",
-    "Buildings, roads and bridges intersecting mapped changes are potentially exposed, not verified damaged or destroyed.",
-    "Road isolation assumes candidate-intersecting segments are impassable. Oneway and vehicle restrictions are honored; unobserved route segments are uncertain. Incomplete OSM node identity, turn restrictions, snapping and routes outside the area can change results.",
+    "Intersecting buildings, roads and bridges are potentially exposed, not verified damaged. Counts cover unique mapped OSM elements, may miss rural assets and may count one physical bridge more than once. Mapped hospitals are not verified operational.",
+    "Road isolation is an assumed scenario: continuous candidate overlap of at least half a raster cell removes unbridged road segments; bridge closure candidates require debris overlap. Water beneath bridges and surface changes above tunnels give uncertain access, not confirmed failure.",
+    "Mapped oneway and unconditional vehicle restrictions are used; turn restrictions and original OSM node identity are unavailable. Snaps are limited to 100 m; off-road connectors are unverified. Unobserved routes and AOI edges can hide alternative access or missing connections.",
+    "Cached real analyses retain their original area, acquisition dates and historical OSM snapshot. They do not establish current conditions or results for a different area/date; missing observations are not zero impact.",
     "Population, deaths, missing people, injuries and rescue priorities cannot be inferred from these inputs.",
     "Downhill DEM tracing is a terrain screening tool, not a hydraulic flood or travel-time simulation.",
 ]

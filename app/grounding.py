@@ -7,7 +7,7 @@ input provenance and the geospatial engine; this is not a field-truth guarantee.
 from decimal import Decimal, ROUND_HALF_UP
 
 from app.copilot_types import AnswerDraft, Claim
-from app.evidence import FLOOD_FIELDS, INFRA_FIELDS, ACCESS_FIELDS, CONNECTIVITY_QUERY_FIELDS
+from app.evidence import FLOOD_FIELDS, INFRA_FIELDS, INFRA_CONTEXT_FIELDS, ACCESS_FIELDS, CONNECTIVITY_QUERY_FIELDS
 
 
 class GroundingError(ValueError):
@@ -41,6 +41,7 @@ STATUS_TEXT = {
     "baseline_disconnected": ("Disconnected before the event", "घटनाअघिदेखि सडक सम्पर्क नभएको"),
     "potential_exposure": ("Potential exposure to mapped change", "नक्साको परिवर्तनबाट सम्भावित प्रभाव"),
     "no_mapped_change_at_observed_samples": ("No mapped change at observed samples", "अवलोकित नमुनामा परिवर्तन भेटिएन"),
+    "no_mapped_change_in_assessed_hazard_scope": ("No mapped change within the assessed hazard classes; other classes remain unknown", "मूल्याङ्कन गरिएका विपद्का वर्गमा परिवर्तन भेटिएन; अन्य वर्ग अज्ञात छन्"),
     "unassessed_or_partial": ("Unassessed or partially observed", "मूल्याङ्कन नभएको वा आंशिक अवलोकन"),
     "demo": ("Synthetic demonstration", "कृत्रिम प्रदर्शन"),
     "live": ("Actual observations", "वास्तविक अवलोकन"),
@@ -84,7 +85,7 @@ def validate_draft(draft, context, language):
                     raise GroundingError("Rounding is not permitted for this fact")
             if section.topic == "flood" and fact.field_name not in FLOOD_FIELDS + ("mapping_method", "water_threshold_db", "change_threshold_db", "max_slope_deg", "resolution_m"):
                 raise GroundingError("Fact is associated with the wrong topic")
-            if section.topic == "infrastructure" and fact.subject_type not in ("buildings", "roads", "bridges") and fact.field_name not in INFRA_FIELDS:
+            if section.topic == "infrastructure" and fact.subject_type not in ("buildings", "roads", "bridges") and fact.field_name not in INFRA_FIELDS + INFRA_CONTEXT_FIELDS:
                 raise GroundingError("Fact is associated with the wrong infrastructure topic")
             if section.topic == "connectivity" and fact.subject_type not in ("settlements", "destinations") and fact.field_name not in ACCESS_FIELDS + CONNECTIVITY_QUERY_FIELDS:
                 raise GroundingError("Fact is associated with the wrong connectivity topic")
@@ -103,6 +104,8 @@ def format_value(fact, language="en", operation="exact"):
         return "उपलब्ध छैन" if i else "Unavailable"
     value = fact.value
     if type(value) is bool:
+        if fact.field_name != "exposed":
+            return ("हो" if value else "होइन") if i else ("Yes" if value else "No")
         return ("सम्भावित प्रभाव; पुष्टि भएको क्षति होइन" if i else "Potential exposure; damage unconfirmed") if value else ("नक्सामा जुधेको भेटिएन; क्षति नभएको प्रमाण होइन" if i else "No mapped intersection; absence of damage is not established")
     if type(value) in (int, float):
         digits = int(operation[-1]) if operation != "exact" else {"km²": 3, "km": 3, "m": 2, "%": 1, "fraction": 3, "dB": 1, "degrees": 1}.get(fact.unit)
@@ -110,6 +113,8 @@ def format_value(fact, language="en", operation="exact"):
         unit = {"km²": "वर्ग कि.मि.", "km": "कि.मि.", "m": "मिटर", "count": "", "degrees": "डिग्री"}.get(fact.unit, fact.unit or "") if i else ("" if fact.unit == "count" else fact.unit or "")
         return number + (" " + unit if unit else "")
     if isinstance(value, list):
+        if fact.field_name in ("unavailable_hazards", "assessment_scope") and i:
+            return "; ".join({"water": "डुबान", "debris": "भूआवरण परिवर्तन"}.get(v, v) for v in value) or "कुनै अभिलेख छैन"
         return "; ".join(str(v) for v in value) if value else ("कुनै अभिलेख छैन" if i else "No entries recorded")
     if value in STATUS_TEXT:
         return STATUS_TEXT[value][i]
@@ -136,7 +141,7 @@ def required_explanations(topic, facts):
     if topic in ("flood", "summary"):
         codes.update(("surface_change_uncertain", "coverage_limits"))
     if topic in ("infrastructure", "summary") or any(f.subject_type in ("roads", "buildings", "bridges") for f in facts):
-        codes.add("potential_damage")
+        codes.update(("potential_damage", "coverage_limits"))
     if topic in ("connectivity", "summary") or any(f.subject_type == "settlements" for f in facts):
         codes.update(("modeled_closure", "routing_limits", "coverage_limits"))
     if topic in ("limitations", "summary"):

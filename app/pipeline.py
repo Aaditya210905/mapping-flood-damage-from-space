@@ -17,6 +17,8 @@ from app.providers import acquire_live
 from app.public_data import acquire_public
 from app.sources import MAPPING_METHOD
 
+ANALYSIS_SOURCE_POLICY = "Only Sentinel-1, Sentinel-2, Copernicus DEM and pre-event OSM are analysis inputs. No flood-segmentation model or external training dataset is used. Published damage maps are evaluation-only."
+
 
 def class_availability(detected, aoi, grid, optical_pair_available):
     """Describe each class's observation domain independently of detections."""
@@ -47,12 +49,17 @@ def class_availability(detected, aoi, grid, optical_pair_available):
     return classes
 
 
-def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
+def run_analysis(params, run_id, folder, progress=lambda label, percent: None, *, acquired_inputs=None):
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=True)
     grid = Grid.for_bbox(params.bbox, params.resolution_m)
     progress("Preparing analysis grid", 5)
-    if params.mode == "demo":
+    if acquired_inputs is not None:
+        if params.mode != "live" or params.satellite_provider != "copernicus":
+            raise ValueError("Cached acquisition replay is supported only for validated live CDSE inputs.")
+        inputs = acquired_inputs
+        progress("Reprocessing validated cached CDSE inputs; no new acquisition", 60)
+    elif params.mode == "demo":
         inputs = make_demo(grid, params)
     elif params.satellite_provider == "public":
         inputs = acquire_public(params, grid, folder, progress)
@@ -77,8 +84,9 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
     for kind, number in (("water", 2), ("debris", 3)):
         detected[kind] = clean_mask(detected[kind], params.min_component_pixels)
         detected["classes"][(detected["classes"] == number) & ~detected[kind]] = 0
-    if not detected["valid"].any():
-        raise ValueError("No eligible radar or clear optical pixels remain after quality and terrain masks.")
+    # Acquired sources and provenance remain useful even when all observations
+    # are excluded. Finish a partial result with unknown class areas instead of
+    # discarding the run or reporting empty masks as measured zero area.
     extent = extent_features(detected, grid)
     progress("Intersecting infrastructure and testing road connectivity", 86)
     layers, stats = analyze_impacts(
@@ -91,6 +99,12 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
         detected, aoi, grid,
         inputs["optical_before"] is not None and inputs["optical_after"] is not None,
     )
+    if not any(c["eligible_pixels"] for c in availability.values()):
+        # These are assessment results, unlike the known mapped inventory
+        # totals. An entirely unobserved AOI cannot support a zero-impact claim.
+        for field in ("buildings_exposed", "roads_exposed", "bridges_exposed",
+                      "road_exposed_km", "settlements_cut_off"):
+            stats[field] = None
     stats.update({
         "water_km2": round(float(detected["water"].sum()) * area_per_pixel, 3) if availability["water"]["eligible_pixels"] else None,
         "debris_km2": round(float(detected["debris"].sum()) * area_per_pixel, 3) if availability["debris"]["eligible_pixels"] else None,
@@ -103,6 +117,8 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
         "debris_eligible_coverage_pct": round(float(detected["debris_eligible"].sum()/max(1,aoi.sum()))*100,1),
     })
     warnings = list(inputs.get("warnings", []))
+    if not any(c["eligible_pixels"] for c in availability.values()):
+        warnings.append("No hazard class has eligible observations. Infrastructure exposure and new cut-off counts are unavailable; mapped inventory totals remain available.")
     if params.mode == "demo":
         warnings.insert(0, "All satellite-like inputs, terrain and OSM-like features in this run are synthetic. No results describe the real Trishuli event.")
     if stats["settlements_unassessed"]:
@@ -115,6 +131,7 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
         elif coverage["status"] == "partial":
             warnings.append(f"{kind.capitalize()} assessment covers {coverage['coverage_pct']:.1f}% of the requested area. Reported area applies only to eligible observations.")
     run = {"id": run_id, "name": params.name, "mode": params.mode, "flood_date": str(params.flood_date),
+           "acquisition_mode": "cached_reprocessing" if inputs.get("reprocessing") else "synthetic" if params.mode == "demo" else "fresh_acquisition",
            "created_at": datetime.now(timezone.utc).isoformat(), "bbox": params.bbox,
            "parameters": params.model_dump(mode="json"), "stats": stats, "layers": layers,
            "analysis_status": "complete" if all(c["status"] == "available" for c in availability.values()) else "partial",
@@ -128,10 +145,12 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None):
                                              "minimum_observed_samples": 3, "invalid_neighbour_fill": None},
                           "osm_source_api": inputs["osm"].get("metadata", {}).get("sourceApi", "synthetic"),
                           "crs": grid.crs, "resolution_m": grid.resolution, "grid_bounds": grid.bounds,
-                          "source_policy": "Only Sentinel-1, Sentinel-2, Copernicus DEM and pre-event OSM are analysis inputs. No flood-segmentation model or external training dataset is used. Published damage maps are evaluation-only.",
+                          "source_policy": ANALYSIS_SOURCE_POLICY,
                           "ai_component": COPILOT_INFO},
            "warnings": warnings, "limitations": LIMITATIONS, "attributions": ATTRIBUTIONS,
            "evaluation": {"status": "pending", "activation": "EMSR927", "reason": "No official reference inundation geometry and reviewed coverage have been supplied. No accuracy claim is made."}}
+    if inputs.get("reprocessing"):
+        run["provenance"]["reprocessing"] = inputs["reprocessing"]
     progress("Saving maps, audit metadata and reports", 95)
     for epoch in ("before", "after"):
         png, display_bbox = image_bytes(detected, inputs["dem"], epoch, grid)

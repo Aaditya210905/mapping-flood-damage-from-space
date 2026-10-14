@@ -90,14 +90,14 @@ async function inspectFeature(layer, identifier) {
     $("feature-detail-title").textContent = [p["name:en"] || p.name || identifier, p["name:ne"]].filter((name, index, names) => name && names.indexOf(name) === index).join(" / ");
     const pairs = [["OSM ID", p.id], ["Assessment", p.assessment_status || "Unknown"], ["Observed fraction", p.assessment_fraction == null ? "Unavailable" : `${numberLabel(p.assessment_fraction * 100, 1)}%`], ["Exposure", p.exposed ? "Potential exposure; physical damage not confirmed" : "No mapped overlap in assessed observations"]];
     if (layer === "settlements") {
-      pairs.push(["Access", accessNames[p.status] || "Unknown"], ["Baseline destination", p.nearest_destination || "Not mapped"], ["After destination", p.after_destination_name || p.after_destination || "Unavailable"], ["Snap connector", `${numberLabel(p.snap_distance_m, 1)} m · off-road access unverified`], ["Same-target extra distance", p.same_destination_detour_km == null ? "Unavailable" : `${p.same_destination_detour_km} km`], ["Boundary", p.boundary_uncertainty ? "Routes beyond the area may change this result" : "Routes outside the area are not assessed"]);
+      pairs.push(["Access", accessNames[p.status] || "Unknown"], ["Baseline destination", p.nearest_destination || "Not mapped"], ["After destination", p.after_destination_name || p.after_destination || "Unavailable"], ["Snap connector", `${numberLabel(p.snap_distance_m, 1)} m · off-road access unverified`], ["Same-target extra distance", p.same_destination_extra_distance_km == null ? "Unavailable" : `${p.same_destination_extra_distance_km} km`], ["Boundary", p.boundary_limited ? "Routes beyond the area may change this result" : "Routes outside the area are not assessed"]);
       const hospital = p.connectivity_by_destination_type?.hospital;
       pairs.push(["Hospital access", hospital ? `${accessNames[hospital.status] || hospital.status} · ${hospital.nearest_destination || hospital.before_destination_name || "No mapped reachable hospital"}` : "Hospital-specific routing was not computed for this saved run"]);
     }
     if (layer === "buildings") pairs.push(["Footprint overlap", `${numberLabel(p.overlap_fraction * 100, 1)}%`]);
-    if (layer === "roads" || layer === "bridges") pairs.push(["Mapped overlap", `${numberLabel(p.exposed_length_m, 1)} m`], ["Closure", p.closure_reason || "Candidate closure scenario; not a verified closure"]);
+    if (layer === "roads" || layer === "bridges") pairs.push(["Mapped overlap", `${numberLabel(p.exposed_length_m, 1)} m`], ["Closure", p.closure_assessment || "Candidate closure scenario; not a verified closure"]);
     if (layer === "bridges") pairs.push(["Bridge interpretation", "Water under a bridge does not establish deck damage or a failed crossing"]);
-    $("feature-detail-content").innerHTML = pairs.map(([key, value]) => `<div class="provenance-row"><span>${escapeHTML(key)}</span><strong>${escapeHTML(value)}</strong></div>`).join("") + `<p class="field-note">${escapeHTML(data.evidence.facts.map((fact) => fact.fact_id).join(" · "))}</p>`;
+    $("feature-detail-content").innerHTML = pairs.map(([key, value]) => `<div class="provenance-row"><span>${escapeHTML(key)}</span><strong>${escapeHTML(value)}</strong></div>`).join("") + `<p class="field-note">Routes: dashed gray = baseline; blue = modeled after-event route. Unobserved links and assumed closures require field checks. ${escapeHTML(data.evidence.facts.map((fact) => fact.fact_id).join(" · "))}</p>`;
     if (state.selection) map.removeLayer(state.selection);
     const selected = L.geoJSON(feature, {style: {color: "#872DB1", weight: 5, fillOpacity: .25}, pointToLayer: (_, latlng) => L.circleMarker(latlng, {radius: 10, color: "#872DB1", weight: 3, fillOpacity: .2})});
     const routes = [selected];
@@ -165,6 +165,10 @@ function syncSetup() {
 function syncResultControls() {
   const available = Boolean(state.run) && !state.busy;
   document.querySelectorAll("[data-layer], [data-epoch], #fit-map, #trace-toggle").forEach((control) => { control.disabled = !available; });
+  for (const kind of ["water", "debris"]) {
+    const control = document.querySelector(`[data-layer="${kind}"]`);
+    if (state.run?.class_availability?.[kind]?.status === "unavailable") { control.disabled = true; control.checked = false; }
+  }
   document.querySelectorAll("[data-question], #question, #ask-button").forEach((control) => { control.disabled = !available || state.asking; });
   $("run-button").disabled = state.busy;
   $("preview-demo").disabled = state.busy;
@@ -180,6 +184,8 @@ function renderMap(run) {
   Object.values(state.layers).forEach((layer) => map.removeLayer(layer));
   Object.values(state.rasters).forEach((layer) => map.removeLayer(layer));
   if (state.trace) { map.removeLayer(state.trace); state.trace = null; }
+  if (state.selection) { map.removeLayer(state.selection); state.selection = null; }
+  $("feature-detail").hidden = true;
   state.tracing = false;
   $("trace-toggle").classList.remove("active");
   $("trace-result").hidden = true;
@@ -196,19 +202,24 @@ function renderMap(run) {
     onEachFeature: (f, layer) => layer.bindPopup(popup("Possible debris / land-cover change", [["Area", `${(f.properties.area_m2 / 1e6).toFixed(3)} km²`], ["Confidence", "Low; requires independent verification"]])),
   });
   state.layers.roads = L.geoJSON(run.layers.roads, {
-    style: (f) => ({ color: f.properties.exposed ? "#e9ad6c" : "#dae0c7", weight: f.properties.highway === "primary" ? 2.5 : 1.8, opacity: .95, dashArray: f.properties.exposed ? "4 3" : null }),
-    onEachFeature: (f, layer) => layer.bindPopup(popup(f.properties.name, [["Exposure", f.properties.exposed ? "Intersects mapped change" : "No mapped intersection"], ["Exposed length", `${(f.properties.exposed_length_m / 1000).toFixed(3)} km`], ["Closure", "Assumption for access analysis; unverified"]])),
+    style: (f) => ({ color: f.properties.exposed ? "#D55E00" : f.properties.assessment_fraction < .99 ? "#747474" : "#009E73", weight: f.properties.highway === "primary" ? 2.5 : 1.8, opacity: .95, dashArray: f.properties.exposed ? "6 4" : f.properties.assessment_fraction < .99 ? "2 5" : null }),
+    onEachFeature: (f, layer) => { layer.bindTooltip(f.properties.name || f.properties.id); layer.on("click", () => inspectFeature("roads", f.properties.id)); },
   });
   state.layers.buildings = L.geoJSON(run.layers.buildings.features.filter((f) => f.properties.exposed), {
     style: { color: "#ecaa77", fillColor: "#e8a065", fillOpacity: 1, weight: 1.5 },
-    onEachFeature: (f, layer) => layer.bindPopup(popup(f.properties.name, [["Status", "Potentially exposed building"], ["Footprint overlap", `${(f.properties.overlap_fraction * 100).toFixed(1)}%`], ["Damage", "Not confirmed"]])),
+    onEachFeature: (f, layer) => layer.on("click", () => inspectFeature("buildings", f.properties.id)),
+  });
+  state.layers.bridges = L.geoJSON(run.layers.bridges || {type: "FeatureCollection", features: []}, {
+    style: (f) => ({color: f.properties.exposed ? "#D55E00" : "#747474", weight: 5, dashArray: "5 3"}),
+    pointToLayer: (f, latlng) => L.circleMarker(latlng, {radius: 7, color: "#fff", weight: 2, fillColor: f.properties.exposed ? "#D55E00" : "#747474", fillOpacity: 1}),
+    onEachFeature: (f, layer) => { layer.bindTooltip(`Bridge · ${f.properties.name || f.properties.id}`); layer.on("click", () => inspectFeature("bridges", f.properties.id)); },
   });
   const settlements = L.geoJSON(run.layers.settlements, {
     pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 5, color: "#fff9ec", weight: 2, fillColor: ({cut_off: "#be7749", connected: "#416c3c", uncertain_access: "#b59a4d", unassessed: "#92998c", baseline_disconnected: "#92998c"})[f.properties.status] || "#92998c", fillOpacity: 1 }),
     onEachFeature: (f, layer) => {
       const p = f.properties;
       layer.bindTooltip(p.name, { permanent: run.mode === "demo" || p.status === "cut_off", direction: "right", offset: [6, 0], className: `settlement-label ${p.status === "cut_off" ? "cutoff-label" : ""}` });
-      layer.bindPopup(popup(p.name, [["Road access", p.status.replaceAll("_", " ")], ["Pre-event destination", p.nearest_destination || "Not mapped"], ["Before", p.before_distance_km == null ? "Unknown" : `${p.before_distance_km} km`], ["After", p.after_distance_km == null ? "No assessed connection" : `${p.after_distance_km} km`]]));
+      layer.on("click", () => inspectFeature("settlements", p.id));
     },
   });
   const destinations = L.geoJSON(run.layers.destinations, {
@@ -246,6 +257,7 @@ function updateLayers() {
   });
   if (state.layers.roads) state.layers.roads.bringToFront();
   if (state.layers.buildings) state.layers.buildings.bringToFront();
+  if (state.layers.bridges) state.layers.bridges.bringToFront();
   if (state.layers.settlements) state.layers.settlements.eachLayer((layer) => layer.bringToFront());
 }
 
@@ -254,11 +266,11 @@ function renderRun(run) {
   state.history = [];
   try { localStorage.setItem("flood-lens-run", run.id); } catch { /* Results work without persistent browser storage. */ }
   const s = run.stats;
-  $("stat-water").textContent = s.water_km2.toFixed(2);
-  $("stat-buildings").textContent = s.buildings_exposed.toLocaleString();
-  $("stat-roads").textContent = s.road_exposed_km.toFixed(2);
-  $("stat-cutoff").textContent = s.settlements_cut_off;
-  $("map-badge").textContent = run.mode === "demo" ? "DEMO DATA" : "SATELLITE ESTIMATE";
+  $("stat-water").textContent = numberLabel(s.water_km2, 2);
+  $("stat-buildings").textContent = numberLabel(s.buildings_exposed);
+  $("stat-roads").textContent = numberLabel(s.road_exposed_km, 2);
+  $("stat-cutoff").textContent = numberLabel(s.settlements_cut_off);
+  $("map-badge").textContent = run.mode === "demo" ? "DEMO DATA" : run.analysis_status === "partial" ? "PARTIAL OBSERVATIONS" : "SATELLITE ESTIMATE";
   $("map-badge").classList.toggle("demo", run.mode === "demo");
   $("run-title").textContent = run.name;
   const mappingMethod = run.provenance.mapping?.algorithm || run.provenance.water_model?.algorithm || "Rule-based change detection";
@@ -266,30 +278,30 @@ function renderRun(run) {
   $("evidence-mode").textContent = run.mode === "demo" ? "Synthetic inputs" : "Actual observations";
   $("evidence-mode").classList.toggle("demo", run.mode === "demo");
   $("notice").className = `notice ${run.mode}`;
-  const notice = run.mode === "demo" ? "<strong>Synthetic demonstration</strong> · All map features and results are generated test data. They do not describe the real Nepal flood." : "<strong>Satellite estimates</strong> · Infrastructure exposure and road interruptions require field verification.";
+  const notice = run.mode === "demo" ? "<strong>Synthetic demonstration</strong> · All map features and results are generated test data. They do not describe the real Nepal flood." : "<strong>Satellite estimates</strong> · Values describe mapped observations only. Missing coverage and unknown access cannot establish absence of flooding or damage.";
   $("notice").innerHTML = `<span class="notice-icon" aria-hidden="true">i</span><span>${notice}</span>`;
+  const availability = run.class_availability || {};
+  $("observability").hidden = false;
+  $("observability").textContent = `Water assessment: ${numberLabel(availability.water?.coverage_pct ?? s.water_eligible_coverage_pct, 1)}% of AOI. Debris assessment: ${availability.debris?.status === "unavailable" ? "unavailable — no eligible paired optical observations" : numberLabel(availability.debris?.coverage_pct ?? s.debris_eligible_coverage_pct, 1) + "% of AOI"}. ${numberLabel(s.settlements_access_uncertain)} settlements have uncertain access; ${numberLabel(s.settlements_unassessed)} are unassessed. A zero is limited to the assessed area.`;
+  $("layer-availability").textContent = availability.debris?.status === "unavailable" ? "Debris is unavailable for this run. Water-only evidence cannot establish debris absence." : "Click mapped features for saved evidence. Road colors describe modeled exposure and observation coverage.";
   $("map-caption").textContent = `${run.mode === "demo" ? "Synthetic" : "Estimated"} · ${run.name}`;
   $("coverage-label").textContent = `${s.valid_coverage_pct}% eligible observations · ${s.water_eligible_coverage_pct ?? s.valid_coverage_pct}% water-eligible · ${run.provenance.resolution_m} m grid`;
   const scenes = run.provenance.radar_scenes;
   $("before-date").textContent = dateLabel(scenes[0].acquired);
   $("after-date").textContent = dateLabel(scenes[1].acquired);
   $("pair-label").textContent = `Relative orbit ${scenes[0].relative_orbit} · ${scenes[0].direction} · ${run.provenance.resolution_m} m`;
-  const links = { "report-link": "report?language=en", "nepali-report": "report?language=ne", "export-geojson": "files/extent.geojson", "export-raster": "files/change-mask.tif", "export-audit": "files/result.json" };
+  const links = { "report-link": "report?language=en", "nepali-report": "report?language=ne", "export-geojson": "files/extent.geojson", "export-raster": "files/change-mask.tif", "export-audit": "files/result.json", "export-access": "exports/settlements.csv" };
   Object.entries(links).forEach(([id, suffix]) => { $(id).href = `${analysisBase()}/${suffix}`; $(id).setAttribute("aria-disabled", "false"); $(id).removeAttribute("tabindex"); });
   $("report-link").target = $("nepali-report").target = "_blank";
-  const names = { cut_off: "Modeled cutoff", connected: "Observed route available", uncertain_access: "Uncertain · unobserved route", unassessed: "Unassessed", baseline_disconnected: "Pre-event disconnected" };
   $("access-summary").innerHTML = [[s.settlements_cut_off, "modeled cutoffs"], [s.settlements_access_uncertain, "uncertain access"], [s.settlements_unassessed, "unassessed"], [s.settlements_baseline_disconnected, "already disconnected"]].map(([count, label]) => `<span><strong>${count == null ? "—" : escapeHTML(count)}</strong>${label}</span>`).join("");
-  $("settlement-table").innerHTML = run.layers.settlements.features.map((f) => {
-    const p = f.properties;
-    const distances = `${p.before_distance_km == null ? "—" : p.before_distance_km + " km"} / ${p.after_distance_km == null ? "—" : p.after_distance_km + " km"}`;
-    return `<tr><td>${escapeHTML(p.name)}</td><td><span class="access-status ${p.status}">${names[p.status]}</span></td><td>${escapeHTML(p.nearest_destination || "Not mapped")}</td><td>${escapeHTML(distances)}</td></tr>`;
-  }).join("") || '<tr><td colspan="4">No settlements in this historical snapshot.</td></tr>';
+  renderSettlementTable();
   const rows = [
     ["Data mode", run.mode === "demo" ? "Synthetic test inputs; not real observations" : "Copernicus + pre-event OSM"],
     ["Before radar scene", scenes[0].id], ["After radar scene", scenes[1].id],
     ["Orbit compatibility", `${scenes[0].platform} · ${scenes[0].relative_orbit} · ${scenes[0].direction} · ${scenes[0].polarization}`],
     ["Historical OSM", `${run.provenance.osm_snapshot} · ${run.provenance.osm_source_api || "source recorded in snapshot"}`], ["Optical clear support", `${s.optical_clear_pct}% of grid; cloud/snow/shadow excluded`],
-    ["Possible debris", `${s.debris_km2.toFixed(3)} km² · low-confidence change candidate`],
+    ["Possible debris", Number.isFinite(s.debris_km2) ? `${s.debris_km2.toFixed(3)} km² within eligible coverage · low-confidence surface change` : "Unavailable · no eligible paired optical observations"],
+    ["Scientific completeness", run.analysis_status || "Coverage must be reviewed"],
     ["Processing", run.provenance.radar_processing], ["Analysis projection", `${run.provenance.crs} · ${run.provenance.resolution_m} m`],
     ["Mapping method", mappingMethod],
     ["Radar / water / debris eligibility", `${s.radar_valid_coverage_pct ?? s.valid_coverage_pct}% / ${s.water_eligible_coverage_pct ?? s.valid_coverage_pct}% / ${s.debris_eligible_coverage_pct ?? s.optical_clear_pct}%`],
@@ -298,7 +310,7 @@ function renderRun(run) {
   ];
   $("provenance-content").innerHTML = rows.map(([k, v]) => `<div class="provenance-row"><span>${escapeHTML(k)}</span><strong>${escapeHTML(v)}</strong></div>`).join("") + run.warnings.map((w) => `<p class="field-note">${escapeHTML(w)}</p>`).join("");
   $("limitations-list").innerHTML = run.limitations.map((item) => `<li>${escapeHTML(item)}</li>`).join("");
-  const score = (value) => Number.isFinite(value) ? value.toFixed(3) : "undefined";
+  const score = (value) => Number.isFinite(value) ? value.toFixed(3) : "N/A";
   $("evaluation-status").textContent = run.evaluation.metrics ? `${run.mode === "demo" ? "Synthetic sanity check" : "Official EMSR927 comparison"}: IoU ${score(run.evaluation.metrics.iou)}, F1 ${score(run.evaluation.metrics.f1)}. ${run.evaluation.limitations}` : run.evaluation.reason;
   $("conversation").replaceChildren();
   renderMap(run);
@@ -338,7 +350,10 @@ async function runAnalysis() {
       $("progress-label").textContent = status.message;
       $("progress-fill").style.width = `${status.progress}%`;
       $("progress-track").setAttribute("aria-valuenow", String(status.progress));
-      if (status.status === "failed") throw new Error(status.message);
+      const stages = [...document.querySelectorAll("[data-stage]")];
+      const activeIndex = stages.findIndex((element) => element.dataset.stage === status.stage);
+      stages.forEach((element, index) => { element.classList.toggle("done", status.status === "complete" || (activeIndex >= 0 && index < activeIndex)); element.classList.toggle("current", index === activeIndex); });
+      if (["failed", "interrupted"].includes(status.status)) throw new Error(status.message);
       if (status.status === "complete") break;
       await new Promise((resolve) => setTimeout(resolve, 750));
     }
@@ -372,9 +387,16 @@ async function ask(question) {
     if (state.run.id !== queriedRun) return;
     if (response.run_id !== queriedRun || response.language !== language) throw new Error("The response does not match the selected analysis or language. Please retry.");
     if (response.facts.some((fact) => fact.run_id !== queriedRun) || response.evidence.some((item) => item.run_id !== queriedRun)) throw new Error("Evidence belongs to a different analysis. Please retry.");
-    const text = document.createElement("div"); text.className = "chat-answer"; text.textContent = response.answer; container.append(text);
+    const text = document.createElement("div"); text.className = "chat-answer";
+    text.classList.toggle("refusal", response.intent === "unsupported");
+    appendCitedAnswer(text, response); container.append(text);
     const status = document.createElement("p"); status.className = "generation-status";
     status.textContent = response.generation.mode === "llm" ? (language === "ne" ? "Groq · प्रमाणसँग जाँचिएका तथ्य" : "Groq · evidence-validated claims") : (language === "ne" ? "निश्चित वैकल्पिक उत्तर · सुरक्षित तथ्य" : "Deterministic fallback · evidence-backed answer"); container.append(status);
+    if (response.facts.some((fact) => fact.status === "available")) {
+      const verified = document.createElement("span"); verified.className = "verification-badge";
+      verified.textContent = language === "ne" ? "✓ मानहरू सुरक्षित तथ्यसँग मिल्छन् · वास्तविक अवस्था पुष्टि भएको होइन" : "✓ Values match this saved run · physical accuracy unverified"; container.append(verified);
+    }
+    if (response.generation.reason && response.generation.mode !== "llm") status.textContent += ` · ${response.generation.reason.replaceAll("_", " ")}`;
     const evidence = document.createElement("details"); evidence.className = "evidence";
     const summary = document.createElement("summary"); summary.textContent = `${language === "ne" ? "प्रमाण" : "Supporting evidence"} · ${response.facts.length} · Run ${queriedRun.slice(0, 8)}`; evidence.append(summary);
     for (const fact of response.facts) {
@@ -382,6 +404,8 @@ async function ask(question) {
       const heading = document.createElement("dt"); heading.textContent = `${language === "ne" ? fact.label_ne : fact.label_en} · ${fact.subject_name || fact.subject_id}`; item.append(heading);
       const value = document.createElement("dd"); value.textContent = fact.status === "available" ? `${JSON.stringify(fact.value)} ${fact.unit || ""}` : (language === "ne" ? "उपलब्ध छैन" : "Unavailable"); item.append(value);
       const source = document.createElement("dd"); source.textContent = `${fact.fact_id} · ${fact.path} · ${fact.source_ids.join(" · ")} · ${fact.method}`; item.append(source); evidence.append(item);
+      const inspect = document.createElement("button"); inspect.type = "button"; inspect.className = "fact-link"; inspect.textContent = language === "ne" ? "नक्सामा प्रमाण हेर्नुहोस्" : "Inspect on map";
+      inspect.addEventListener("click", () => inspectFact(fact)); item.append(inspect);
     }
     const credits = document.createElement("p"); credits.textContent = (response.attributions || []).join(" "); evidence.append(credits);
     container.append(evidence);
@@ -426,6 +450,9 @@ $("generate-report").addEventListener("click", async () => {
 });
 
 $("analysis-form").addEventListener("submit", (event) => { event.preventDefault(); runAnalysis(); });
+$("access-filter").addEventListener("change", renderSettlementTable);
+$("settlement-search").addEventListener("input", renderSettlementTable);
+$("close-feature-detail").addEventListener("click", () => { $("feature-detail").hidden = true; if (state.selection) { map.removeLayer(state.selection); state.selection = null; } });
 $("copilot-form").addEventListener("submit", (event) => { event.preventDefault(); ask($("question").value); });
 document.querySelectorAll("[data-question]").forEach((button) => button.addEventListener("click", () => ask(button.dataset.question)));
 document.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => setView(button.dataset.view)));
@@ -488,6 +515,7 @@ async function initialize() {
   syncResultControls();
   try {
     state.sources = await api("/api/data-sources");
+    if (state.sources.workspace?.preferred_satellite_provider === "copernicus") $("satellite-provider").value = "copernicus";
     renderSources();
   } catch (error) {
     $("dataset-status").textContent = `Source status unavailable: ${error.message}`;

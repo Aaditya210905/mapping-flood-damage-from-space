@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 import rasterio
 
-from app.copilot import COPILOT_INFO, answer, intent_model
+from app.copilot import COPILOT_INFO, answer
 from app.geo import Grid, trace_downhill
 from app.models import AnalysisRequest, CopilotRequest, ReportRequest, TraceRequest, ATTRIBUTIONS
 from app.pipeline import run_analysis
@@ -44,7 +44,6 @@ logger = logging.getLogger("flood_lens")
 async def lifespan(app):
     global executor
     executor = ThreadPoolExecutor(max_workers=2)
-    intent_model()
     yield
     executor.shutdown(wait=False, cancel_futures=True)
     executor = None
@@ -136,6 +135,7 @@ def data_sources():
             continue
     return {"sources": SOURCES, "mapping": MAPPING_METHOD, "copilot": {**COPILOT_INFO, "llm": provider_status()},
             "workspace": {"completed_actual_runs": completed["live"], "completed_synthetic_runs": completed["demo"],
+                          "preferred_satellite_provider": "copernicus" if os.getenv("CDSE_CLIENT_ID") and os.getenv("CDSE_CLIENT_SECRET") else "public",
                           "training_data_loading": False, "default_detection": "rule_based"}}
 
 
@@ -271,7 +271,7 @@ def settlement_csv(run_id: str):
     run = saved_run(run_id)
     output = io.StringIO(newline="")
     fields = ["id", "name", "status", "nearest_destination", "before_distance_km", "after_distance_km",
-              "same_destination_detour_km", "snap_distance_m", "assessment_fraction"]
+              "same_destination_extra_distance_km", "snap_distance_m", "assessment_fraction"]
     writer = csv.writer(output)
     writer.writerow(fields + ["run_id", "event_date", "osm_snapshot", "attribution", "database_license"])
     def cell(value):

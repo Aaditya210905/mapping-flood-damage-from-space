@@ -121,10 +121,13 @@ def test_copilot_provenance_answers_resolve_current_map_evidence(synthetic_run):
         reply = answer(run, "What data did you use?", language)
         assert reply["intent"] == "sources"
         assert run["provenance"]["mapping"]["algorithm"] in reply["answer"]
-        for evidence in reply["evidence"]:
+        for evidence in reply["facts"]:
+            if evidence["status"] != "available":
+                assert evidence["value"] is None and evidence["missing_reason"]
+                continue
             value = run
             for field in evidence["path"].split("."):
-                value = value[field]
+                value = value[int(field)] if isinstance(value, list) else value[field]
             assert value is not None
 
 

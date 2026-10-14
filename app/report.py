@@ -23,6 +23,7 @@ class ReportRenderingError(ValueError):
 def build_report_data(run, language='en', response=None):
     if language not in ('en','ne'):raise ReportDataError('Use English or Nepali')
     context=EvidenceContext(run)
+    run=context.run
     context.call('event_summary',{})
     i=language=='ne'
     for key in ('analysis_name','event_date'):
@@ -67,7 +68,7 @@ def build_report_data(run, language='en', response=None):
         title='बाढी स्थिति प्रतिवेदन' if i else 'Flood situation report',
         generated_at=datetime.now(timezone.utc).isoformat(timespec='seconds'),
         analysis_name=str(context.global_fields['analysis_name'].value),event_date=str(context.global_fields['event_date'].value),
-        data_mode=run['mode'],status='partial' if missing else 'complete',sections=sections,facts=unique,
+        data_mode=run['mode'],status='partial' if missing or run.get('analysis_status')=='partial' else 'complete',sections=sections,facts=unique,
         attributions=attributions,generation=generation,missing_fields=missing)
 
 
@@ -78,7 +79,7 @@ def report_html(run, language='en', data=None, *, font_size=9.5):
     i=language=='ne'
     demo=('<p class="notice">'+('कृत्रिम प्रदर्शन — वास्तविक घटनाको अवलोकन वा नतिजा होइन।' if i else 'SYNTHETIC DEMO — not observations or results of the real event.')+'</p>') if data.data_mode=='demo' else ''
     missing_labels=[f.label_ne if i else f.label_en for f in data.facts if f.field_name in data.missing_fields]
-    partial=('<p class="notice">'+('अपूर्ण प्रतिवेदन — उपलब्ध नभएका मापन शून्य होइनन्।' if i else 'INCOMPLETE REPORT — unavailable measurements are not zero.')+' '+escape(', '.join(missing_labels))+'</p>') if data.status=='partial' else ''
+    partial=('<p class="notice">'+('अपूर्ण प्रतिवेदन — आंशिक अवलोकन। उपलब्ध नभएका मापन शून्य होइनन्।' if i else 'INCOMPLETE REPORT — partial observations. Unavailable measurements are not zero.')+' '+escape(', '.join(missing_labels))+'</p>') if data.status=='partial' else ''
     sections=''.join('<section><h2>'+escape(section.heading)+'</h2>'+''.join('<p>'+escape(line)+'</p>' for line in section.lines)+'</section>' for section in data.sections)
     credits='<br>'.join(escape(text) for text in data.attributions)
     mode_label=('Groq-assisted; values verified from map facts' if data.generation.mode=='llm' else 'Deterministic evidence-backed report') if not i else ('Groq सहयोग; मापन नक्साको तथ्यबाट जाँचिएको' if data.generation.mode=='llm' else 'नक्साको प्रमाणमा आधारित निश्चित प्रतिवेदन')

@@ -100,7 +100,9 @@ def test_provider_failures_use_original_safe_fallback(evidence_run,fake_provider
     reply=answer(evidence_run,'Which settlements are cut off?')
     assert reply['intent']=='access'
     assert reply['generation']['reason']==reason
-    assert f"{evidence_run['stats']['settlements_cut_off']} settlements" in reply['answer']
+    count=next(f for f in reply['facts'] if f['field_name']=='settlements_cut_off')
+    assert count['value']==evidence_run['stats']['settlements_cut_off']
+    assert '['+count['fact_id']+']' in reply['answer']
 
 
 def test_unsupported_casualties_do_not_call_provider(evidence_run,fake_provider):

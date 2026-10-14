@@ -31,6 +31,7 @@ METRICS = {
 }
 FLOOD_FIELDS = tuple(METRICS)[:5] + ("water_eligible_coverage_pct", "debris_eligible_coverage_pct")
 INFRA_FIELDS = ("buildings_exposed", "roads_exposed", "bridges_exposed", "road_exposed_km")
+INFRA_CONTEXT_FIELDS = ("water_eligible_coverage_pct", "debris_eligible_coverage_pct")
 ACCESS_FIELDS = tuple(METRICS)[9:13]
 CONNECTIVITY_QUERY_FIELDS = ("filter_road_id", "matching_settlements_count", "route_membership_unavailable_count", "destination_type", "destination_assessment_unavailable_count")
 FEATURE_FIELDS = {
@@ -38,6 +39,11 @@ FEATURE_FIELDS = {
     "exposed": ("Mapped intersection", "नक्साको परिवर्तनसँग जुधेको", None, "potential_exposure"),
     "assessment_status": ("Assessment status", "मूल्याङ्कनको अवस्था", None, "potential_exposure"),
     "assessment_fraction": ("Observed sampling fraction", "अवलोकित नमुनाको अनुपात", "fraction", "measurement"),
+    "unavailable_hazards": ("Hazard classes unavailable for this feature", "यस अभिलेखका लागि उपलब्ध नभएका विपद्का वर्ग", None, "recorded_metadata"),
+    "assessment_scope": ("Assessed hazard classes", "मूल्याङ्कन गरिएका विपद्का वर्ग", None, "recorded_metadata"),
+    "assessment_complete": ("Complete observations within the assessed classes", "मूल्याङ्कन गरिएका वर्गमा पूर्ण अवलोकन", None, "measurement"),
+    "water_assessment_fraction": ("Water-class observed footprint fraction", "डुबान वर्गका लागि अवलोकित क्षेत्रको अनुपात", "fraction", "measurement"),
+    "debris_assessment_fraction": ("Surface-change-class observed footprint fraction", "भूआवरण परिवर्तन वर्गका लागि अवलोकित क्षेत्रको अनुपात", "fraction", "measurement"),
     "length_m": ("Road length", "सडक लम्बाइ", "m", "measurement"),
     "exposed_length_m": ("Potentially exposed road length", "सम्भावित प्रभावित सडक लम्बाइ", "m", "potential_exposure"),
     "overlap_fraction": ("Footprint overlap fraction", "भवन क्षेत्र जुधेको अनुपात", "fraction", "potential_exposure"),
@@ -140,10 +146,13 @@ class EvidenceContext:
                 check = lambda v: self.numeric(v) and v <= 100
             method = "Saved raster class area and observation masks" if field in FLOOD_FIELDS else "Saved metric OSM/hazard intersections" if field in INFRA_FIELDS else "Saved pre-event and assumed-disrupted directed road graph"
             availability = self.run.get("class_availability", {}).get(field.removesuffix("_km2"), {}) if field in ("water_km2", "debris_km2") else {}
+            limited_scope = availability.get("status") == "partial" or (field in INFRA_FIELDS and any(
+                self.run.get("class_availability", {}).get(kind, {}).get("status") in ("partial", "unavailable")
+                for kind in ("water", "debris")))
             fact = self._add("stats." + field, field, self.stats.get(field), (en, ne), unit=unit,
                              interpretation=semantics, method=method, validator=check,
                              missing_reason=availability.get("missing_reason"),
-                             uncertainty="The value covers only class-eligible observations; the rest of the analysis area remains unknown." if availability.get("status") == "partial" else None)
+                             uncertainty="The value covers only class-eligible observations; unavailable classes and the rest of the analysis area remain unknown." if limited_scope else None)
             self.global_fields[field] = fact
         mapping = self.provenance.get("mapping", self.provenance.get("water_model", {}))
         mapping = mapping if isinstance(mapping, dict) else {}
@@ -218,7 +227,8 @@ class EvidenceContext:
         if typed:
             prefix += ".connectivity_by_destination_type." + destination_type
         position = self.feature_positions[(layer, identifier)]
-        fields = ["name", "exposed", "assessment_status", "assessment_fraction"]
+        fields = ["name", "exposed", "assessment_status", "assessment_fraction", "assessment_scope", "assessment_complete",
+                  "unavailable_hazards", "water_assessment_fraction", "debris_assessment_fraction"]
         if layer == "roads":
             fields += ["length_m", "exposed_length_m"]
         elif layer == "buildings":
@@ -237,6 +247,11 @@ class EvidenceContext:
                 path = f"layers.{layer}.features.{position}.properties.name"
             if field == "exposed" and value is False and props.get("assessment_status") == "unassessed_or_partial":
                 value = None
+            if field in ("water_assessment_fraction", "debris_assessment_fraction"):
+                kind = field.split("_", 1)[0]
+                observed = props.get("assessment_fraction_by_hazard")
+                value = observed.get(kind) if isinstance(observed, dict) else None
+                path = prefix + ".assessment_fraction_by_hazard." + kind
             if field in ("baseline_road_ids", "after_road_ids"):
                 route = "baseline_route" if field == "baseline_road_ids" else "after_route"
                 value = props.get(route, {}).get("properties", {}).get("road_ids") if isinstance(props.get(route), dict) else None
@@ -245,12 +260,14 @@ class EvidenceContext:
                 en = ("Hospital access: " if destination_type == "hospital" else "Town access: ") + en
                 ne = ("अस्पतालसम्मको पहुँच: " if destination_type == "hospital" else "नगरसम्मको पहुँच: ") + ne
             check = self.numeric if unit in ("m", "km") else (lambda v: self.numeric(v) and v <= 1) if unit == "fraction" else self.text
-            if field == "exposed":
+            if field in ("exposed", "assessment_complete"):
                 check = lambda v: type(v) is bool
             elif field == "status":
                 check = lambda v: v in ("cut_off", "connected", "uncertain_access", "unassessed", "baseline_disconnected")
             elif field == "assessment_status":
-                check = lambda v: v in ("potential_exposure", "no_mapped_change_at_observed_samples", "unassessed_or_partial")
+                check = lambda v: v in ("potential_exposure", "no_mapped_change_at_observed_samples", "no_mapped_change_in_assessed_hazard_scope", "unassessed_or_partial")
+            elif field in ("unavailable_hazards", "assessment_scope"):
+                check = lambda v: isinstance(v, list) and all(x in ("water", "debris") for x in v)
             elif field.endswith("road_ids"):
                 check = lambda v: isinstance(v, list) and all(isinstance(x, str) and ("roads", x) in self.index for x in v)
             facts.append(self._add(path, field, value, (en, ne), unit=unit, interpretation=semantics,
@@ -278,7 +295,7 @@ class EvidenceContext:
                 and (not args.only_exposed or item["properties"].get("exposed") is True)
                 and (not args.query or args.query.casefold() in (identifier+' '+str(item['properties'].get('name',''))).casefold())]
         selection = rows[args.offset:args.offset + args.limit]
-        fields = [args.asset_type + "_exposed"] + (["road_exposed_km"] if args.asset_type == "roads" else [])
+        fields = [args.asset_type + "_exposed"] + (["road_exposed_km"] if args.asset_type == "roads" else []) + list(INFRA_CONTEXT_FIELDS)
         facts = [self.global_fields[k] for k in fields]
         for identifier, _ in selection:
             facts += self.feature_facts(args.asset_type, identifier)

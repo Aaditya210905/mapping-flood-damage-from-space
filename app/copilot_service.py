@@ -187,6 +187,7 @@ def _fallback_draft(context, plan, language):
     if not plan.topics:
         return AnswerDraft(run_id=context.run_id,language=language,kind='unsupported',sections=[])
     sections=[]
+    page_size=1 if plan.intent=='summary' else 4
     remaining=80
     for current in plan.topics:
         facts=[]
@@ -196,10 +197,10 @@ def _fallback_draft(context, plan, language):
         elif current=='infrastructure':
             assets=plan.assets or ['buildings','roads','bridges']
             for asset in assets:
-                result=context.call('infrastructure_impacts',{'asset_type':asset,'only_exposed':True,'offset':0,'limit':4})
+                result=context.call('infrastructure_impacts',{'asset_type':asset,'only_exposed':True,'offset':0,'limit':page_size})
                 facts.extend(f for f in result.facts if f.subject_type=='analysis' or f.field_name in ('name','assessment_status','exposed_length_m','overlap_fraction'))
         elif current=='connectivity':
-            result=context.call('settlement_connectivity',{'status':plan.status,'offset':0,'limit':4,'road_id':plan.road_id,'destination_type':plan.destination_type})
+            result=context.call('settlement_connectivity',{'status':plan.status,'offset':0,'limit':page_size,'road_id':plan.road_id,'destination_type':plan.destination_type})
             facts=[f for f in result.facts if f.subject_type=='analysis' or f.field_name in ('name','status','nearest_destination','before_distance_km','after_distance_km','baseline_road_ids')]
         elif current=='sources':
             result=context.call('sources_limitations',{})
@@ -265,7 +266,7 @@ def respond(run,question,language='en',history=None):
         if type(value) is int and value >= 0:
             setattr(generation,name,value)
     return {'answer':text,'intent':intent,'intent_confidence':confidence,'evidence':evidence,
-            'method':'Groq structured tool calling + validated facts' if generation.mode=='llm' else 'Bilingual topic routing + local intent model; contextual evidence retrieval',
+            'method':'Groq structured tool calling + validated facts' if generation.mode=='llm' else 'Deterministic bilingual topic routing; contextual typed evidence retrieval',
             'run_id':context.run_id,'language':language,'facts':[f.model_dump(mode='json') for f in facts],
             'generation':generation.model_dump(mode='json'),'missing_fact_ids':[f.fact_id for f in facts if f.status!='available'],
             'attributions':list(ATTRIBUTIONS),
