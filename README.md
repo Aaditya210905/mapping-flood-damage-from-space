@@ -11,7 +11,7 @@ uv sync --frozen --python 3.12
 ./run.sh
 ```
 
-Open **http://127.0.0.1:8000**. On a fresh checkout the workspace starts empty; enter bounds/date and run an actual analysis, or explicitly select synthetic mode to try the interface without downloading satellite data.
+Open **http://127.0.0.1:8000**. With CDSE credentials configured, the dashboard selects the Copernicus account provider. On a fresh checkout the workspace starts empty; enter bounds/date and run an actual analysis, or explicitly select synthetic mode to try the interface without downloading satellite data.
 
 The dashboard shows observation status and the selected situation-report copilot. **Data & method** separates analysis inputs from independent evaluation maps. **Preview synthetic demo** generates test fixtures; its map and counts remain labeled as synthetic.
 
@@ -40,7 +40,7 @@ Historical OSM is selected strictly before the event. The Nepal case uses 27 Jul
 
 Ask questions about flood extent, infrastructure exposure, road access, acquisition dates or limitations, and request a short briefing in English or Nepali. Every reported area, count and settlement name comes from the saved analysis; responses include evidence paths and the run ID. Unsupported casualty and population questions return no estimate.
 
-The optional generative integration uses **Groq’s official SDK**, defaulting to hosted `openai/gpt-oss-120b`. Groq selects approved read-only tools and structured claims; Python validates run, subject, field, interpretation and requested scope, then inserts authoritative values into authored English/Nepali text. The labeled fallback combines bilingual topic rules, the local TF-IDF/logistic-regression classifier and contextual evidence retrieval. Named features, compound questions and follow-ups such as “What about the villages on that road?” use saved identifiers and route evidence; ambiguous references request clarification. No language-model weights or satellite training datasets are downloaded. Native-speaker Nepali review remains necessary.
+The optional generative integration uses **Groq’s official SDK**, defaulting to hosted `openai/gpt-oss-120b`. Groq selects approved read-only tools and structured claims; Python validates run, subject, field, interpretation and requested scope, then inserts authoritative values into authored English/Nepali text. The labeled fallback uses deterministic bilingual topic rules and contextual evidence retrieval. The old TF-IDF/logistic-regression classifier and its training step have been removed; this application trains no model. Named features, compound questions and follow-ups such as “What about the villages on that road?” use saved identifiers and route evidence; ambiguous references request clarification. No language-model weights or satellite training datasets are downloaded. Native-speaker Nepali review remains necessary.
 
 Copy `.env.example` to a new private `.env`, set `LLM_ENABLED=true` and `GROQ_API_KEY`, then restart `./run.sh`. Without credentials, or on provider/validation failure, the application stays usable. Each response identifies which engine actually produced it. Configuration and limitations: [Copilot documentation](docs/COPILOT.md).
 
@@ -50,11 +50,25 @@ See **[copilot scope and grounding](docs/COPILOT.md)**. `/api/copilot` reports i
 
 Rule-based detection compares pre/post radar and clear optical water indices. Radar-derived new water requires a non-water baseline, low post-event backscatter, sufficient radar change, terrain eligibility and minimum component size. Optical vegetation/bare-surface changes supply low-confidence debris candidates.
 
-Exposure denotes intersection with historical OSM, not confirmed structural damage. A directed road graph honors one-way and basic vehicle restrictions, removes candidate-intersecting segments under an assumed closure scenario, and tests alternative destinations. Unobserved routes are uncertain. Turn restrictions, complete node identity, facility operation and routes outside the area remain unverified.
+Exposure denotes intersection with historical OSM, not confirmed structural damage. Building observation coverage is area-weighted over each footprint, and hazard classes retain separate eligibility. The directed road graph honors one-way and basic vehicle restrictions. Its closure scenario requires continuous overlap of at least half a grid cell; water beneath a mapped bridge does not prove a failed crossing. Snapping is limited to 100 m and off-road connectors remain unverified. Hospital and town connectivity are computed separately, with distinct before/after destinations and same-target detours. Unobserved routes, turn restrictions, complete node identity, facility operation and routes outside the area remain uncertain.
 
 English and Nepali **one-page PDFs**, printable HTML and typed JSON reports include provenance, uncertainty and attribution. **Generate report** stores a separate snapshot with download links. PDFs use WeasyPrint/Pango and bundled Noto Devanagari fonts. Missing measurements remain unavailable; incomplete reports are visibly labeled. The D8 downhill trace is terrain screening, not hydraulic simulation.
 
-Exports include class rasters, eligibility masks, source metadata, GeoJSON and audit JSON. Processing is bounded to two concurrent jobs, one degree per side and 2,500 raster pixels per side. Runs persist; in-flight job state does not. `FLOOD_LENS_DATA` changes the run directory and `FLOOD_LENS_PORT` changes the local server port.
+Exports include class rasters, eligibility masks, source metadata, GeoJSON and audit JSON. Processing is bounded to two concurrent jobs, one degree per side and 2,500 raster pixels per side. Runs and job progress persist; after a restart, unfinished jobs are explicitly marked interrupted and must be resubmitted. `FLOOD_LENS_DATA` changes the run directory and `FLOOD_LENS_PORT` changes the local server port.
+
+## Observation availability and cached real inputs
+
+A completed job can have **partial scientific coverage**. `class_availability` records separate water/debris eligibility, missing reasons and coverage. An unavailable class has a null area; an observed zero applies only to eligible pixels. The UI, copilot and reports preserve this distinction, including older saved runs without rewriting their evidence.
+
+The dashboard prefers a saved actual run over a demo, shows coverage and unknown access prominently, and links cited facts to map features. Settlement cards load long route geometries only on demand. Parsed results use a bounded cache invalidated by source changes, and a small source-bound metadata index avoids repeatedly reading large result files.
+
+Reprocess an existing validated CDSE cache without new downloads, into a **new UUID**:
+
+```bash
+uv run python scripts/reprocess.py data/runs/SOURCE_RUN_UUID
+```
+
+This reads only retained acquired S1/S2, Copernicus DEM and historical OSM inputs. It verifies scene/grid/date/source contracts and hashes, preserves original provenance, and labels the new run `cached_reprocessing`. It never uses old predictions or EMS products as mapping inputs. It does not represent a new live acquisition or support a different AOI/date. The current replay utility intentionally rejects public raw-GRD caches and synthetic caches.
 
 ## Independent reference evaluation
 
@@ -70,7 +84,7 @@ uv run python scripts/evaluate_assets.py data/runs/RUN_ID
 uv run python scripts/summarize_data.py data/runs/RUN_ID
 ```
 
-The supplied EMS observed-event polygons describe landslides. The evaluator compares debris candidates against that class and reports water validation as unavailable. A landslide overlap score is not flood-water accuracy. Evaluation does not alter prediction files. Synthetic evaluation is an explicitly labeled sanity check only.
+The evaluator requires matching water/debris reference classes and each class's eligible mask. Unknown legends require explicit review (`--reference-class water|debris|combined`). Both-empty comparisons and unobservable classes report N/A, never a perfect score. It reports the fraction of reference-positive area that was actually evaluated. A landslide overlap score is not flood-water accuracy. Evaluation does not alter prediction files. Synthetic evaluation is an explicitly labeled sanity check only.
 
 ## Checks and historical outputs
 
@@ -85,9 +99,9 @@ uv run python scripts/verify_copilot.py --require-llm
 uv run python scripts/verify_copilot.py --run-id RUN_ID --allow-demo
 ```
 
-The current six-page Copilot submission report is [technical-report.pdf](docs/technical-report.pdf), with editable [source](docs/technical-report.md). Prepared materials and commands are listed in [Copilot submission setup](docs/COPILOT_SUBMISSION.md). English/Nepali PDF, offline HTML and JSON previews are under `output/pdf/copilot-preview`. These reports are explicitly synthetic. The user will record the three-minute video using the [timed presenter script](docs/demo-script.md); no new video is claimed as complete. No new application tests were run during submission preparation.
+The current six-page Copilot submission report is [technical-report.pdf](docs/technical-report.pdf), with editable [source](docs/technical-report.md). Prepared materials and commands are listed in [Copilot submission setup](docs/COPILOT_SUBMISSION.md). English/Nepali PDF, offline HTML and JSON previews are under `output/pdf/copilot-preview`. These reports are explicitly synthetic. The user will record the three-minute video using the [timed presenter script](docs/demo-script.md); no new video is claimed as complete. Current repairs and executed checks are recorded in [repair verification](docs/REPAIR_VERIFICATION.md).
 
-Older case studies, model cards, situation reports and videos in `docs/` remain **historical outputs from the removed segmentation model**. Their scores/counts do not validate the current rule-based pipeline. The previous technical report is preserved in `docs/archive/segmentation-technical-report.*`. Real Nepal results and independent reference comparisons still require a real current-pipeline analysis. Recording uses Playwright, isolated Chromium and ffmpeg.
+Older case studies, model cards, situation reports and videos in `docs/` remain **historical outputs from the removed segmentation model**. Their scores/counts do not validate the current rule-based pipeline. The previous technical report is preserved in `docs/archive/segmentation-technical-report.*`. A real CDSE current-pipeline analysis is available locally; its observed coverage is partial and does not establish field accuracy. Use the current repair verification rather than archived segmentation scores. Recording uses Playwright, isolated Chromium and ffmpeg.
 
 ```bash
 # Real saved analysis; no tests or new acquisitions are run by the exporter

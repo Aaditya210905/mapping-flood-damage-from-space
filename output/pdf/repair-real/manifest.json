@@ -1,0 +1,82 @@
+{
+  "run_id": "0fb99632-2943-4d03-9656-55f1db0682cd",
+  "data_mode": "live",
+  "source_sha256": "9bfef51deddc3c913d082f2a6b3ef9653dcd1e387a0f3440ae9fb20a1f5c3f06",
+  "synthetic_preview": false,
+  "reports": [
+    {
+      "language": "en",
+      "report_id": "d714a52a-6ea6-4efb-a252-2c47a3b8b949",
+      "status": "partial",
+      "missing_fields": [
+        "optical_acquisition_dates",
+        "debris_km2"
+      ],
+      "generation": {
+        "mode": "deterministic_fallback",
+        "provider": null,
+        "model": null,
+        "reason": "deterministic_report",
+        "validation": "deterministic_facts",
+        "elapsed_ms": null,
+        "provider_requests": null,
+        "prompt_tokens": null,
+        "completion_tokens": null
+      },
+      "files": {
+        "pdf": {
+          "name": "situation-report-en.pdf",
+          "sha256": "f05ef5f13f60bce809d393b5f2151f2c9ff1e247a97c6b67ee9c9d492a837d77"
+        },
+        "html": {
+          "name": "situation-report-en.html",
+          "sha256": "c164e1d56a2ebfe26d6f6cd738daf784e9cbd241faa18aafabc05c9bda9cdbbd"
+        },
+        "json": {
+          "name": "situation-report-en.json",
+          "sha256": "9607ee99a5fb23c842e85e3597057f40b1b4b5b2a7af3ab5966299c2a0b6e3b2"
+        }
+      }
+    },
+    {
+      "language": "ne",
+      "report_id": "1524ab3d-ab0c-4cb7-a8aa-8f157204c10c",
+      "status": "partial",
+      "missing_fields": [
+        "optical_acquisition_dates",
+        "debris_km2"
+      ],
+      "generation": {
+        "mode": "deterministic_fallback",
+        "provider": null,
+        "model": null,
+        "reason": "deterministic_report",
+        "validation": "deterministic_facts",
+        "elapsed_ms": null,
+        "provider_requests": null,
+        "prompt_tokens": null,
+        "completion_tokens": null
+      },
+      "files": {
+        "pdf": {
+          "name": "situation-report-ne.pdf",
+          "sha256": "da935d478fe568b98d7cad0453394d87b8f1357ae2128d5fff2e777f4778b406"
+        },
+        "html": {
+          "name": "situation-report-ne.html",
+          "sha256": "eccf51592f0ddf65a83f59698c338a4a78f1e783cfbc1b484fc1cc1e1aca968e"
+        },
+        "json": {
+          "name": "situation-report-ne.json",
+          "sha256": "3fd20a6199e3184eb98e9cc4220060b414d286524a02e16c38ac5649fdc6b4cc"
+        }
+      }
+    }
+  ],
+  "attributions": [
+    "Contains modified Copernicus Sentinel data 2026.",
+    "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.",
+    "© OpenStreetMap contributors."
+  ],
+  "limitations": "Synthetic reports are software previews, not real event observations. Missing evidence remains unavailable. Native-speaker review is pending."
+}

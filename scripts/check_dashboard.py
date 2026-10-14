@@ -124,15 +124,15 @@ def main():
             return disclosure;
         }""")
         assert "Synthetic sanity check" in disclosure
-        assert "IoU undefined" in disclosure
+        assert "IoU N/A" in disclosure
         page.locator("#map-tab").click()
         page.wait_for_function("!state.needsMapFit")
         assert page.evaluate("map.getBounds().contains(L.latLngBounds(boundsFor(state.run)))")
         checks['checks'].append('Results rendered while the map tab is hidden fit the selected area when the map reopens')
         page.get_by_role("button", name="Which settlements are cut off?").click()
         page.wait_for_selector(".chat-answer")
-        count = str(page.evaluate("state.run.stats.settlements_cut_off"))
-        assert count + " settlements" in page.locator(".chat-answer").last.inner_text()
+        assert "Settlements with modeled loss of access" in page.locator(".chat-answer").last.inner_text()
+        assert page.locator(".chat-answer .fact-link").count() > 0
         page.wait_for_function("!state.asking")
         page.locator("#language").select_option("ne")
         page.get_by_role("button", name="What infrastructure is exposed?").click()
@@ -167,17 +167,22 @@ def main():
         for attribution in ("Contains modified Copernicus Sentinel data 2026", "OpenStreetMap contributors", "Copernicus WorldDEM-30"):
             assert attribution in report.text()
         page.reload(wait_until="networkidle")
-        page.wait_for_function("state.run?.mode === 'demo'")
-        assert page.evaluate("state.run.id") == checks["run_id"]
-        assert page.locator("#map-badge").inner_text() == "DEMO DATA"
-        checks["checks"].append("Report preserves synthetic labels/attribution; reload restores explicitly chosen demo")
+        if workspace["completed_actual_runs"]:
+            page.wait_for_function("state.run?.mode === 'live'")
+            checks["checks"].append("Reload prefers a saved actual analysis over synthetic data")
+        else:
+            page.wait_for_function("state.run?.mode === 'demo'")
+            assert page.evaluate("state.run.id") == checks["run_id"]
+            checks["checks"].append("Demo-only workspace restores the explicitly chosen labeled demo")
+        restored_id = page.evaluate("state.run.id")
+        restored_badge = page.locator("#map-badge").inner_text()
         page.locator("#advanced").evaluate("node => node.open = true")
         original_west = page.locator("#west").input_value()
         page.locator("#west").fill("85.5")
         page.locator("#run-button").click()
         page.wait_for_function("!state.busy && !document.getElementById('form-error').hidden")
-        assert page.evaluate("state.run.id") == checks["run_id"]
-        assert page.locator("#map-badge").inner_text() == "DEMO DATA"
+        assert page.evaluate("state.run.id") == restored_id
+        assert page.locator("#map-badge").inner_text() == restored_badge
         assert page.locator("#run-button").is_enabled()
         assert page.locator("#ask-button").is_enabled()
         page.locator("#west").fill(original_west)

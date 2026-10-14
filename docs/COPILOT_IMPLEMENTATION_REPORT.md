@@ -1,5 +1,7 @@
 # FloodLens Copilot implementation report
 
+> Historical implementation-stage record. Its pending-provider statements, test counts and classifier descriptions have been superseded by [current repair verification](REPAIR_VERIFICATION.md).
+
 Completed implementation and software checks on 14 October 2026. The provider is **Groq**, as requested. Live Groq and real satellite-data validation remain pending credentials and a real stored analysis. No segmentation models were trained, training datasets downloaded or geospatial algorithms replaced.
 
 ## 1. Implemented functionality
