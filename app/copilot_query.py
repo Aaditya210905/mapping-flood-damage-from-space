@@ -14,7 +14,7 @@ LAYERS = {
     "buildings": r"\b(?:buildings?|structures?|homes?)\b|भवन",
     "settlements": r"\b(?:villages?|settlements?)\b|गाउँ|बस्ती",
 }
-REFERENCE = re.compile(r"\b(?:that|this|those|these|it|its|them|their|same)\b|त्यो|त्यस|उक्त|तिन|यस|यी", re.I)
+REFERENCE = re.compile(r"\b(?:that|this|those|these|it|its|them|their|same)\b|\bthe (?:road|bridge|building|village|settlement)\b|त्यो|त्यस|उक्त|तिन|यस|यी", re.I)
 GENERIC_FOLLOWUP = re.compile(r"^(?:and |also |what about |how much\??$|how many\??$|tell me more|more detail|translate|explain (?:that|it)|in (?:nepali|english))|^(?:त्यस|उक्त|थप|नेपालीमा|अंग्रेजीमा)", re.I)
 
 
@@ -25,15 +25,25 @@ def normalized(text):
 def mentions(context, text, layers=None):
     """Match complete names/IDs; a name shared by features stays ambiguous."""
     text = normalized(text)
-    matches = []
+    hits = []
     for (layer, identifier), feature in context.index.items():
         if layers and layer not in layers:
             continue
         names = (identifier, feature["properties"].get("name"))
-        if any(isinstance(name, str) and name.strip() and re.search(
-                r"(?<![\w/-])" + re.escape(normalized(name)) + r"(?![\w/-]|\.\w)", text)
-               for name in names):
-            matches.append((layer, identifier))
+        for name in names:
+            if not isinstance(name, str) or not name.strip():
+                continue
+            if name != identifier and normalized(name) in {'road', 'bridge', 'building', 'village', 'settlement', 'hospital', 'town'}:
+                continue
+            for match in re.finditer(r"(?<![\w/-])" + re.escape(normalized(name)) + r"(?![\w/-]|\.\w)", text):
+                hits.append((match.start(), match.end(), (layer, identifier)))
+    matches = []
+    for start, end, subject in hits:
+        if any(other_start <= start and other_end >= end and (other_start < start or other_end > end)
+               for other_start, other_end, _ in hits):
+            continue
+        if subject not in matches:
+            matches.append(subject)
     return matches
 
 
@@ -76,6 +86,10 @@ def plan_question(context, question, history):
     if unsupported_question(question):
         return plan
     plan.references = mentions(context, question)
+    if len(plan.references) > 1:
+        names = [normalized(context.index[subject]['properties'].get('name', '')) for subject in plan.references]
+        if len(names) != len(set(names)):
+            plan.clarification = True
     wanted_layers = [layer for layer, pattern in LAYERS.items() if re.search(pattern, question, re.I)]
     plan.assets = [layer for layer in wanted_layers if layer != "settlements"]
     refers_back = bool(REFERENCE.search(question))
@@ -94,7 +108,7 @@ def plan_question(context, question, history):
                 plan.followup = True
                 break
         if not plan.references and wanted_layers and re.search(
-                r"\b(?:that|this|those|these|same)\s+(?:road|bridge|building|village|settlement)s?\b(?!\s+(?:connectivity|assessment|exposure))|(?:त्यो|त्यस|उक्त).*?(?:सडक|पुल|भवन|गाउँ|बस्ती)", question, re.I):
+                r"\b(?:that|this|those|these|same|the)\s+(?:road|bridge|building|village|settlement)s?\b(?!\s+(?:connectivity|assessment|exposure))|(?:त्यो|त्यस|उक्त).*?(?:सडक|पुल|भवन|गाउँ|बस्ती)", question, re.I):
             plan.clarification = True
     if not matched_topics and (refers_back or GENERIC_FOLLOWUP.search(question)):
         for message in reversed(history):
@@ -116,6 +130,9 @@ def plan_question(context, question, history):
         plan.topics = [TOPICS[plan.intent]]
 
     roads = [identifier for layer, identifier in plan.references if layer == "roads"]
+    if not roads and 'roads' in wanted_layers and 'settlements' in wanted_layers and re.search(
+            r'\b(?:on|along|via|using|use|rely|depend\w*)\b|उक्त|त्यस', question, re.I):
+        plan.clarification = True
     if roads and "settlements" in wanted_layers:
         if len(roads) == 1:
             plan.road_id = roads[0]

@@ -107,6 +107,9 @@ class GroqProvider:
             parameters.update(tools=[{"type": "function", "function": {
                 "name": t["name"], "description": t["description"], "parameters": t["parameters"]}} for t in tools],
                 tool_choice=tool_choice, parallel_tool_calls=True)
+            if tool_choice == "required" and len(tools) == 1:
+                parameters["tool_choice"] = {"type": "function", "function": {"name": tools[0]["name"]}}
+                parameters["parallel_tool_calls"] = False
         try:
             response = self.client.with_options(timeout=httpx.Timeout(timeout, connect=min(5, timeout))).chat.completions.create(**parameters)
         except (APITimeoutError, TimeoutError):
@@ -114,7 +117,13 @@ class GroqProvider:
         except APIConnectionError:
             raise ProviderFailure("provider_unavailable") from None
         except APIStatusError as error:
-            reason = "rate_limited" if error.status_code == 429 else "credentials_rejected" if error.status_code in (401, 403) else "provider_unavailable"
+            reason = "rate_limited" if error.status_code == 429 else "request_too_large" if error.status_code == 413 else "credentials_rejected" if error.status_code in (401, 403) else "provider_unavailable"
+            if error.status_code == 400:
+                try:
+                    if error.response.json().get('error', {}).get('code') == 'tool_use_failed':
+                        reason = 'invalid_tool_call'
+                except (ValueError, AttributeError):
+                    pass
             raise ProviderFailure(reason) from None
         except Exception:
             raise ProviderFailure("provider_unavailable") from None

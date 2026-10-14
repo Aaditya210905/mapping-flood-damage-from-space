@@ -192,7 +192,7 @@ def test_configured_groq_api_request_flow_uses_mocked_sdk(stored_client,monkeypa
     seen=[]
     def handle(request):
         seen.append(json.loads(request.content))
-        message={'role':'assistant','content':None,'tool_calls':[{'id':'facts','type':'function','function':{'name':'flood_surface_change','arguments':'{}'}}]} if len(seen)==1 else {'role':'assistant','content':'Ready' if len(seen)==2 else json.dumps(draft)}
+        message={'role':'assistant','content':None,'tool_calls':[{'id':'facts','type':'function','function':{'name':'flood_surface_change','arguments':'{}'}}]} if len(seen)==1 else {'role':'assistant','content':json.dumps(draft)}
         return httpx.Response(200,json={'id':'chat_api_test','object':'chat.completion','created':0,'model':'openai/gpt-oss-120b','choices':[{'index':0,'message':message,'finish_reason':'tool_calls' if len(seen)==1 else 'stop'}]})
     sdk=Groq(api_key='unit-test-placeholder',http_client=httpx.Client(transport=httpx.MockTransport(handle)),max_retries=0)
     monkeypatch.setattr('app.llm.Groq',lambda **kwargs:sdk)
@@ -202,4 +202,4 @@ def test_configured_groq_api_request_flow_uses_mocked_sdk(stored_client,monkeypa
     data=response.json()
     assert data['generation']['mode']=='llm' and data['generation']['provider']=='groq'
     assert 'सम्भावित' in data['answer'] and data['run_id']==run['id']
-    assert data['facts'][0]['value']==run['stats']['water_km2'] and len(seen)==3
+    assert data['facts'][0]['value']==run['stats']['water_km2'] and len(seen)==2

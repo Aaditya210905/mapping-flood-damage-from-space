@@ -54,14 +54,14 @@ class InfrastructureArgs(StrictModel):
     asset_type: Literal["buildings", "roads", "bridges"]
     only_exposed: bool
     offset: int = Field(ge=0, le=100000)
-    limit: int = Field(ge=1, le=25)
+    limit: int = Field(ge=1, le=5)
     query: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class ConnectivityArgs(StrictModel):
     status: Literal["all", "cut_off", "connected", "uncertain_access", "unassessed", "baseline_disconnected"]
     offset: int = Field(ge=0, le=100000)
-    limit: int = Field(ge=1, le=25)
+    limit: int = Field(ge=1, le=5)
     query: str | None = Field(default=None, min_length=1, max_length=200)
     road_id: str | None = Field(default=None, min_length=1, max_length=200)
 

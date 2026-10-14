@@ -31,7 +31,7 @@ def test_invalid_configuration_does_not_break_status(monkeypatch):
     assert provider_status()['status'] == 'invalid_configuration'
 
 
-@pytest.mark.parametrize('status,reason', [(429,'rate_limited'),(500,'provider_unavailable'),(401,'credentials_rejected')])
+@pytest.mark.parametrize('status,reason', [(429,'rate_limited'),(413,'request_too_large'),(500,'provider_unavailable'),(401,'credentials_rejected')])
 def test_sdk_http_failures_are_sanitized(monkeypatch, status, reason):
     client = Groq(api_key='unit-test-placeholder',base_url='https://api.groq.com',max_retries=0,
                     http_client=httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(status,json={'error':{'message':'PRIVATE TRACE AND KEY SHOULD NOT ESCAPE'}}))))
@@ -81,5 +81,26 @@ def test_sdk_request_timeout_and_no_storage(monkeypatch):
         assert len(seen)==1
         assert seen[0]['store'] is False
         assert {t['type'] for t in seen[0]['tools']} == set()
+    finally:
+        provider.close()
+
+
+def test_single_required_tool_is_named_and_provider_tool_failure_is_sanitized(monkeypatch):
+    seen = []
+    def handle(request):
+        import json
+        seen.append(json.loads(request.content))
+        return httpx.Response(400, json={'error': {'code': 'tool_use_failed', 'message': 'PRIVATE provider output'}})
+    client = Groq(api_key='unit-test-placeholder', max_retries=0,
+                  http_client=httpx.Client(transport=httpx.MockTransport(handle)))
+    monkeypatch.setattr('app.llm.Groq', lambda **kwargs: client)
+    provider = GroqProvider(LLMConfig(enabled=True, api_key=SecretStr('unit-test-placeholder')))
+    try:
+        with pytest.raises(ProviderFailure, match='invalid_tool_call') as error:
+            provider.create(instructions='test', items=[], schema={}, tool_choice='required',
+                            tools=[{'name': 'event_summary', 'description': 'test', 'parameters': {'type': 'object', 'properties': {}}}])
+        assert seen[0]['tool_choice'] == {'type': 'function', 'function': {'name': 'event_summary'}}
+        assert seen[0]['parallel_tool_calls'] is False
+        assert 'PRIVATE' not in str(error.value)
     finally:
         provider.close()
