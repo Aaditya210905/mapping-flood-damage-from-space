@@ -1,23 +1,23 @@
 # Three-minute Situation-Report Copilot demonstration
 
-The user will record this video manually. Use a completed real analysis for the final submission. When demonstrating the interface with generated inputs, label the entire recording as a synthetic software preview. Groq is configured using a private user-supplied key, but provider calls remain untested and no real saved analysis has been provided. Keep the actual engine label visible; a provider failure may trigger fallback. An optional capture helper defaults to real data and rejects legacy segmentation runs; no completed capture is supplied in this task.
+The current recording is [output/video/copilot-demo.mp4](../output/video/copilot-demo.mp4), with a [source/response manifest](../output/video/copilot-demo.json). It uses cached real CDSE run `0fb99632-2943-4d03-9656-55f1db0682cd`. The recording has burned-in captions and no voiceover. It shows the existing saved analysis and actual API responses; it does not show a new acquisition or prove performance on a judge-selected AOI/date.
+
+Nominal capture schedule, before editing the completed recording to three minutes:
 
 | Time | Demonstration |
 | --- | --- |
-| 0:00-0:16 | Introduce the selected analysis and Situation-Report Copilot; show the real/synthetic notice |
-| 0:16-0:38 | Ask the English water-area question; show the actual response engine |
-| 0:38-0:55 | Expand supporting facts, paths, identifiers and units |
-| 0:55-1:18 | Ask about buildings in Nepali; preserve the same underlying values and uncertainty |
-| 1:18-1:44 | Ask a compound road/settlement question; distinguish potential exposure and modeled access loss |
-| 1:44-1:59 | Ask for casualties; the system supplies no unsupported estimate |
-| 1:59-2:14 | Generate a Nepali report and show HTML/PDF/JSON downloads |
-| 2:14-2:30 | Show the Nepali one-page report, unavailable fields and acquisition metadata |
-| 2:30-2:40 | Show the equivalent English report and explain the limits of fact validation |
-| 2:40-3:00 | Required attribution, educational scope and evaluation-only references |
+| 0:00-0:20 | Cached real-input label, before/after radar, source dates and 13.6% water eligibility |
+| 0:20-0:48 | Compound English water/coverage question and fact-ID map inspection |
+| 0:48-1:14 | Uncertain settlements, destination-specific evidence and unverified connectors |
+| 1:14-1:54 | Nepali question, actual answer engine and supporting evidence |
+| 1:54-2:04 | Casualty question refused without an estimate |
+| 2:04-2:24 | Generate a Nepali report and open its saved preview |
+| 2:24-2:38 | Separate EMSR927 evaluation with unavailable class-matched accuracy |
+| 2:38-3:00 | Educational scope, outstanding review and required attribution |
 
 ## Presenter narration
 
-Opening: "FloodLens AI turns a selected map analysis into an evidence-backed briefing. Our chosen AI component is the Situation-Report Copilot. This demonstration identifies its input mode clearly; synthetic results are not observations of the Nepal disaster."
+Opening: "FloodLens AI turns a selected map analysis into an evidence-backed briefing. Our chosen AI component is the Situation-Report Copilot. This walkthrough uses cached real CDSE inputs and historical OSM; it does not acquire new imagery."
 
 English answer: "I ask how much new water was detected. The assistant retrieves the stored measurement. Groq can interpret the request when configured; a clearly labeled deterministic fallback remains available. We never claim that the model was used when the answer came from a template."
 
@@ -25,7 +25,7 @@ Evidence: "This expandable panel shows the fact ID, source path, original unit a
 
 Nepali: "Changing the language selects Nepali text from the same underlying facts. Numbers, identifiers and uncertainty are preserved. Native-speaker review of the terminology remains pending."
 
-Compound query: "This question combines roads and settlements. The tools retrieve the two types of evidence independently. A modeled loss of road connection assumes candidate-intersecting segments are impassable; it does not confirm an actual closure."
+Compound query: "This question combines roads and settlements. The tools retrieve the two types of evidence independently. A modeled loss of road connection uses an explicit overlap threshold. Water beneath bridges does not establish failure; actual closure remains unverified."
 
 Unsupported question: "The available inputs cannot establish casualties or population. The assistant supplies no estimate for this question. Missing evidence is never replaced with a plausible number or a zero."
 
@@ -51,4 +51,4 @@ For an explicitly synthetic walkthrough, add --preview and use a current-route d
 - Is a village physically inaccessible? The system reports modeled connectivity under assumptions, not verified closure.
 - Why is a date unavailable? The selected run did not record it; the system does not infer it from a scene identifier.
 - Does this need Kuro Siwo or Sen1Floods11? No; this selected AI component is the Copilot, and it reads computed mapping results.
-- Does this prove real-event accuracy? No. The final case study needs real observations and separate EMSR927 evaluation; this preview shows the interface only.
+- Does this prove real-event accuracy? No. The saved run has partial observations and the class-matched EMSR927 comparison is N/A; the video demonstrates the interface and numerical grounding only.

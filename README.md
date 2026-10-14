@@ -4,6 +4,10 @@ Flood Lens maps potential new water and debris, intersects pre-event infrastruct
 
 The chosen Track B AI component is the **situation-report copilot**. Mapping uses radar and optical change-detection rules. There is no flood-segmentation model, model placeholder, weight setup or external training-dataset dependency. Kuro Siwo and Sen1Floods11 are not needed for this route.
 
+## Current demo
+
+**[Watch the current three-minute demo](output/video/copilot-demo.mp4)** — captioned screen recording using cached real CDSE inputs and historical OSM, with English/Nepali Groq answers, map citations, access uncertainty, a report and evaluation limitations. It has no voiceover and does not show a new live acquisition. [Recording manifest](output/video/copilot-demo.json).
+
 ## Run
 
 ```bash
@@ -99,7 +103,7 @@ uv run python scripts/verify_copilot.py --require-llm
 uv run python scripts/verify_copilot.py --run-id RUN_ID --allow-demo
 ```
 
-The current six-page Copilot submission report is [technical-report.pdf](docs/technical-report.pdf), with editable [source](docs/technical-report.md). Prepared materials and commands are listed in [Copilot submission setup](docs/COPILOT_SUBMISSION.md). English/Nepali PDF, offline HTML and JSON previews are under `output/pdf/copilot-preview`. These reports are explicitly synthetic. The user will record the three-minute video using the [timed presenter script](docs/demo-script.md); no new video is claimed as complete. Current repairs and executed checks are recorded in [repair verification](docs/REPAIR_VERIFICATION.md).
+The current six-page Copilot submission report is [technical-report.pdf](docs/technical-report.pdf), with editable [source](docs/technical-report.md). Prepared materials and commands are listed in [Copilot submission setup](docs/COPILOT_SUBMISSION.md). English/Nepali PDF, offline HTML and JSON previews are under `output/pdf/copilot-preview`. These reports are explicitly synthetic. The [current three-minute demo](output/video/copilot-demo.mp4) records the repaired interface using cached real inputs; [capture notes](docs/demo-script.md) describe its scope and reproduction. Current repairs and executed checks are recorded in [repair verification](docs/REPAIR_VERIFICATION.md).
 
 Older case studies, model cards, situation reports and videos in `docs/` remain **historical outputs from the removed segmentation model**. Their scores/counts do not validate the current rule-based pipeline. The previous technical report is preserved in `docs/archive/segmentation-technical-report.*`. A real CDSE current-pipeline analysis is available locally; its observed coverage is partial and does not establish field accuracy. Use the current repair verification rather than archived segmentation scores. Recording uses Playwright, isolated Chromium and ffmpeg.
 
