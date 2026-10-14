@@ -22,6 +22,7 @@ EXPLANATIONS = {
     "satellite_limits": ("Satellite revisit gaps, terrain shadow, clouds and vegetation limit interpretation; the system cannot provide minute-ahead warnings.", "उपग्रहको पुनरागमन, भूभागको छाया, बादल र वनस्पतिले नतिजा सीमित गर्छन्; यसले केही मिनेटअघि चेतावनी दिन सक्दैन।"),
     "routing_limits": ("Incomplete OSM roads, facility operation and routes outside the analysis bounds remain unverified.", "अपूर्ण OSM सडक, गन्तव्य सञ्चालन र विश्लेषण क्षेत्रबाहिरका मार्ग जाँचिएका छैनन्।"),
     "missing_data": ("Unavailable measurements remain unavailable and must not be interpreted as zero.", "उपलब्ध नभएका मापनलाई शून्य मान्न मिल्दैन।"),
+    "destination_limits": ("Access is specific to the requested mapped destination type. Combined town/hospital results cannot establish hospital-only access; facility operation is unverified.", "पहुँच अनुरोध गरिएको नक्साको गन्तव्यको प्रकारका लागि मात्र हो। नगर र अस्पतालको संयुक्त नतिजाले अस्पतालसम्मको पहुँच पुष्टि गर्दैन; गन्तव्य सञ्चालन जाँचिएको छैन।"),
 }
 HEADINGS = {
     "summary": ("Analysis summary", "विश्लेषणको सारांश"),
@@ -45,6 +46,10 @@ STATUS_TEXT = {
     "live": ("Actual observations", "वास्तविक अवलोकन"),
     "ascending": ("Ascending", "उत्तरतर्फ जाने कक्षा"),
     "descending": ("Descending", "दक्षिणतर्फ जाने कक्षा"),
+    "partial": ("Partial observations", "आंशिक अवलोकन"),
+    "complete": ("Complete observations", "पूर्ण अवलोकन"),
+    "hospital": ("Hospital", "अस्पताल"),
+    "town": ("Town", "नगर"),
 }
 UNSUPPORTED = ("The selected analysis cannot determine that information. Deaths, injuries, missing people and population estimates are unavailable. Ask about mapped changes, potential exposure, modeled connectivity, sources or limitations.",
                "चयन गरिएको विश्लेषणबाट यो जानकारी निर्धारण गर्न सकिँदैन। मृत्यु, घाइते, बेपत्ता वा जनसङ्ख्याको अनुमान उपलब्ध छैन। नक्साको परिवर्तन, सम्भावित प्रभाव, मोडेल अनुसार सडक सम्पर्क, स्रोत वा सीमाबारे सोध्नुहोस्।")
@@ -118,7 +123,12 @@ def fact_line(fact, language="en", operation="exact"):
         subject = f" [{fact.subject_name or fact.subject_id} · {fact.subject_id}]"
     elif fact.subject_type == "analysis" and fact.subject_name:
         subject = f" [{fact.subject_name}]"
-    return f"{label}{subject}: {format_value(fact, language, operation)}."
+    line = f"{label}{subject}: {format_value(fact, language, operation)}."
+    if fact.status != "available" and fact.missing_reason:
+        line += " " + ("कारण: सम्बन्धित मापन वा गन्तव्य अनुसारको प्रमाण यस विश्लेषणमा उपलब्ध छैन।" if language == "ne" else fact.missing_reason)
+    if fact.uncertainty and fact.uncertainty.startswith("The value covers only"):
+        line += " " + ("यो मापन त्यस वर्गका लागि योग्य अवलोकन क्षेत्रमा मात्र लागू हुन्छ।" if language == "ne" else fact.uncertainty)
+    return line + f" [{fact.fact_id}]"
 
 
 def required_explanations(topic, facts):
@@ -133,6 +143,8 @@ def required_explanations(topic, facts):
         codes.add("satellite_limits")
     if any(f.status != "available" for f in facts):
         codes.add("missing_data")
+    if any(f.field_name == "destination_type" or ".connectivity_by_destination_type." in f.path for f in facts):
+        codes.add("destination_limits")
     return codes
 
 

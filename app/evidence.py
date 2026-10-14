@@ -313,6 +313,9 @@ class EvidenceContext:
         candidates = [(identifier, item) for (layer, identifier), item in self.index.items() if layer == "settlements"
                       and (not args.query or args.query.casefold() in (identifier+' '+str(item['properties'].get('name',''))).casefold())]
         destination_missing = sum(not self.connectivity_properties(item["properties"], args.destination_type) for _, item in candidates)
+        destination_unassessed = sum(not self.connectivity_properties(item["properties"], args.destination_type)
+                                    or self.connectivity_properties(item["properties"], args.destination_type).get("status") == "unassessed"
+                                    for _, item in candidates)
         rows = [(identifier, item) for identifier, item in candidates
                 if (args.status == "all" or self.connectivity_properties(item["properties"], args.destination_type).get("status") == args.status)
                 and (args.destination_type == "all" or self.connectivity_properties(item["properties"], args.destination_type))]
@@ -327,7 +330,7 @@ class EvidenceContext:
             facts = [
                 self._add(prefix + ".matching_count", "matching_settlements_count", None if missing_layer else len(rows),
                           ("Recorded settlement route matches for the requested filters", "अनुरोध गरिएका सर्तसँग मिल्ने अभिलेखित बस्ती मार्ग"),
-                          unit="count", interpretation="modeled_connectivity", method="Saved baseline/disrupted route road-ID membership; before pagination",
+                          unit="count", interpretation="modeled_connectivity", method="Saved destination-specific status and optional road-route membership filter; before pagination",
                           source_ids=["settlements.geojson"],
                           missing_reason="This run has no destination-specific graph results; combined town/hospital access cannot determine hospital-only or town-only access." if typed_evidence_absent else None),
             ]
@@ -345,8 +348,8 @@ class EvidenceContext:
             if args.destination_type != "all":
                 facts += [self._add(prefix + ".destination_type", "destination_type", args.destination_type,
                     ("Requested destination type", "अनुरोध गरिएको गन्तव्यको प्रकार"), source_ids=["settlements.geojson"]),
-                    self._add(prefix + ".destination_unavailable_count", "destination_assessment_unavailable_count", None if missing_layer else destination_missing,
-                    ("Settlements without saved destination-specific analysis", "गन्तव्य अनुसारको अभिलेखित विश्लेषण नभएका बस्ती"),
+                    self._add(prefix + ".destination_unavailable_count", "destination_assessment_unavailable_count", None if missing_layer else destination_unassessed,
+                    ("Settlements without assessable destination-specific access", "गन्तव्य अनुसारको पहुँच मूल्याङ्कन हुन नसकेका बस्ती"),
                     unit="count", interpretation="modeled_connectivity", source_ids=["settlements.geojson"])]
         else:
             facts = [self.global_fields[k] for k in ACCESS_FIELDS]
@@ -378,7 +381,7 @@ TOOL_REGISTRY = {
     "event_summary": (EmptyArgs, "Retrieve the selected event, computed aggregate metrics, acquisition dates and limitations."),
     "flood_surface_change": (EmptyArgs, "Retrieve measured potential water/surface change, units, method and thresholds."),
     "infrastructure_impacts": (InfrastructureArgs, "Retrieve saved potentially exposed buildings, roads or bridges, with feature IDs and measurements. Paginated."),
-    "settlement_connectivity": (ConnectivityArgs, "Retrieve modeled connectivity, destinations and saved route evidence. Optionally filter by an exact road_id from this run; matches use recorded baseline/disrupted routes, not physical proximity. Filtered counts precede pagination; missing routes remain unknown. No field closures are confirmed. Paginated."),
+    "settlement_connectivity": (ConnectivityArgs, "Retrieve modeled connectivity, destinations and saved route evidence. Select destination_type=hospital or town for that specific target, all for the combined network. Optionally filter by an exact road_id from this run; matches use recorded baseline/disrupted routes, not physical proximity. Filtered counts precede pagination; missing routes remain unknown. No field closures are confirmed. Paginated."),
     "sources_limitations": (EmptyArgs, "Retrieve actual recorded products, acquisition dates, historical OSM, processing and limitations."),
     "feature_evidence": (FeatureArgs, "Retrieve saved evidence for one exact feature ID and layer in this run; never accept filesystem paths."),
 }

@@ -60,15 +60,16 @@ class QueryPlan:
     clarification: bool = False
     followup: bool = False
     requested_fields: list[str] = field(default_factory=list)
+    destination_type: str = "all"
 
     @property
     def scoped(self):
-        return bool(self.references or self.road_id or self.followup or self.status != "cut_off")
+        return bool(self.references or self.road_id or self.followup or self.status != "cut_off" or self.destination_type != "all")
 
     def provider_context(self):
         return {"features": [{"layer": layer, "feature_id": identifier} for layer, identifier in self.references],
                 "road_id": self.road_id, "settlement_status": self.status,
-                "requested_fields": self.requested_fields}
+                "requested_fields": self.requested_fields, "destination_type": self.destination_type}
 
 
 def plan_question(context, question, history):
@@ -152,6 +153,13 @@ def plan_question(context, question, history):
         plan.status = "cut_off"
     elif "connectivity" in plan.topics and re.search(r"\b(?:all|status|statuses)\b", question, re.I):
         plan.status = "all"
+
+    if re.search(r"\b(?:hospitals?|healthcare)\b|अस्पताल", plan.question, re.I):
+        plan.destination_type = "hospital"
+    elif re.search(r"\b(?:towns?|cities|city)\b|नगर|सहर|शहर", plan.question, re.I):
+        plan.destination_type = "town"
+    if plan.destination_type != "all" and "connectivity" in plan.topics:
+        plan.assets = []
 
     # Required facts provide a relevance check as well as grounded values.
     field_patterns = {

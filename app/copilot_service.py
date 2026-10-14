@@ -1,7 +1,7 @@
 """Bounded Groq tool loop, semantic validation and the original safe fallback."""
-import hashlib
 import json
 import logging
+import time
 
 from pydantic import ValidationError
 from app.copilot_types import AnswerDraft, AnswerSection, GenerationInfo
@@ -19,6 +19,8 @@ Compose an AnswerDraft in the required JSON schema. Copy run_id, field_name, sub
 Choose relevant sections and up to 16 concise claims unless more are needed. Choose authored explanation codes for uncertainty and interpretation. This deliberately uses controlled bilingual narrative; never insert free text or unsupported physical-damage/closure claims. The explicit selected language takes precedence over a language mentioned in a question. Translation selects the same facts in the selected language, without changing their certainty. For situation reports use kind=report. For facts about a specific feature use topic=feature. Source facts must not be placed under measurements or vice versa.
 Tool outputs include fact_defaults: copy run_id, subject_type and subject_id from these defaults unless a fact overrides them. A fact's subject_ref selects its subject_type/subject_id from that output's subjects dictionary, overriding defaults; subject_ref itself is not a claim field. History is never evidence for values. For resolved named features use only those features' claims, without whole-analysis measurements. For villages depending on a road include filter_road_id, matching_settlements_count and route_membership_unavailable_count plus matching features' status and route IDs. These are recorded route dependencies, not physical proximity. Never substitute whole-analysis counts for filtered queries. For an ambiguous reference use kind=clarification with sections=[]. Include requested_fields even when unavailable.
 """
+RETRIEVAL_PROMPT += " For hospital-only or town-only access, pass resolved_scope.destination_type to settlement_connectivity or feature_evidence. Never substitute the combined destination results."
+PROMPT += " For destination-specific queries include destination_type, matching_settlements_count and destination_assessment_unavailable_count; use only the matching connectivity_by_destination_type feature facts. Missing destination-specific results remain unavailable, never a zero or the combined town/hospital result."
 
 
 def _draft_intent(draft):
@@ -57,6 +59,8 @@ def _query_tools(plan):
         names={'settlement_connectivity'}
     elif plan.references:
         names={'feature_evidence'}
+    elif plan.destination_type != 'all' and plan.topics == ['connectivity']:
+        names={'settlement_connectivity'}
     elif plan.requested_fields and plan.topics==['flood']:
         names={'flood_surface_change'}
     else:
@@ -74,6 +78,8 @@ def _has_scoped_evidence(context, plan):
         return set(plan.requested_fields).issubset({f.field_name for f in facts}) and plan.topics==['flood']
     if plan.road_id:
         return any(f.field_name=='filter_road_id' and f.value==plan.road_id for f in facts)
+    if plan.destination_type != 'all' and not plan.references:
+        return any(f.field_name=='destination_type' and f.value==plan.destination_type for f in facts)
     if plan.references:
         return set(plan.references).issubset({(f.subject_type,f.subject_id) for f in facts})
     return False
@@ -89,19 +95,36 @@ def _validate_relevance(draft, context, plan):
             raise GroundingError('Road-filtered route evidence was not retrieved')
         if fields['filter_road_id'].value != plan.road_id or any(f.field_name in ACCESS_FIELDS for f in facts):
             raise GroundingError('The answer used a different road or whole-analysis counts')
-        scope=hashlib.sha256(json.dumps({'road_id':plan.road_id,'status':plan.status,'query':None},sort_keys=True).encode()).hexdigest()[:20]
+        scope=context.connectivity_query_scope(plan.road_id,plan.status,None,plan.destination_type)
         if any(not fields[key].path.startswith('queries.settlement_connectivity.'+scope+'.')
                for key in ('filter_road_id','matching_settlements_count','route_membership_unavailable_count')):
             raise GroundingError('The answer used different settlement filters')
         for fact in facts:
             if fact.subject_type == 'settlements':
-                props = context.index[('settlements', fact.subject_id)]['properties']
+                props = context.connectivity_properties(context.index[('settlements', fact.subject_id)]['properties'],plan.destination_type)
                 if context.route_membership(props, plan.road_id) is not True or (plan.status != 'all' and props.get('status') != plan.status):
                     raise GroundingError('The answer used an unrelated settlement')
     elif plan.references:
         subjects = {(f.subject_type, f.subject_id) for f in facts if f.subject_type not in ('analysis', 'observation')}
         if subjects != set(plan.references) or any(f.subject_type in ('analysis', 'observation') for f in facts):
             raise GroundingError('The answer did not match the requested features')
+        if plan.destination_type != 'all':
+            for fact in facts:
+                if fact.subject_type == 'settlements' and fact.field_name != 'name' and '.connectivity_by_destination_type.'+plan.destination_type+'.' not in fact.path:
+                    raise GroundingError('Combined destination access cannot answer a destination-specific question')
+    if plan.destination_type != 'all' and not plan.references:
+        fields = {f.field_name:f for f in facts if f.subject_type == 'analysis'}
+        required = {'destination_type','matching_settlements_count','destination_assessment_unavailable_count'}
+        if not required.issubset(fields) or fields['destination_type'].value != plan.destination_type:
+            raise GroundingError('Destination-specific query facts are required')
+        scope=context.connectivity_query_scope(plan.road_id,plan.status,None,plan.destination_type)
+        if any(not fields[key].path.startswith('queries.settlement_connectivity.'+scope+'.') for key in required):
+            raise GroundingError('The answer used a different destination-specific filter')
+        if any(f.field_name in ACCESS_FIELDS for f in facts):
+            raise GroundingError('Combined town/hospital counts cannot answer a destination-specific query')
+        for fact in facts:
+            if fact.subject_type == 'settlements' and fact.field_name != 'name' and '.connectivity_by_destination_type.'+plan.destination_type+'.' not in fact.path:
+                raise GroundingError('Destination-specific feature evidence is required')
 
 
 def _run_llm(context, question, language, config, history, plan):
@@ -154,6 +177,7 @@ def _run_llm(context, question, language, config, history, plan):
             except (ValidationError,GroundingError,ValueError):
                 raise ProviderFailure('validation_failed') from None
     finally:
+        context.provider_telemetry=getattr(provider,'usage',{})
         provider.close()
 
 
@@ -175,7 +199,7 @@ def _fallback_draft(context, plan, language):
                 result=context.call('infrastructure_impacts',{'asset_type':asset,'only_exposed':True,'offset':0,'limit':4})
                 facts.extend(f for f in result.facts if f.subject_type=='analysis' or f.field_name in ('name','assessment_status','exposed_length_m','overlap_fraction'))
         elif current=='connectivity':
-            result=context.call('settlement_connectivity',{'status':plan.status,'offset':0,'limit':4,'road_id':plan.road_id})
+            result=context.call('settlement_connectivity',{'status':plan.status,'offset':0,'limit':4,'road_id':plan.road_id,'destination_type':plan.destination_type})
             facts=[f for f in result.facts if f.subject_type=='analysis' or f.field_name in ('name','status','nearest_destination','before_distance_km','after_distance_km','baseline_road_ids')]
         elif current=='sources':
             result=context.call('sources_limitations',{})
@@ -183,7 +207,7 @@ def _fallback_draft(context, plan, language):
             facts=[f for f in result.facts if f.field_name in keys]
         elif current=='feature':
             for layer, identifier in plan.references[:6]:
-                facts.extend(context.call('feature_evidence',{'layer':layer,'feature_id':identifier}).facts)
+                facts.extend(context.call('feature_evidence',{'layer':layer,'feature_id':identifier,'destination_type':plan.destination_type}).facts)
         else:
             result=context.call('sources_limitations',{})
             facts=[f for f in result.facts if f.field_name in ('limitations','warnings')]
@@ -194,7 +218,7 @@ def _fallback_draft(context, plan, language):
 
 
 def respond(run,question,language='en',history=None):
-    from app.copilot import deterministic_answer
+    started=time.monotonic()
     if language not in ('en','ne'):raise ValueError('Use English or Nepali')
     context=EvidenceContext(run)
     history=history or []
@@ -229,23 +253,17 @@ def respond(run,question,language='en',history=None):
         draft=_fallback_draft(context,plan,language)
         validate_draft(draft,context,language)
         text,facts=render_draft(draft,context)
-        # Retain the authored response templates for complete simple questions.
-        needed={'extent':FLOOD_FIELDS,'damage':INFRA_FIELDS,'access':ACCESS_FIELDS,
-                'sources':('radar_before_acquired','radar_after_acquired','radar_before_relative_orbit','radar_before_direction','osm_snapshot','mapping_method'),
-                'summary':tuple(context.global_fields)}.get(intent,())
-        legacy=None
-        if not plan.scoped and not plan.clarification and not plan.requested_fields and (len(draft.sections)<=1 or intent=='summary'):
-            if all(context.global_fields[k].status=='available' for k in needed):
-                try:legacy=deterministic_answer(run,question,language)
-                except (KeyError,TypeError,ValueError):pass
-        if legacy:
-            text=legacy['answer'];evidence=legacy['evidence']
-        else:
-            evidence=[{'path':f.path,'run_id':f.run_id,'fact_id':f.fact_id} for f in facts]
+        evidence=[{'path':f.path,'run_id':f.run_id,'fact_id':f.fact_id} for f in facts]
         generation=GenerationInfo(mode='deterministic_fallback',provider=None,model=None,reason='unsupported_evidence' if unsupported else reason,validation='deterministic_facts')
         if plan.clarification:generation.reason='ambiguous_reference'
         intent=_draft_intent(draft)
         confidence=score
+    generation.elapsed_ms=round((time.monotonic()-started)*1000)
+    telemetry=getattr(context,'provider_telemetry',{})
+    for name in ('provider_requests','prompt_tokens','completion_tokens'):
+        value=telemetry.get(name)
+        if type(value) is int and value >= 0:
+            setattr(generation,name,value)
     return {'answer':text,'intent':intent,'intent_confidence':confidence,'evidence':evidence,
             'method':'Groq structured tool calling + validated facts' if generation.mode=='llm' else 'Bilingual topic routing + local intent model; contextual evidence retrieval',
             'run_id':context.run_id,'language':language,'facts':[f.model_dump(mode='json') for f in facts],

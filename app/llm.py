@@ -17,6 +17,7 @@ class LLMConfig(BaseModel):
     base_url: str = Field(default="https://api.groq.com", exclude=True, repr=False)
     timeout_seconds: float = Field(default=10, ge=1, le=30)
     budget_seconds: float = Field(default=30, ge=3, le=60)
+    max_completion_tokens: int = Field(default=4096, ge=512, le=8192)
 
     @field_validator("base_url")
     @classmethod
@@ -36,7 +37,8 @@ class LLMConfig(BaseModel):
                    model=os.getenv("LLM_MODEL", "openai/gpt-oss-120b"),
                    base_url=os.getenv("LLM_BASE_URL") or "https://api.groq.com",
                    timeout_seconds=os.getenv("LLM_TIMEOUT_SECONDS", "10"),
-                   budget_seconds=os.getenv("LLM_BUDGET_SECONDS", "30"))
+                   budget_seconds=os.getenv("LLM_BUDGET_SECONDS", "30"),
+                   max_completion_tokens=os.getenv("LLM_MAX_COMPLETION_TOKENS", "4096"))
 
     @property
     def ready(self):
@@ -85,6 +87,7 @@ def _messages(instructions, items):
 class GroqProvider:
     def __init__(self, config):
         self.config = config
+        self.usage = {"provider_requests": 0, "prompt_tokens": None, "completion_tokens": None}
         self.deadline = time.monotonic() + config.budget_seconds
         try:
             self.client = Groq(api_key=config.api_key.get_secret_value(), base_url=config.base_url,
@@ -98,7 +101,7 @@ class GroqProvider:
             raise ProviderFailure("timeout")
         timeout = min(self.config.timeout_seconds, remaining)
         parameters = {"model": self.config.model, "messages": _messages(instructions, items),
-                      "temperature": 0, "max_completion_tokens": 8192, "store": False}
+                      "temperature": 0, "max_completion_tokens": self.config.max_completion_tokens if tool_choice == "none" else 1024, "store": False}
         # Groq does not combine local tool use with strict structured outputs.
         if tool_choice == "none":
             parameters["response_format"] = {"type": "json_schema", "json_schema": {
@@ -111,6 +114,7 @@ class GroqProvider:
                 parameters["tool_choice"] = {"type": "function", "function": {"name": tools[0]["name"]}}
                 parameters["parallel_tool_calls"] = False
         try:
+            self.usage["provider_requests"] += 1
             response = self.client.with_options(timeout=httpx.Timeout(timeout, connect=min(5, timeout))).chat.completions.create(**parameters)
         except (APITimeoutError, TimeoutError):
             raise ProviderFailure("timeout") from None
@@ -127,6 +131,11 @@ class GroqProvider:
             raise ProviderFailure(reason) from None
         except Exception:
             raise ProviderFailure("provider_unavailable") from None
+        usage = getattr(response, "usage", None)
+        for key in ("prompt_tokens", "completion_tokens"):
+            value = getattr(usage, key, None)
+            if type(value) is int and value >= 0:
+                self.usage[key] = (self.usage[key] or 0) + value
         if not isinstance(getattr(response, "choices", None), list) or not response.choices:
             raise ProviderFailure("malformed_response")
         choice = response.choices[0]

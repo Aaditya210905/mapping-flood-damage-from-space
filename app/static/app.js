@@ -1,7 +1,7 @@
 "use strict";
 
 const $ = (id) => document.getElementById(id);
-const state = { run: null, sources: null, epoch: "after", layers: {}, rasters: {}, tracing: false, busy: false, asking: false, trace: null, history: [], needsMapFit: false };
+const state = { run: null, sources: null, epoch: "after", layers: {}, rasters: {}, tracing: false, busy: false, asking: false, trace: null, history: [], needsMapFit: false, selection: null };
 const map = L.map("map", { zoomControl: true, attributionControl: true, preferCanvas: true, minZoom: 3, maxZoom: 19, zoomSnap: 0.25 }).setView([28.10, 85.30], 10);
 map.createPane("radar");
 map.getPane("radar").style.zIndex = 250;
@@ -30,6 +30,85 @@ async function api(url, options) {
 const post = (url, body) => api(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 const dateLabel = (value) => new Date(value).toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "UTC" });
 const analysisBase = () => `/api/analyses/${state.run.id}`;
+const numberLabel = (value, digits = 0) => Number.isFinite(value) ? value.toLocaleString("en", {minimumFractionDigits: digits, maximumFractionDigits: digits}) : "Unavailable";
+const accessNames = { cut_off: "Modeled cutoff · assumed closures", connected: "Modeled observed route", uncertain_access: "Uncertain access", unassessed: "Unassessed", baseline_disconnected: "Pre-event disconnected" };
+
+function appendCitedAnswer(container, response) {
+  const facts = new Map(response.facts.map((fact) => [fact.fact_id, fact]));
+  const pattern = /\[([0-9a-f-]{36}:[0-9a-f]{20})\]/g;
+  let offset = 0;
+  for (const match of response.answer.matchAll(pattern)) {
+    container.append(document.createTextNode(response.answer.slice(offset, match.index)));
+    const fact = facts.get(match[1]);
+    if (fact) {
+      const button = document.createElement("button"); button.type = "button"; button.className = "fact-link";
+      button.textContent = `[${response.facts.indexOf(fact) + 1}]`; button.title = fact.fact_id;
+      button.setAttribute("aria-label", `Inspect ${fact.label_en}: ${fact.fact_id}`);
+      button.addEventListener("click", () => inspectFact(fact)); container.append(button);
+    } else container.append(document.createTextNode(match[0]));
+    offset = match.index + match[0].length;
+  }
+  container.append(document.createTextNode(response.answer.slice(offset)));
+}
+
+function renderSettlementTable() {
+  if (!state.run) return;
+  const status = $("access-filter").value, query = $("settlement-search").value.toLocaleLowerCase();
+  const features = state.run.layers.settlements.features.filter((f) => (status === "all" || f.properties.status === status) &&
+    [f.properties.name, f.properties["name:en"], f.properties["name:ne"]].some((name) => String(name || "").toLocaleLowerCase().includes(query)));
+  $("settlement-table").innerHTML = features.map((f) => {
+    const p = f.properties;
+    const distances = `${p.before_distance_km == null ? "—" : p.before_distance_km + " km"} / ${p.after_distance_km == null ? "—" : p.after_distance_km + " km"}`;
+    return `<tr><td><button type="button" class="feature-link" data-settlement-id="${escapeHTML(p.id)}">${escapeHTML(p.name)}</button></td><td><span class="access-status ${escapeHTML(p.status)}">${escapeHTML(accessNames[p.status] || "Unknown")}</span></td><td>${escapeHTML(p.nearest_destination || "Not mapped")}</td><td>${escapeHTML(distances)}</td></tr>`;
+  }).join("") || '<tr><td colspan="4">No settlements match this filter. Missing OSM records cannot establish absence.</td></tr>';
+  document.querySelectorAll("[data-settlement-id]").forEach((button) => button.addEventListener("click", () => inspectFeature("settlements", button.dataset.settlementId)));
+}
+
+async function inspectFact(fact) {
+  if (fact.run_id !== state.run?.id) return;
+  if (["buildings", "roads", "bridges", "settlements", "destinations"].includes(fact.subject_type)) {
+    await inspectFeature(fact.subject_type, fact.subject_id);
+  } else {
+    $("feature-detail").hidden = false;
+    $("feature-detail-title").textContent = fact.label_en;
+    $("feature-detail-content").textContent = `${fact.fact_id} · ${fact.status === "available" ? JSON.stringify(fact.value) : "Unavailable"} ${fact.unit || ""}\n${fact.method}\n${fact.missing_reason || fact.uncertainty || ""}\nArea-wide fact; no individual feature is implied.`;
+    setView("map"); fitSelectedMap();
+  }
+  $("feature-detail").scrollIntoView({behavior: "smooth", block: "nearest"});
+}
+
+async function inspectFeature(layer, identifier) {
+  if (!state.run) return;
+  const runId = state.run.id;
+  $("feature-detail").hidden = false;
+  $("feature-detail-title").textContent = "Loading feature evidence…";
+  $("feature-detail-content").textContent = "Reading the selected analysis only.";
+  try {
+    const data = await api(`/api/analyses/${runId}/features/${layer}?feature_id=${encodeURIComponent(identifier)}`);
+    if (state.run?.id !== runId) return;
+    const feature = data.feature, p = feature.properties;
+    $("feature-detail-title").textContent = [p["name:en"] || p.name || identifier, p["name:ne"]].filter((name, index, names) => name && names.indexOf(name) === index).join(" / ");
+    const pairs = [["OSM ID", p.id], ["Assessment", p.assessment_status || "Unknown"], ["Observed fraction", p.assessment_fraction == null ? "Unavailable" : `${numberLabel(p.assessment_fraction * 100, 1)}%`], ["Exposure", p.exposed ? "Potential exposure; physical damage not confirmed" : "No mapped overlap in assessed observations"]];
+    if (layer === "settlements") {
+      pairs.push(["Access", accessNames[p.status] || "Unknown"], ["Baseline destination", p.nearest_destination || "Not mapped"], ["After destination", p.after_destination_name || p.after_destination || "Unavailable"], ["Snap connector", `${numberLabel(p.snap_distance_m, 1)} m · off-road access unverified`], ["Same-target extra distance", p.same_destination_detour_km == null ? "Unavailable" : `${p.same_destination_detour_km} km`], ["Boundary", p.boundary_uncertainty ? "Routes beyond the area may change this result" : "Routes outside the area are not assessed"]);
+      const hospital = p.connectivity_by_destination_type?.hospital;
+      pairs.push(["Hospital access", hospital ? `${accessNames[hospital.status] || hospital.status} · ${hospital.nearest_destination || hospital.before_destination_name || "No mapped reachable hospital"}` : "Hospital-specific routing was not computed for this saved run"]);
+    }
+    if (layer === "buildings") pairs.push(["Footprint overlap", `${numberLabel(p.overlap_fraction * 100, 1)}%`]);
+    if (layer === "roads" || layer === "bridges") pairs.push(["Mapped overlap", `${numberLabel(p.exposed_length_m, 1)} m`], ["Closure", p.closure_reason || "Candidate closure scenario; not a verified closure"]);
+    if (layer === "bridges") pairs.push(["Bridge interpretation", "Water under a bridge does not establish deck damage or a failed crossing"]);
+    $("feature-detail-content").innerHTML = pairs.map(([key, value]) => `<div class="provenance-row"><span>${escapeHTML(key)}</span><strong>${escapeHTML(value)}</strong></div>`).join("") + `<p class="field-note">${escapeHTML(data.evidence.facts.map((fact) => fact.fact_id).join(" · "))}</p>`;
+    if (state.selection) map.removeLayer(state.selection);
+    const selected = L.geoJSON(feature, {style: {color: "#872DB1", weight: 5, fillOpacity: .25}, pointToLayer: (_, latlng) => L.circleMarker(latlng, {radius: 10, color: "#872DB1", weight: 3, fillOpacity: .2})});
+    const routes = [selected];
+    for (const [key, color, dashArray] of [["baseline_route", "#545454", "6 5"], ["after_route", "#0072B2", null]]) {
+      if (p[key]) routes.push(L.geoJSON(p[key], {style: {color, dashArray, weight: 4}}));
+    }
+    state.selection = L.featureGroup(routes).addTo(map);
+    setView("map");
+    setTimeout(() => { map.invalidateSize(); const bounds = state.selection?.getBounds(); if (bounds?.isValid()) map.fitBounds(bounds.pad(.15), {maxZoom: 16}); }, 0);
+  } catch (error) { $("feature-detail-title").textContent = "Feature evidence unavailable"; $("feature-detail-content").textContent = error.message; }
+}
 
 function boundsFor(run) {
   const [west, south, east, north] = run.display_bbox || run.bbox;

@@ -7,7 +7,7 @@ Layer = Literal["buildings", "roads", "bridges", "settlements", "destinations"]
 SubjectType = Literal["analysis", "observation", "buildings", "roads", "bridges", "settlements", "destinations"]
 Interpretation = Literal["measurement", "potential_exposure", "modeled_connectivity", "recorded_metadata", "limitation", "unavailable"]
 Topic = Literal["summary", "flood", "infrastructure", "connectivity", "sources", "limitations", "feature"]
-ExplanationCode = Literal["potential_damage", "modeled_closure", "coverage_limits", "surface_change_uncertain", "satellite_limits", "routing_limits", "missing_data"]
+ExplanationCode = Literal["potential_damage", "modeled_closure", "coverage_limits", "surface_change_uncertain", "satellite_limits", "routing_limits", "missing_data", "destination_limits"]
 
 
 class StrictModel(BaseModel):
@@ -86,7 +86,7 @@ class Claim(StrictModel):
 class AnswerSection(StrictModel):
     topic: Topic
     claims: list[Claim] = Field(max_length=80)
-    explanations: list[ExplanationCode] = Field(max_length=7)
+    explanations: list[ExplanationCode] = Field(max_length=8)
 
 
 class AnswerDraft(StrictModel):

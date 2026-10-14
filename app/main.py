@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 import threading
 import uuid
+import csv
+import io
 from typing import Literal
 from datetime import datetime, timezone
 
@@ -262,6 +264,25 @@ def feature_detail(run_id: str, layer: Literal["buildings", "roads", "bridges", 
         raise HTTPException(404, "This feature is not present in the selected analysis.")
     evidence = context.call("feature_evidence", {"layer": layer, "feature_id": feature_id})
     return {"run_id": context.run_id, "layer": layer, "feature": feature, "evidence": evidence}
+
+
+@app.get("/api/analyses/{run_id}/exports/settlements.csv")
+def settlement_csv(run_id: str):
+    run = saved_run(run_id)
+    output = io.StringIO(newline="")
+    fields = ["id", "name", "status", "nearest_destination", "before_distance_km", "after_distance_km",
+              "same_destination_detour_km", "snap_distance_m", "assessment_fraction"]
+    writer = csv.writer(output)
+    writer.writerow(fields + ["run_id", "event_date", "osm_snapshot", "attribution", "database_license"])
+    def cell(value):
+        # OSM names are untrusted text, including when opened in a spreadsheet.
+        return "'" + value if isinstance(value, str) and value.lstrip().startswith(("=", "+", "-", "@")) else value
+    for feature in run["layers"]["settlements"]["features"]:
+        props = feature["properties"]
+        writer.writerow([cell(props.get(key)) for key in fields] + [run["id"], run["flood_date"],
+                        run["provenance"].get("osm_snapshot"), "© OpenStreetMap contributors", "ODbL-1.0; https://www.openstreetmap.org/copyright"])
+    return Response("\ufeff" + output.getvalue(), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="settlement-access-{run_id}.csv"'})
 
 
 @app.post("/api/analyses/{run_id}/copilot")

@@ -132,6 +132,8 @@ def evaluate_run(folder, reference_path, coverage_path, activation="EMSR927", al
         status, reason = ("available", None) if primary_valid.any() else ("unavailable", "No shared class-eligible prediction and reviewed reference coverage.")
     primary_prediction = np.isin(classes, [2, 3]) if combined else classes == (2 if targets == {"water"} else 3)
     metrics = binary_metrics(primary_prediction, reference, primary_valid)
+    if status == "available" and metrics["status"] == "unavailable":
+        status, reason = "unavailable", metrics["reason"]
     reference_reviewed = reference & reviewed
     reference_evaluated = reference_reviewed & primary_valid
     result = {

@@ -23,7 +23,7 @@
       <a id="workspace-link" href="#workspace" class="active" aria-current="page">Workspace</a>
       <a href="#method-panel" id="method-link">Data sources</a>
     </nav>
-    <span class="prototype"><span class="status-dot"></span> Local prototype</span>
+    <span class="prototype"><span class="status-dot"></span> Educational prototype · not operational</span>
   </header>
 
   <main id="workspace">
@@ -80,6 +80,7 @@
             <div id="job-progress" class="job-progress" hidden>
               <div id="progress-track" class="progress-track" role="progressbar" aria-label="Analysis progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-fill"></div></div>
               <p id="progress-label" aria-live="polite">Preparing inputs…</p>
+              <ol id="pipeline-stages" class="pipeline-stages" aria-label="Analysis steps"><li data-stage="fetch">Fetch allowed inputs</li><li data-stage="preprocess">Preprocess imagery</li><li data-stage="flood_map">Map water and surface change</li><li data-stage="damage_and_access">Assess exposure and access</li><li data-stage="facts_and_exports">Save facts and exports</li></ol>
             </div>
             <p id="form-error" class="error" role="alert" hidden></p>
           </form>
@@ -92,8 +93,9 @@
           <label class="layer-switch"><span><i class="swatch debris"></i> Possible debris</span><input type="checkbox" data-layer="debris" checked disabled></label>
           <label class="layer-switch"><span><i class="swatch road"></i> Road network</span><input type="checkbox" data-layer="roads" checked disabled></label>
           <label class="layer-switch"><span><i class="swatch building"></i> Exposed buildings</span><input type="checkbox" data-layer="buildings" checked disabled></label>
+          <label class="layer-switch"><span><i class="swatch bridge"></i> Bridge exposure</span><input type="checkbox" data-layer="bridges" checked disabled></label>
           <label class="layer-switch"><span><i class="swatch settlement"></i> Settlements & hospitals</span><input type="checkbox" data-layer="settlements" checked disabled></label>
-          <p class="field-note">Available after analysis. Click features to inspect their evidence.</p>
+          <p class="field-note" id="layer-availability">Available after analysis. Click features to inspect their evidence.</p>
         </section>
 
         <section class="panel datasets-panel">
@@ -112,6 +114,7 @@
         </section>
 
         <div id="notice" class="notice" role="status"><span class="notice-icon" aria-hidden="true">i</span><span><strong>No analysis loaded.</strong> Choose an area to acquire observations, or preview the interface with synthetic data.</span></div>
+        <div id="observability" class="observability" role="status" hidden></div>
 
         <section class="panel map-panel">
           <div class="map-header">
@@ -167,9 +170,12 @@
           <div id="access-view" class="tab-content" role="tabpanel" aria-labelledby="access-tab" hidden>
             <div class="tab-intro"><span class="eyebrow">ROAD CONNECTIVITY</span><h3>Who loses their road connection?</h3><p>Compare the pre-event network with candidate-exposed segments removed. Modeled cutoffs require a connection that existed before the event.</p></div>
             <div class="access-summary" id="access-summary"><span>Run an analysis to inspect settlement access.</span></div>
+            <div class="access-filters"><label for="access-filter">Access status<select id="access-filter"><option value="all">All settlements</option><option value="cut_off">Modeled cutoff</option><option value="uncertain_access">Uncertain access</option><option value="unassessed">Unassessed</option><option value="baseline_disconnected">Pre-event disconnected</option><option value="connected">Modeled observed route</option></select></label><label for="settlement-search">Settlement name<input id="settlement-search" type="search" placeholder="Filter names…"></label><a id="export-access" href="#" aria-disabled="true" tabindex="-1">Access CSV ↓</a></div>
             <div class="table-wrap"><table><thead><tr><th>Settlement</th><th>Road access</th><th>Nearest pre-event destination</th><th>Before / after</th></tr></thead><tbody id="settlement-table"><tr><td colspan="4" class="table-empty">No road-network results yet.</td></tr></tbody></table></div>
             <p class="table-footnote">Unobserved routes stay uncertain. Already disconnected settlements are recorded separately. Connections beyond the analysis bounds are unknown.</p>
           </div>
+
+          <section id="feature-detail" class="feature-detail" aria-live="polite" hidden><div class="feature-detail-heading"><h3 id="feature-detail-title">Feature evidence</h3><button id="close-feature-detail" type="button" aria-label="Close feature details">Close ×</button></div><div id="feature-detail-content"></div></section>
 
           <div id="method-view" class="tab-content" role="tabpanel" aria-labelledby="method-tab" hidden>
             <div class="tab-intro" id="method-panel"><span class="eyebrow">DATA & EVIDENCE</span><h3>Know what goes into the briefing.</h3><p>Satellite observations and historical map inputs supply the analysis. The copilot answers from saved map facts in English and Nepali. Independent reference maps are used only for evaluation.</p></div>
@@ -194,11 +200,11 @@
     </div>
 
     <footer class="page-footer">
-      <div><strong>floodlens</strong><span>Educational prototype · Field verification required</span></div>
-      <details><summary>Data attribution & licenses <span aria-hidden="true">+</span></summary>
+      <div><strong>floodlens</strong><span>Educational prototype · not operational · Field verification required</span></div>
+      <details open><summary>Data attribution & licenses <span aria-hidden="true">+</span></summary>
         <p>Contains modified Copernicus Sentinel data 2026.</p>
         <p>Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.</p>
-        <p>© OpenStreetMap contributors. OSM: ODbL. Leaflet: BSD-2-Clause.</p>
+        <p><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors.</a> OSM-derived databases: <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer">ODbL</a>. Leaflet: BSD-2-Clause.</p>
         <p>Selected AI component: situation-report copilot. Mapping uses radar and optical change-detection rules; no flood-segmentation training dataset or external model weights are required.</p>
         <p>EMSR927 is evaluation-only. Credit: European Union, Copernicus Emergency Management Service data. Synthetic demonstrations contain generated test inputs.</p>
       </details>
