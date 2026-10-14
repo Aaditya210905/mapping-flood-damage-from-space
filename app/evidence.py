@@ -5,6 +5,7 @@ import json
 import math
 from urllib.parse import urlsplit
 from uuid import UUID
+from app.availability import normalize_analysis_availability
 
 from app.copilot_types import (EvidenceFact, ToolResult, EmptyArgs, InfrastructureArgs,
                                ConnectivityArgs, FeatureArgs)
@@ -25,11 +26,13 @@ METRICS = {
     "settlements_unassessed": ("Unassessed settlements", "मूल्याङ्कन हुन नसकेका बस्ती", "count", "modeled_connectivity"),
     "settlements_access_uncertain": ("Settlements with uncertain access", "सडक सम्पर्क अनिश्चित भएका बस्ती", "count", "modeled_connectivity"),
     "settlements_baseline_disconnected": ("Already disconnected settlements", "पहिलेदेखि सम्पर्क नभएका बस्ती", "count", "modeled_connectivity"),
+    "water_eligible_coverage_pct": ("Water-class eligible coverage", "डुबान वर्गका लागि योग्य अवलोकन क्षेत्र", "%", "measurement"),
+    "debris_eligible_coverage_pct": ("Surface-change-class eligible coverage", "भूआवरण परिवर्तन वर्गका लागि योग्य अवलोकन क्षेत्र", "%", "measurement"),
 }
-FLOOD_FIELDS = tuple(METRICS)[:5]
+FLOOD_FIELDS = tuple(METRICS)[:5] + ("water_eligible_coverage_pct", "debris_eligible_coverage_pct")
 INFRA_FIELDS = ("buildings_exposed", "roads_exposed", "bridges_exposed", "road_exposed_km")
-ACCESS_FIELDS = tuple(METRICS)[9:]
-CONNECTIVITY_QUERY_FIELDS = ("filter_road_id", "matching_settlements_count", "route_membership_unavailable_count")
+ACCESS_FIELDS = tuple(METRICS)[9:13]
+CONNECTIVITY_QUERY_FIELDS = ("filter_road_id", "matching_settlements_count", "route_membership_unavailable_count", "destination_type", "destination_assessment_unavailable_count")
 FEATURE_FIELDS = {
     "name": ("Name", "नाम", None, "recorded_metadata"),
     "exposed": ("Mapped intersection", "नक्साको परिवर्तनसँग जुधेको", None, "potential_exposure"),
@@ -42,6 +45,9 @@ FEATURE_FIELDS = {
     "nearest_destination": ("Pre-event destination", "घटनाअघिको गन्तव्य", None, "modeled_connectivity"),
     "before_distance_km": ("Baseline route length", "घटनाअघिको मार्ग लम्बाइ", "km", "modeled_connectivity"),
     "after_distance_km": ("Disrupted-network route length", "अवरोध मानेपछिको मार्ग लम्बाइ", "km", "modeled_connectivity"),
+    "before_destination_id": ("Baseline destination ID", "घटनाअघिको गन्तव्य पहिचान", None, "modeled_connectivity"),
+    "after_destination_id": ("Disrupted-network destination ID", "अवरोध मानेपछिको गन्तव्य पहिचान", None, "modeled_connectivity"),
+    "same_destination_extra_distance_km": ("Extra route distance to the same baseline destination", "उही घटनाअघिको गन्तव्यसम्म पुग्न थप मार्ग लम्बाइ", "km", "modeled_connectivity"),
     "baseline_road_ids": ("Baseline route road IDs", "घटनाअघिको मार्गका सडक पहिचान", None, "modeled_connectivity"),
     "after_road_ids": ("Disrupted-network route road IDs", "अवरोध मानेपछिको मार्गका सडक पहिचान", None, "modeled_connectivity"),
 }
@@ -53,6 +59,7 @@ class EvidenceError(ValueError):
 
 class EvidenceContext:
     def __init__(self, run, expected_run_id=None):
+        run = normalize_analysis_availability(run)
         try:
             self.run_id = str(UUID(str(run["id"])))
             if expected_run_id is not None and self.run_id != str(UUID(str(expected_run_id))):
@@ -92,10 +99,10 @@ class EvidenceContext:
 
     def _add(self, path, field, value, label, *, unit=None, interpretation="recorded_metadata",
              subject_type="analysis", subject_id=None, subject_name=None, method="Saved analysis metadata",
-             source_ids=None, validator=None):
-        status, missing_reason = "available", None
+             source_ids=None, validator=None, missing_reason=None, uncertainty=None):
+        status = "available"
         if value is None:
-            status, missing_reason = "missing", "The selected analysis does not contain this measurement or metadata."
+            status, missing_reason = "missing", missing_reason or "The selected analysis does not contain this measurement or metadata."
         elif validator and not validator(value):
             status, missing_reason, value = "invalid", "The saved field failed type, range or format validation.", None
         fact_id = self.run_id + ":" + hashlib.sha256(path.encode()).hexdigest()[:20]
@@ -106,7 +113,7 @@ class EvidenceContext:
                             source_ids=source_ids or ["result.json"], method=method,
                             timestamp=self.run.get("created_at") if isinstance(self.run.get("created_at"), str) else None,
                             interpretation=interpretation if status == "available" else "unavailable",
-                            uncertainty="Satellite change/exposure and simulated connectivity require independent field verification." if interpretation in ("measurement", "potential_exposure", "modeled_connectivity") else None,
+                            uncertainty=uncertainty or ("Satellite change/exposure and simulated connectivity require independent field verification." if interpretation in ("measurement", "potential_exposure", "modeled_connectivity") else None),
                             missing_reason=missing_reason)
         self.facts[fact_id] = fact
         return fact
@@ -132,8 +139,11 @@ class EvidenceContext:
             if unit == "%":
                 check = lambda v: self.numeric(v) and v <= 100
             method = "Saved raster class area and observation masks" if field in FLOOD_FIELDS else "Saved metric OSM/hazard intersections" if field in INFRA_FIELDS else "Saved pre-event and assumed-disrupted directed road graph"
+            availability = self.run.get("class_availability", {}).get(field.removesuffix("_km2"), {}) if field in ("water_km2", "debris_km2") else {}
             fact = self._add("stats." + field, field, self.stats.get(field), (en, ne), unit=unit,
-                             interpretation=semantics, method=method, validator=check)
+                             interpretation=semantics, method=method, validator=check,
+                             missing_reason=availability.get("missing_reason"),
+                             uncertainty="The value covers only class-eligible observations; the rest of the analysis area remains unknown." if availability.get("status") == "partial" else None)
             self.global_fields[field] = fact
         mapping = self.provenance.get("mapping", self.provenance.get("water_model", {}))
         mapping = mapping if isinstance(mapping, dict) else {}
@@ -142,6 +152,7 @@ class EvidenceContext:
             ("provenance.crs", "analysis_crs", self.provenance.get("crs"), ("Analysis CRS", "विश्लेषणको निर्देशाङ्क प्रणाली"), None, self.text),
             ("provenance.osm_source_api", "osm_source", self.provenance.get("osm_source_api"), ("Historical OSM service", "ऐतिहासिक OSM सेवा"), None, self.text),
             ("processing_status", "processing_status", self.run.get("processing_status"), ("Processing status", "प्रशोधनको अवस्था"), None, self.text),
+            ("analysis_status", "analysis_status", self.run.get("analysis_status"), ("Observation completeness", "अवलोकनको पूर्णता"), None, self.text),
             ("name", "analysis_name", self.run.get("name"), ("Analysis area", "विश्लेषण क्षेत्र"), None, self.text),
             ("flood_date", "event_date", self.run.get("flood_date"), ("Requested event date", "घटनाको मिति"), "date", self.timestamp),
             ("created_at", "processed_at", self.run.get("created_at"), ("Analysis creation time", "विश्लेषण तयार भएको समय"), "date", self.timestamp),
@@ -188,11 +199,24 @@ class EvidenceContext:
                 unit="dB" if field.endswith("db") else "degrees" if field == "max_slope_deg" else "m",
                 validator=lambda v: type(v) in (int, float) and math.isfinite(v))
 
-    def feature_facts(self, layer, identifier):
+    @staticmethod
+    def connectivity_properties(properties, destination_type="all"):
+        if destination_type == "all":
+            return properties
+        typed = properties.get("connectivity_by_destination_type")
+        selected = typed.get(destination_type) if isinstance(typed, dict) else None
+        return selected if isinstance(selected, dict) else {}
+
+    def feature_facts(self, layer, identifier, destination_type="all"):
         feature = self.index.get((layer, identifier))
         if feature is None:
             return []
-        props = feature["properties"]
+        original_props = feature["properties"]
+        typed = layer == "settlements" and destination_type != "all"
+        props = self.connectivity_properties(original_props, destination_type) if typed else original_props
+        prefix = f"layers.{layer}.features.{self.feature_positions[(layer, identifier)]}.properties"
+        if typed:
+            prefix += ".connectivity_by_destination_type." + destination_type
         position = self.feature_positions[(layer, identifier)]
         fields = ["name", "exposed", "assessment_status", "assessment_fraction"]
         if layer == "roads":
@@ -200,16 +224,26 @@ class EvidenceContext:
         elif layer == "buildings":
             fields += ["overlap_fraction"]
         elif layer == "settlements":
-            fields += ["status", "nearest_destination", "before_distance_km", "after_distance_km", "baseline_road_ids", "after_road_ids"]
+            fields = ["name", "status", "nearest_destination", "before_distance_km", "after_distance_km",
+                      "before_destination_id", "after_destination_id", "same_destination_extra_distance_km",
+                      "baseline_road_ids", "after_road_ids"]
         facts = []
         for field in fields:
             en, ne, unit, semantics = FEATURE_FIELDS[field]
-            path = f"layers.{layer}.features.{position}.properties.{field}"
+            path = prefix + "." + field
             value = props.get(field)
+            if field == "name":
+                value = original_props.get(field)
+                path = f"layers.{layer}.features.{position}.properties.name"
+            if field == "exposed" and value is False and props.get("assessment_status") == "unassessed_or_partial":
+                value = None
             if field in ("baseline_road_ids", "after_road_ids"):
                 route = "baseline_route" if field == "baseline_road_ids" else "after_route"
                 value = props.get(route, {}).get("properties", {}).get("road_ids") if isinstance(props.get(route), dict) else None
-                path = f"layers.{layer}.features.{position}.properties.{route}.properties.road_ids"
+                path = prefix + f".{route}.properties.road_ids"
+            if typed and field != "name":
+                en = ("Hospital access: " if destination_type == "hospital" else "Town access: ") + en
+                ne = ("अस्पतालसम्मको पहुँच: " if destination_type == "hospital" else "नगरसम्मको पहुँच: ") + ne
             check = self.numeric if unit in ("m", "km") else (lambda v: self.numeric(v) and v <= 1) if unit == "fraction" else self.text
             if field == "exposed":
                 check = lambda v: type(v) is bool
@@ -220,8 +254,9 @@ class EvidenceContext:
             elif field.endswith("road_ids"):
                 check = lambda v: isinstance(v, list) and all(isinstance(x, str) and ("roads", x) in self.index for x in v)
             facts.append(self._add(path, field, value, (en, ne), unit=unit, interpretation=semantics,
-                subject_type=layer, subject_id=identifier, subject_name=props.get("name"),
-                source_ids=[f"{layer}.geojson", identifier], method=props.get("assessment_method") if self.text(props.get("assessment_method")) else "Saved infrastructure intersections or road-graph result", validator=check))
+                subject_type=layer, subject_id=identifier, subject_name=original_props.get("name"),
+                source_ids=[f"{layer}.geojson", identifier], method=props.get("assessment_method") if self.text(props.get("assessment_method")) else "Saved infrastructure intersections or road-graph result", validator=check,
+                missing_reason="The selected run has no saved destination-specific graph evidence; combined town/hospital access cannot answer this question." if typed and not props else None))
         return facts
 
     def _result(self, tool, facts, *, feature_ids=None, next_offset=None, missing=None):
@@ -265,35 +300,59 @@ class EvidenceContext:
                 return True
         return False if available else None
 
+    @staticmethod
+    def connectivity_query_scope(road_id, status, query, destination_type="all"):
+        scope = {"road_id": road_id, "status": status, "query": query}
+        if destination_type != "all":
+            scope["destination_type"] = destination_type
+        return hashlib.sha256(json.dumps(scope, sort_keys=True).encode()).hexdigest()[:20]
+
     def settlement_connectivity(self, args):
         if args.road_id and ("roads", args.road_id) not in self.index:
             return self._result("settlement_connectivity", [], missing=["Road identifier is not present in this analysis"])
-        rows = [(identifier, item) for (layer, identifier), item in self.index.items() if layer == "settlements"
-                and (args.status == "all" or item["properties"].get("status") == args.status)
-                and (not args.query or args.query.casefold() in (identifier+' '+str(item['properties'].get('name',''))).casefold())]
+        candidates = [(identifier, item) for (layer, identifier), item in self.index.items() if layer == "settlements"
+                      and (not args.query or args.query.casefold() in (identifier+' '+str(item['properties'].get('name',''))).casefold())]
+        destination_missing = sum(not self.connectivity_properties(item["properties"], args.destination_type) for _, item in candidates)
+        rows = [(identifier, item) for identifier, item in candidates
+                if (args.status == "all" or self.connectivity_properties(item["properties"], args.destination_type).get("status") == args.status)
+                and (args.destination_type == "all" or self.connectivity_properties(item["properties"], args.destination_type))]
         if args.road_id:
-            unknown = sum(self.route_membership(item["properties"], args.road_id) is None for _, item in rows)
-            rows = [(identifier, item) for identifier, item in rows if self.route_membership(item["properties"], args.road_id) is True]
-            scope = hashlib.sha256(json.dumps({"road_id": args.road_id, "status": args.status, "query": args.query}, sort_keys=True).encode()).hexdigest()[:20]
+            unknown = sum(self.route_membership(self.connectivity_properties(item["properties"], args.destination_type), args.road_id) is None for _, item in rows)
+            rows = [(identifier, item) for identifier, item in rows if self.route_membership(self.connectivity_properties(item["properties"], args.destination_type), args.road_id) is True]
+        if args.road_id or args.destination_type != "all":
+            scope = self.connectivity_query_scope(args.road_id, args.status, args.query, args.destination_type)
             prefix = "queries.settlement_connectivity." + scope
             missing_layer = "settlements" in self.layer_missing
+            typed_evidence_absent = bool(candidates) and args.destination_type != "all" and destination_missing == len(candidates)
             facts = [
-                self._add(prefix + ".road_id", "filter_road_id", args.road_id,
-                          ("Road used to filter saved settlement routes", "बस्तीका अभिलेखित मार्ग छान्न प्रयोग गरिएको सडक"),
-                          source_ids=["roads.geojson", args.road_id]),
                 self._add(prefix + ".matching_count", "matching_settlements_count", None if missing_layer else len(rows),
                           ("Recorded settlement route matches for the requested filters", "अनुरोध गरिएका सर्तसँग मिल्ने अभिलेखित बस्ती मार्ग"),
                           unit="count", interpretation="modeled_connectivity", method="Saved baseline/disrupted route road-ID membership; before pagination",
-                          source_ids=["settlements.geojson", "roads.geojson", args.road_id]),
-                self._add(prefix + ".unavailable_count", "route_membership_unavailable_count", None if missing_layer else unknown,
-                          ("Settlements without valid saved route evidence for the requested filters", "अनुरोध गरिएका सर्तका लागि मान्य अभिलेखित मार्ग प्रमाण नभएका बस्ती"),
-                          unit="count", interpretation="modeled_connectivity", source_ids=["settlements.geojson"]),
+                          source_ids=["settlements.geojson"],
+                          missing_reason="This run has no destination-specific graph results; combined town/hospital access cannot determine hospital-only or town-only access." if typed_evidence_absent else None),
             ]
+            if typed_evidence_absent:
+                facts[0] = self._add(prefix + ".matching_count", "matching_settlements_count", None,
+                    ("Recorded settlement route matches for the requested filters", "अनुरोध गरिएका सर्तसँग मिल्ने अभिलेखित बस्ती मार्ग"),
+                    unit="count", interpretation="modeled_connectivity", source_ids=["settlements.geojson"],
+                    missing_reason="This run has no destination-specific graph results; combined town/hospital access cannot determine hospital-only or town-only access.")
+            if args.road_id:
+                facts += [self._add(prefix + ".road_id", "filter_road_id", args.road_id,
+                    ("Road used to filter saved settlement routes", "बस्तीका अभिलेखित मार्ग छान्न प्रयोग गरिएको सडक"), source_ids=["roads.geojson", args.road_id]),
+                    self._add(prefix + ".unavailable_count", "route_membership_unavailable_count", None if missing_layer else unknown,
+                    ("Settlements without valid saved route evidence for the requested filters", "अनुरोध गरिएका सर्तका लागि मान्य अभिलेखित मार्ग प्रमाण नभएका बस्ती"),
+                    unit="count", interpretation="modeled_connectivity", source_ids=["settlements.geojson"])]
+            if args.destination_type != "all":
+                facts += [self._add(prefix + ".destination_type", "destination_type", args.destination_type,
+                    ("Requested destination type", "अनुरोध गरिएको गन्तव्यको प्रकार"), source_ids=["settlements.geojson"]),
+                    self._add(prefix + ".destination_unavailable_count", "destination_assessment_unavailable_count", None if missing_layer else destination_missing,
+                    ("Settlements without saved destination-specific analysis", "गन्तव्य अनुसारको अभिलेखित विश्लेषण नभएका बस्ती"),
+                    unit="count", interpretation="modeled_connectivity", source_ids=["settlements.geojson"])]
         else:
             facts = [self.global_fields[k] for k in ACCESS_FIELDS]
         selection = rows[args.offset:args.offset + args.limit]
         for identifier, _ in selection:
-            facts += self.feature_facts("settlements", identifier)
+            facts += self.feature_facts("settlements", identifier, args.destination_type)
         return self._result("settlement_connectivity", facts, feature_ids=[x[0] for x in selection],
             next_offset=args.offset + args.limit if args.offset + args.limit < len(rows) else None,
             missing=["Saved settlements layer unavailable"] if "settlements" in self.layer_missing else [])
@@ -302,7 +361,7 @@ class EvidenceContext:
         return self._result("sources_limitations", [f for key, f in self.global_fields.items() if key not in METRICS])
 
     def feature_evidence(self, args):
-        facts = self.feature_facts(args.layer, args.feature_id)
+        facts = self.feature_facts(args.layer, args.feature_id, args.destination_type)
         return self._result("feature_evidence", facts, feature_ids=[args.feature_id] if facts else [],
                             missing=[] if facts else ["Feature identifier is not present in the selected analysis/layer"])
 

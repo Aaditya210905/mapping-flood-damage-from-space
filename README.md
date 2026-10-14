@@ -32,6 +32,8 @@ uv run python scripts/analyze.py
 
 Actual analysis retrieves original Sentinel-1 VV/VH measurements and annotations from the public Microsoft mirror, processes radar locally using Copernicus DEM GLO-30, and uses Sentinel-2 L2A reflectance/cloud classifications when available. Network/provider availability is required. Failed acquisition never substitutes synthetic inputs. The public path requires no satellite account; the optional Copernicus Sentinel Hub provider needs `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET`. The historical ohsome v2 fallback needs `OHSOME_API_KEY` when v1 is unavailable. `./run.sh` loads an optional `.env` using uv. Direct CLI commands use exported variables or `uv run --env-file .env`.
 
+With `satellite_provider=copernicus`, radar and available optical imagery come from CDSE using those credentials. If CDSE returns HTTP 403 specifically for the DEM, the application fetches actual Copernicus GLO-30 elevation from its public mirror and records that source change in provenance and warnings. Other acquisition errors still fail the run; no demo data is substituted.
+
 Historical OSM is selected strictly before the event. The Nepal case uses 27 July 2026 or earlier. Published damage maps and post-event OSM edits are excluded from inference inputs. Ready-made mirror radar RTC using PlanetDEM is excluded; the local processor uses Copernicus DEM. EGM2008 is used only for vertical-datum conversion.
 
 ## Situation-report copilot

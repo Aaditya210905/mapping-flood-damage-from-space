@@ -14,6 +14,45 @@ from app.models import AnalysisRequest
 from app import providers
 
 
+@pytest.mark.parametrize('status', [403, 429])
+def test_cdse_dem_access_denial_uses_only_real_public_copernicus_dem(monkeypatch, tmp_path, status):
+    import numpy as np
+    from app import public_data
+    from app.geo import Grid
+    from app.models import Scene
+    params = AnalysisRequest(mode='live', satellite_provider='copernicus', resolution_m=100,
+                             bbox=[85.19, 27.90, 85.20, 27.91])
+    grid = Grid.for_bbox(params.bbox, params.resolution_m)
+    scenes = [Scene(id='real-before-contract-fixture', acquired='2026-08-20T00:00:00Z', relative_orbit=1, direction='ascending'),
+              Scene(id='real-after-contract-fixture', acquired='2026-09-01T00:00:00Z', relative_orbit=1, direction='ascending')]
+    class MockProvider:
+        def __init__(self, *args): pass
+        def process(self, kind, name, scene=None):
+            if kind == 'dem':
+                raise providers.CopernicusProcessingError(status, kind)
+            return np.ones((4, grid.height, grid.width), dtype='float32')
+    monkeypatch.setattr(providers, 'CopernicusProvider', MockProvider)
+    monkeypatch.setattr(providers, 'osm_snapshot', lambda p: ({'type': 'FeatureCollection', 'features': []}, '2026-07-27T00:00:00Z'))
+    monkeypatch.setattr(providers, 'search_catalog', lambda *args: [])
+    monkeypatch.setattr(providers, 'select_pair', lambda *args: scenes)
+    fetched = []
+    def public_dem(actual_grid):
+        fetched.append(True)
+        return np.full((actual_grid.height, actual_grid.width), 1234.0, dtype='float32'), ['https://public.example/Copernicus_DEM.tif']
+    monkeypatch.setattr(public_data, 'dem_tiles', public_dem)
+    if status != 403:
+        with pytest.raises(providers.CopernicusProcessingError):
+            providers.acquire_live(params, grid, tmp_path, lambda *args: None)
+        assert not fetched
+        return
+    inputs = providers.acquire_live(params, grid, tmp_path, lambda *args: None)
+    assert fetched and np.all(inputs['dem'] == 1234.0)
+    assert inputs['acquisition']['dem']['tiles'] == ['https://public.example/Copernicus_DEM.tif']
+    assert inputs['acquisition']['radar_scene_ids'] == [scene.id for scene in scenes]
+    assert any('HTTP 403' in warning for warning in inputs['warnings'])
+    assert params.mode == 'live' and (tmp_path / 'dem.tif').is_file()
+
+
 @pytest.mark.parametrize("event,expected", [(date(2026,8,26),"2026-07-27T09:00:00Z"),(date(2026,7,1),"2026-06-30T23:59:59Z")])
 def test_real_ohsome_v1_schema_and_strict_pre_event_snapshot(monkeypatch,event,expected):
     original = httpx.Client

@@ -64,11 +64,13 @@ class ConnectivityArgs(StrictModel):
     limit: int = Field(ge=1, le=5)
     query: str | None = Field(default=None, min_length=1, max_length=200)
     road_id: str | None = Field(default=None, min_length=1, max_length=200)
+    destination_type: Literal["all", "hospital", "town"] = "all"
 
 
 class FeatureArgs(StrictModel):
     layer: Layer
     feature_id: str = Field(min_length=1, max_length=200)
+    destination_type: Literal["all", "hospital", "town"] = "all"
 
 
 class Claim(StrictModel):
@@ -100,6 +102,10 @@ class GenerationInfo(StrictModel):
     model: str | None
     reason: str | None
     validation: Literal["validated_claims", "deterministic_facts"]
+    elapsed_ms: int | None = None
+    provider_requests: int | None = None
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
 
 
 class ReportSection(StrictModel):

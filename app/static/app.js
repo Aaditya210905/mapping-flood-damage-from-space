@@ -423,8 +423,9 @@ async function initialize() {
       try { run = await api(`/api/analyses/${saved}?view=dashboard`); }
       catch { try { localStorage.removeItem("flood-lens-run"); } catch {} }
     }
-    if (!run && (state.sources?.workspace?.completed_actual_runs || !state.sources)) {
-      run = await api("/api/analyses/latest-real?view=dashboard");
+    if ((!run || run.mode === "demo") && (state.sources?.workspace?.completed_actual_runs || !state.sources)) {
+      try { run = await api("/api/analyses/latest-real?view=dashboard"); }
+      catch (error) { if (!run) throw error; }
     }
     if (!run) return;
     $("event-date").value = run.flood_date; $("mode").value = run.mode; $("area-name").value = run.name;

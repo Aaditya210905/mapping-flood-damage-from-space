@@ -75,6 +75,36 @@ def slope_degrees(dem, resolution):
     return np.degrees(np.arctan(np.hypot(dx, dy)))
 
 
+def masked_median(values, valid, size=3, minimum_support=3):
+    """Median of observed neighbours, with no synthetic values at mask edges.
+
+    Process a bounded strip at a time: a full 2500-square sliding window can
+    otherwise allocate hundreds of MB during nanmedian. An observed centre and
+    at least three observed samples are required; an isolated return is not
+    enough evidence for a change estimate.
+    """
+    if size < 1 or size % 2 != 1 or not 1 <= minimum_support <= size * size:
+        raise ValueError("Median size must be odd and support must fit the window.")
+    values = np.asarray(values, dtype=np.float32)
+    valid = np.asarray(valid, dtype=bool) & np.isfinite(values)
+    radius = size // 2
+    padded = np.pad(np.where(valid, values, np.nan), radius, constant_values=np.nan)
+    windows = np.lib.stride_tricks.sliding_window_view(padded, (size, size))
+    result = np.full(values.shape, np.nan, dtype=np.float32)
+    support = np.zeros(values.shape, dtype=np.uint8)
+    for first in range(0, values.shape[0], 128):
+        last = min(first + 128, values.shape[0])
+        strip = windows[first:last]
+        counts = np.count_nonzero(np.isfinite(strip), axis=(-2, -1))
+        support[first:last] = counts
+        usable = valid[first:last] & (counts >= minimum_support)
+        # Reduce only usable windows so all-NaN neighbourhoods do not emit
+        # warnings or become apparent observations.
+        if usable.any():
+            result[first:last][usable] = np.nanmedian(strip[usable], axis=(-2, -1))
+    return result, support
+
+
 def detect_changes(before, after, grid, params, dem=None, optical_before=None, optical_after=None):
     """S1 arrays are [VV linear gamma0, dataMask, shadowMask]. S2: B03,B04,B08,B11,SCL,dataMask."""
     valid = (before[1] > 0) & (after[1] > 0) & (before[0] > 0) & (after[0] > 0)
@@ -84,11 +114,13 @@ def detect_changes(before, after, grid, params, dem=None, optical_before=None, o
     radar_valid = valid.copy()
     low_slope = np.ones(valid.shape,dtype=bool) if dem is None else np.isfinite(dem) & (slope_degrees(dem, grid.resolution) < params.max_slope_deg)
     valid &= low_slope
-    # Median in log space suppresses isolated speckle; invalid neighbors are never treated as water.
+    # Invalid/shadow neighbours must not bias the median toward an invented
+    # -10 dB return. Keep physical radar coverage separate from filter support.
     raw_before_db = np.where(radar_valid, 10 * np.log10(np.maximum(before[0], 1e-10)), np.nan)
     raw_after_db = np.where(radar_valid, 10 * np.log10(np.maximum(after[0], 1e-10)), np.nan)
-    before_db = ndimage.median_filter(np.nan_to_num(raw_before_db, nan=-10), size=3)
-    after_db = ndimage.median_filter(np.nan_to_num(raw_after_db, nan=-10), size=3)
+    before_db, radar_filter_support = masked_median(raw_before_db, radar_valid)
+    after_db, _ = masked_median(raw_after_db, radar_valid)
+    valid &= np.isfinite(before_db) & np.isfinite(after_db)
     drop = before_db - after_db
     permanent = valid & (before_db < params.water_threshold_db)
     water = valid & ~permanent & (after_db < params.water_threshold_db) & (drop > params.change_threshold_db)
@@ -107,6 +139,9 @@ def detect_changes(before, after, grid, params, dem=None, optical_before=None, o
         post_ndvi = index(optical_after[2], optical_after[1])
         pre_water = index(optical_before[0], optical_before[3])
         post_water = index(optical_after[0], optical_after[3])
+        # A cloud-free dataMask with zero reflectance is not a usable change
+        # observation if its spectral indices are undefined.
+        optical_valid &= np.isfinite(pre_ndvi) & np.isfinite(post_ndvi) & np.isfinite(pre_water) & np.isfinite(post_water)
         optical_water = optical_valid & low_slope & ~permanent & (post_water > .2) & (pre_water <= .2)
         # Vegetation loss + radar change is only a debris candidate; wet soil/harvest can look similar.
         if params.mode == "demo":
@@ -122,8 +157,9 @@ def detect_changes(before, after, grid, params, dem=None, optical_before=None, o
             debris &= (pre_ndvi > .3) & ((pre_ndvi-post_ndvi) > .25) & ((post_bare-pre_bare) > .1)
             # Require radar change where radar is interpretable. Optical-only
             # targets use stricter spectral changes and remain low confidence.
-            corroborated = radar_valid & (np.abs(drop) > params.change_threshold_db)
-            optical_only = ~radar_valid & ((pre_ndvi-post_ndvi) > .4) & ((post_bare-pre_bare) > .2)
+            radar_interpretable = radar_valid & np.isfinite(drop)
+            corroborated = radar_interpretable & (np.abs(drop) > params.change_threshold_db)
+            optical_only = ~radar_interpretable & ((pre_ndvi-post_ndvi) > .4) & ((post_bare-pre_bare) > .2)
             debris &= corroborated | optical_only
         permanent |= optical_valid & low_slope & (pre_water > .2)
         water |= optical_water
@@ -142,6 +178,7 @@ def detect_changes(before, after, grid, params, dem=None, optical_before=None, o
         "permanent": permanent, "before_db": before_db, "after_db": after_db,
         "optical_valid": optical_valid, "optical_water": optical_water,
         "radar_valid": radar_valid, "water_eligible": water_eligible, "debris_eligible": debris_eligible,
+        "radar_filter_support": radar_filter_support,
     }
 
 

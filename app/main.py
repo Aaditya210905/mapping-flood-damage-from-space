@@ -7,10 +7,12 @@ from pathlib import Path
 import threading
 import uuid
 from typing import Literal
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.gzip import GZipMiddleware
 import rasterio
 
 from app.copilot import COPILOT_INFO, answer, intent_model
@@ -22,6 +24,9 @@ from app.copilot_types import SituationReport
 from app.evidence import EvidenceContext, EvidenceError, TOOL_REGISTRY
 from app.llm import provider_status
 from app.sources import MAPPING_METHOD, SOURCES
+from app.run_store import load_result, run_metadata
+from app.storage import save_json
+from app.availability import normalize_analysis_availability
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -44,6 +49,7 @@ async def lifespan(app):
 
 
 app = FastAPI(title="Flood Lens", version="0.1.0", lifespan=lifespan)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.mount("/static", StaticFiles(directory=ROOT / "app" / "static"), name="static")
 
 
@@ -55,13 +61,28 @@ def run_folder(run_id):
     return DATA / run_id
 
 
+def update_job(run_id, **changes):
+    """Persist progress atomically so a restart cannot erase the failure reason."""
+    with lock:
+        jobs[run_id].update(changes, updated_at=datetime.now(timezone.utc).isoformat())
+        save_json(run_folder(run_id) / "job.json", jobs[run_id])
+
+
+def stage_for_progress(percent):
+    return next((stage for cutoff, stage in ((12, "fetch"), (72, "preprocess"), (86, "flood_map"),
+                                             (95, "damage_and_access"), (100, "facts_and_exports"))
+                 if percent < cutoff), "complete")
+
+
 def saved_run(run_id):
     path = run_folder(run_id) / "result.json"
     if not path.exists():
         raise HTTPException(404, "Analysis result is not available")
     try:
-        run = json.loads(path.read_text(encoding="utf-8"))
-        EvidenceContext(run, run_id)
+        run = load_result(path, lambda data: EvidenceContext(data, run_id))
+        if str(run.get("id")) != str(uuid.UUID(run_id)):
+            raise ValueError("Analysis ownership mismatch")
+        run = normalize_analysis_availability(run)
     except (OSError, ValueError, TypeError):
         raise HTTPException(422, "Saved analysis data are invalid or do not belong to the requested run.") from None
     run = {**run, "processing_status": "stored_result"}
@@ -105,7 +126,7 @@ def data_sources():
     completed = {"live": 0, "demo": 0}
     for path in DATA.glob("*/result.json"):
         try:
-            record = json.loads(path.read_text())
+            record = run_metadata(path)
             mode = record.get("mode") if isinstance(record, dict) else None
             if isinstance(mode, str) and mode in completed:
                 completed[mode] += 1
@@ -124,8 +145,16 @@ def copilot_info():
 def dashboard_view(run):
     """Send the displayed building subset; retain complete audit/layer exports."""
     buildings = run["layers"]["buildings"]
+    settlements = run["layers"]["settlements"]
+    # Long route geometries are fetched only when a settlement is inspected.
+    # They otherwise dominate dashboard payloads even when no route is open.
+    compact = [{**feature, "properties": {key: value for key, value in feature["properties"].items()
+                if key not in ("baseline_route", "after_route", "connectivity_by_destination_type")}}
+               for feature in settlements["features"]]
     return {**run, "layers": {**run["layers"], "buildings": {**buildings, "features": [
-        f for f in buildings["features"] if f["properties"].get("exposed")]}},
+        f for f in buildings["features"] if f["properties"].get("exposed")]},
+        "settlements": {**settlements, "features": compact}},
+        "route_detail_scope": "Full route and destination-type evidence is available from the feature-detail endpoint.",
         "building_layer_scope": "Potentially exposed footprints; complete building layer remains in buildings.geojson and result.json."}
 
 
@@ -134,14 +163,14 @@ def latest_real(view: Literal["full", "dashboard"] = "full"):
     available = []
     for path in DATA.glob("*/result.json"):
         try:
-            run = json.loads(path.read_text())
+            run = run_metadata(path)
             if run["mode"] == "live":
                 available.append(run)
         except (ValueError, KeyError, OSError):
             continue
     if not available:
         raise HTTPException(404, "No actual-data analysis has completed yet.")
-    run = saved_run(max(available, key=lambda run: run["created_at"])["id"])
+    run = saved_run(max(available, key=lambda run: run.get("created_at") or "")["id"])
     return dashboard_view(run) if view == "dashboard" else run
 
 
@@ -159,19 +188,30 @@ def create_analysis(params: AnalysisRequest):
     run_id = str(uuid.uuid4())
     with lock:
         jobs[run_id] = {"id": run_id, "status": "running", "progress": 0, "message": "Preparing inputs"}
+    try:
+        save_json(run_folder(run_id) / "request.json", params.model_dump(mode="json"))
+        update_job(run_id, stage="fetch", started_at=datetime.now(timezone.utc).isoformat())
+    except OSError:
+        capacity.release()
+        with lock:
+            jobs.pop(run_id, None)
+        raise HTTPException(503, "Analysis storage is unavailable. Check available disk space and retry.") from None
     def work():
         def progress(message, percent):
-            with lock:
-                jobs[run_id].update(message=message, progress=percent)
+            update_job(run_id, message=message, progress=percent, stage=stage_for_progress(percent))
         try:
-            run_analysis(params, run_id, run_folder(run_id), progress)
-            with lock:
-                jobs[run_id].update(status="complete", progress=100)
+            completed = run_analysis(params, run_id, run_folder(run_id), progress)
+            update_job(run_id, status="complete", progress=100, stage="complete",
+                       analysis_status=completed.get("analysis_status", "partial"),
+                       message="Analysis saved. Check observation coverage and unavailable classes.")
         except Exception as error:
             logger.error("Analysis %s failed (%s)", run_id, type(error).__name__)
             safe_message = str(error) if isinstance(error, ValueError) else "The upstream data service or analysis failed. Check network access and server logs, then retry."
-            with lock:
-                jobs[run_id].update(status="failed", message=safe_message)
+            try:
+                update_job(run_id, status="failed", message=safe_message)
+            except OSError:
+                with lock:
+                    jobs[run_id].update(status="failed", message="Analysis failed and progress could not be saved. Check disk space and retry.")
         finally:
             capacity.release()
     try:
@@ -193,7 +233,18 @@ def status(run_id: str):
         if run_id in jobs:
             return dict(jobs[run_id])
     if (run_folder(run_id) / "result.json").exists():
-        return {"id": run_id, "status": "complete", "progress": 100, "message": "Saved analysis"}
+        return {"id": run_id, "status": "complete", "progress": 100, "message": "Saved analysis; inspect coverage before interpreting its numbers."}
+    job_path = run_folder(run_id) / "job.json"
+    if job_path.exists():
+        try:
+            previous = json.loads(job_path.read_text())
+            if previous.get("id") != run_id:
+                raise ValueError("Job ownership mismatch")
+            if previous.get("status") == "running":
+                previous = {**previous, "status": "interrupted", "message": "The server restarted before this analysis completed. Submit the analysis again; no result is available."}
+            return previous
+        except (ValueError, OSError, AttributeError):
+            raise HTTPException(422, "Saved progress is invalid. Submit a new analysis.") from None
     raise HTTPException(404, "Unknown analysis")
 
 
@@ -201,6 +252,16 @@ def status(run_id: str):
 def result(run_id: str, view: Literal["full", "dashboard"] = "full"):
     run = saved_run(run_id)
     return dashboard_view(run) if view == "dashboard" else run
+
+
+@app.get("/api/analyses/{run_id}/features/{layer}")
+def feature_detail(run_id: str, layer: Literal["buildings", "roads", "bridges", "settlements", "destinations"], feature_id: str):
+    context = EvidenceContext(saved_run(run_id), run_id)
+    feature = context.index.get((layer, feature_id))
+    if feature is None:
+        raise HTTPException(404, "This feature is not present in the selected analysis.")
+    evidence = context.call("feature_evidence", {"layer": layer, "feature_id": feature_id})
+    return {"run_id": context.run_id, "layer": layer, "feature": feature, "evidence": evidence}
 
 
 @app.post("/api/analyses/{run_id}/copilot")

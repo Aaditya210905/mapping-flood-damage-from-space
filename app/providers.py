@@ -229,6 +229,13 @@ def historical_v1_interval(client, params, available_until):
     return data, timestamp
 
 
+class CopernicusProcessingError(ValueError):
+    def __init__(self, status_code, kind):
+        self.status_code = status_code
+        self.kind = kind
+        super().__init__(f"Copernicus processing returned HTTP {status_code} for {kind}. Check account quota, scene availability and service status.")
+
+
 class CopernicusProvider:
     def __init__(self, grid, folder):
         self.grid, self.folder = grid, Path(folder)
@@ -266,7 +273,7 @@ class CopernicusProvider:
             response = client.post(PROCESS_URL, headers={"Authorization": f"Bearer {self.token}"}, json=payload)
         if response.status_code != 200:
             # Do not dump requests/headers or authentication responses into the UI/logs.
-            raise ValueError(f"Copernicus processing returned HTTP {response.status_code} for {kind}. Check account quota, scene availability and service status.")
+            raise CopernicusProcessingError(response.status_code, kind)
         (self.folder / f"{output_name}.tif").write_bytes(response.content)
         with MemoryFile(response.content) as memory, memory.open() as source:
             if source.crs is None:
@@ -295,10 +302,24 @@ def acquire_live(params, grid, folder, progress):
     progress("Processing post-event Sentinel-1 GRD with terrain correction", 38)
     after = provider.process("sentinel-1-grd", "s1-after", scenes[1])
     progress("Fetching Copernicus DEM", 50)
-    dem = provider.process("dem", "dem")[0]
+    warnings = []
+    dem_source = {"provider": "Copernicus Data Space Sentinel Hub", "product": "COPERNICUS_30"}
+    try:
+        dem = provider.process("dem", "dem")[0]
+    except CopernicusProcessingError as error:
+        if error.status_code != 403:
+            raise
+        # The public mirror supplies the same allowed GLO-30 product; this is
+        # a recorded real-data source change, never a synthetic replacement.
+        from app.public_data import dem_tiles, write_grid
+        progress("CDSE DEM access denied; fetching public Copernicus GLO-30", 52)
+        dem, urls = dem_tiles(grid)
+        write_grid(Path(folder) / "dem.tif", dem, grid)
+        dem_source = {"provider": "Public Copernicus DEM GLO-30 mirror", "tiles": urls,
+                      "fallback_reason": "CDSE DEM Processing API returned HTTP 403"}
+        warnings.append("CDSE denied the DEM request (HTTP 403). Actual Copernicus GLO-30 elevation was retrieved from its public mirror; satellite imagery remains from CDSE.")
     optical_before, optical_after, optical_scenes = None, None, []
     optical_observations = []
-    warnings = []
     progress("Checking clear-sky Sentinel-2 support", 60)
     try:
         optical = search_catalog(params.bbox, start, end, "sentinel-2-l2a")
@@ -321,4 +342,8 @@ def acquire_live(params, grid, folder, progress):
         warnings.append("Optical provider unavailable. Radar water analysis continues without debris candidates.")
         optical_before, optical_after = None, None
     return {"before": before, "after": after, "vh_before": before[3], "vh_after": after[3], "dem": dem, "osm": osm, "scenes": scenes, "snapshot": timestamp,
-            "optical_before": optical_before, "optical_after": optical_after, "optical_scenes": optical_scenes, "optical_observations": optical_observations, "warnings": warnings}
+            "optical_before": optical_before, "optical_after": optical_after, "optical_scenes": optical_scenes, "optical_observations": optical_observations, "warnings": warnings,
+            "acquisition": {"provider": "Copernicus Data Space Sentinel Hub Processing API", "catalog": STAC_URL,
+                            "process_endpoint": PROCESS_URL, "radar_scene_ids": [scene.id for scene in scenes],
+                            "dem": dem_source,
+                            "processing": "Sentinel Hub VV/VH gamma0 terrain backscatter, orthorectified using COPERNICUS_30; data and shadow masks retained"}}
