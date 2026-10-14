@@ -1,4 +1,4 @@
-"""A locally trained bilingual intent model with fact-only response rendering.
+"""Bilingual topic routing and a local classifier for grounded fallback answers.
 
 The model chooses an intent. It has no authority to supply counts or free-form
 claims. Numbers, entity names and citations are resolved from the saved run.
@@ -14,12 +14,39 @@ from sklearn.pipeline import make_pipeline
 COPILOT_INFO = {
     "component": "situation_report_copilot",
     "languages": ["en", "ne"],
-    "algorithm": "Local TF-IDF + logistic regression intent classifier with map-derived fact templates",
+    "algorithm": "Groq tool calling with validated facts; bilingual topic and contextual retrieval fallback",
     "external_model_weights": False,
     "external_training_datasets": False,
     "question_examples": "Authored bilingual examples bundled with the code",
     "grounding": "Counts, areas, source dates and settlement names come from the saved analysis. Unsupported questions receive no estimate.",
 }
+
+# Explicit evidence vocabulary covers questions which the small statistical
+# classifier cannot reliably recognize. These rules select topics, never facts.
+TOPIC_PATTERNS = {
+    "summary": r"\b(?:summar\w*|briefing|overview|situation report)\b|सारांश|प्रतिवेदन|बाढीको अवस्था",
+    "extent": r"\b(?:flood(?:ed|ing)?|inundat\w*|water|debris|surface.change|change mask|coverage|observed|observable|observation coverage)\b|डुबान|डुबेको|पानी|भग्नावशेष|अवलोकन क्षेत्र",
+    "damage": r"\b(?:infrastructure|buildings?|structures?|homes?|bridges?|roads?|assets?|damage[ds]?)\b|पूर्वाधार|भवन|सडक|पुल|क्षति",
+    "access": r"\b(?:settlements?|villages?|isolat\w*|cut.off|disconnect\w*|connectivity|road access|hospital|healthcare|routes?)\b|बस्ती|गाउँ|सम्पर्क|अस्पताल",
+    "sources": r"\b(?:sources?|provenance|acquisitions?|snapshot|orbit|tracks?|satellite scenes?|data.*(?:use|from)|observations.*same)\b|स्रोत|तथ्याङ्क प्रयोग|कक्षा|तस्बिर.*कहिले|ओएसएम.*मिति",
+    "limitations": r"\b(?:limitations?|reliab\w*|uncertain\w*|accura\w*|trust|confirmed?|destroyed|predict\w*|clouds?|shadow|layover)\b|सीमा|भरपर्दो|अनिश्चित|पुष्टि|पूर्वानुमान",
+}
+UNAVAILABLE_QUESTION = re.compile(
+    r"\b(?:deaths?|dead|died|fatalit\w*|killed|casualt\w*|injur\w*|population|"
+    r"missing (?:people|persons?|villagers?|residents?)|how many (?:people|residents?))\b|"
+    r"मृत|घाइते|बेपत्ता|जनसङ्ख्या|जनसंख्या", re.I)
+UNRELATED_QUESTION = re.compile(
+    r"\b(?:weather|forecast|joke|election|restaurant|invent|fabricate)\b|मौसम|कथा|काल्पनिक", re.I)
+
+
+def unsupported_question(question):
+    return bool(UNAVAILABLE_QUESTION.search(question) or UNRELATED_QUESTION.search(question))
+
+
+def question_topics(question):
+    if unsupported_question(question):
+        return []
+    return [intent for intent, pattern in TOPIC_PATTERNS.items() if re.search(pattern, question, re.I)]
 
 INTENT_EXAMPLES = {
     "extent": ["Where did the flood hit?", "How much land is flooded?", "What is the flood extent?", "How many square kilometres are inundated?", "Show flooded areas", "Map water and debris", "What area is covered by debris?", "How much water was detected?", "बाढी कहाँ आयो?", "कति क्षेत्र डुबेको छ?", "बाढी प्रभावित क्षेत्र कति छ?", "पानी र भग्नावशेषको क्षेत्र देखाउनुहोस्"],
@@ -83,11 +110,19 @@ def render_fact(run, intent, language="en"):
 
 
 def classify_question(question):
+    if unsupported_question(question):
+        return "unsupported", None
+    topics = question_topics(question)
+    if topics:
+        # Uncertainty and provenance questions should not become exposure
+        # assertions just because they mention a road or a satellite.
+        intent = next((t for t in ("summary", "limitations", "sources", "access", "damage", "extent") if t in topics))
+        return intent, None
     model = intent_model()
     probabilities = model.predict_proba([question])[0]
     best = int(probabilities.argmax())
     intent, score = model.classes_[best], float(probabilities[best])
-    if score < .34 or re.search(r"death|dead|casualt|injur|missing people|population|how many people|मृत|घाइते|बेपत्ता|जनसङ्ख्या|जनसंख्या", question, re.I):
+    if score < .34:
         intent = "unsupported"
     return intent, score
 
@@ -104,7 +139,7 @@ def deterministic_answer(run, question, language="en"):
     }
     if "settlements_access_uncertain" in run["stats"] and intent in ("access","summary"):
         evidence[intent].append("stats.settlements_access_uncertain")
-    return {"answer": render_fact(run, intent, language), "intent": intent, "intent_confidence": round(score, 3),
+    return {"answer": render_fact(run, intent, language), "intent": intent, "intent_confidence": round(score, 3) if score is not None else None,
             "evidence": [{"path": field, "run_id": run["id"]} for field in evidence[intent]],
             "method": COPILOT_INFO["algorithm"]}
 

@@ -149,6 +149,30 @@ def test_named_settlement_lookup_retrieves_the_requested_feature(evidence_run):
     assert all(f.subject_id==feature['id'] for f in result.facts if f.subject_type=='settlements')
 
 
+def test_chat_api_paraphrases_and_road_specific_followup(stored_client):
+    client, _, run = stored_client
+    endpoint = f"/api/analyses/{run['id']}/copilot"
+    coverage = client.post(endpoint, json={'question': 'How much of the study area could actually be observed?'}).json()
+    assert any(f['field_name'] == 'valid_coverage_pct' for f in coverage['facts'])
+    road_id = run['layers']['roads']['features'][0]['properties']['id']
+    question = f'Tell me about road {road_id}'
+    first = client.post(endpoint, json={'question': question}).json()
+    assert first['intent'] == 'feature'
+    turns = [{'role': 'user', 'content': question, 'run_id': run['id']},
+             {'role': 'assistant', 'content': first['answer'][:2000], 'run_id': run['id']}]
+    response = client.post(endpoint, json={'question': 'What about the villages on that road?', 'history': turns})
+    assert response.status_code == 200
+    reply = response.json()
+    count = next(f for f in reply['facts'] if f['field_name'] == 'matching_settlements_count')
+    context = EvidenceContext(run)
+    expected = sum(context.route_membership(item['properties'], road_id) is True
+                   for item in run['layers']['settlements']['features'])
+    assert count['value'] == expected
+    assert not any(f['field_name'] == 'settlements_cut_off' for f in reply['facts'])
+    ambiguous = client.post(endpoint, json={'question': 'What about the villages on that road?'}).json()
+    assert ambiguous['intent'] == 'clarification' and not ambiguous['facts']
+
+
 def test_recorded_optical_dates_and_dem_ids_do_not_leak_signed_urls(evidence_run):
     evidence_run['provenance']['optical_observations']=[{'id':evidence_run['provenance']['optical_scenes'][0],'acquired':'2026-08-20T00:00:00Z'}]
     evidence_run['provenance']['acquisition']={'dem':{'tiles':['https://public.example/Copernicus_DEM.tif?token=PRIVATE']}}

@@ -6,6 +6,8 @@ Track B Option 2 is the selected AI component. The existing satellite change det
 
 `app/static/app.js` submits a question, explicit language, selected run UUID and at most six same-run conversation turns. `app/main.py` validates and loads that run once. `app/copilot_service.py` creates a read-only `EvidenceContext`, invokes Groq when configured, validates claims and returns rendered text, typed facts, citations, generation metadata and attribution. The frontend checks response/evidence ownership before displaying anything; changing analyses clears history.
 
+`app/copilot_query.py` resolves explicit feature names/IDs and references against the selected run. Both engines receive the same resolved scope. A singular reference to several roads, or to an unidentified road, returns a bilingual clarification without guessing. Generic measurement follow-ups and translation requests reuse the previous question's scope; remembered values remain untrusted. The fallback combines bilingual topic rules with the local classifier, retrieves multiple topics for compound questions, and looks up individual features. Rule-based routing has no statistical confidence score.
+
 The provider is **Groq**, using its native Python SDK and Chat Completions API. The default is `openai/gpt-oss-120b`, hosted by Groq; no OpenAI account or xAI/Grok integration is used. Official references: [Python SDK](https://github.com/groq/groq-python), [local tools](https://console.groq.com/docs/tool-use/local-tool-calling), [structured outputs](https://console.groq.com/docs/structured-outputs).
 
 Groq does not combine strict structured outputs with local tool use, so retrieval and the final JSON-schema response are separate requests. The loop permits two retrieval rounds, six approved calls in total, one final response and one validation repair. All requests share a wall-clock budget; SDK automatic retries are disabled. Tool-selection free text is discarded. No built-in browser, code-execution, arbitrary filesystem, SQL, shell or model-write tools are supplied.
@@ -38,11 +40,13 @@ PDF rendering needs Pango. This workstation already has it. Debian/Ubuntu packag
 | `event_summary` | Run, area/bounds, requested event, status, metrics, acquisition metadata and limitations |
 | `flood_surface_change` | Potential water/surface-change areas, units, method and thresholds |
 | `infrastructure_impacts` | Buildings/roads/bridges, actual IDs, exposure/observation status and overlap/length; searchable and paginated |
-| `settlement_connectivity` | Modeled status, pre-event destination, baseline/disrupted distances and route road IDs; searchable and paginated |
+| `settlement_connectivity` | Modeled status, pre-event destination, baseline/disrupted distances and route road IDs; searchable and paginated; optional exact `road_id` filters saved route dependencies |
 | `sources_limitations` | Recorded products/dates, DEM tile IDs when recorded, historical OSM, CRS, methods, warnings and limitations |
 | `feature_evidence` | One exact feature ID/layer in the selected run; unknown IDs return `not_found` |
 
 Pydantic validates all inputs/results. Models cannot supply another run ID, executable code or a filesystem path argument. Tools never change results or recalculate geometry. Product IDs replace signed asset URLs. Corrupt/cross-run optional evaluation sidecars are excluded with a warning; evaluation measurements do not become Copilot inputs.
+
+Road-filtered connectivity returns `filter_road_id`, `matching_settlements_count` before pagination, and `route_membership_unavailable_count`. A match means the recorded baseline or disrupted route uses that road; physical proximity and all possible routes are not assessed. Missing/invalid route evidence stays unknown. Missing settlement layers produce unavailable counts rather than zero. Whole-analysis connectivity counts cannot substitute for a road-filtered answer. The claim validator also rejects omitted requested measurements and evidence for unrelated named features or settlement filters.
 
 ## Grounding and bilingual responses
 
@@ -85,4 +89,4 @@ uv run python scripts/verify_copilot.py --run-id RUN_ID --allow-demo
 
 Tests use labeled synthetic fixtures and mocked Groq responses/transports, without paid API calls or external network access. Real-run verification rejects synthetic data by default and requires actual LLM responses when `--require-llm` is supplied. Browser checks deliberately create synthetic inputs. None proves Nepal field accuracy.
 
-Fallback reasons include `disabled`, `missing_credentials`, `invalid_configuration`, `timeout`, `rate_limited`, `credentials_rejected`, `provider_unavailable`, `invalid_tool_call` and `validation_failed`. Restart after changing `.env`. Use the default model if a custom model rejects strict schemas. For missing evidence regenerate a real analysis; never fill fields with example statistics. For PDF dependency/page-fit errors use HTML. Provider latency/rate limits, network access, terrain-processing cost, historical OSM availability, field validation and native-language review remain external constraints.
+Fallback reasons include `disabled`, `missing_credentials`, `invalid_configuration`, `timeout`, `rate_limited`, `credentials_rejected`, `provider_unavailable`, `invalid_tool_call`, `validation_failed` and `ambiguous_reference`. Clarification responses use `intent=clarification` with no facts. Restart after changing `.env`. Use the default model if a custom model rejects strict schemas. For missing evidence regenerate a real analysis; never fill fields with example statistics. For PDF dependency/page-fit errors use HTML. Provider latency/rate limits, network access, terrain-processing cost, historical OSM availability, field validation and native-language review remain external constraints.

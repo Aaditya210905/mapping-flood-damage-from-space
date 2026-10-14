@@ -7,7 +7,7 @@ input provenance and the geospatial engine; this is not a field-truth guarantee.
 from decimal import Decimal, ROUND_HALF_UP
 
 from app.copilot_types import AnswerDraft, Claim
-from app.evidence import FLOOD_FIELDS, INFRA_FIELDS, ACCESS_FIELDS
+from app.evidence import FLOOD_FIELDS, INFRA_FIELDS, ACCESS_FIELDS, CONNECTIVITY_QUERY_FIELDS
 
 
 class GroundingError(ValueError):
@@ -48,6 +48,8 @@ STATUS_TEXT = {
 }
 UNSUPPORTED = ("The selected analysis cannot determine that information. Deaths, injuries, missing people and population estimates are unavailable. Ask about mapped changes, potential exposure, modeled connectivity, sources or limitations.",
                "चयन गरिएको विश्लेषणबाट यो जानकारी निर्धारण गर्न सकिँदैन। मृत्यु, घाइते, बेपत्ता वा जनसङ्ख्याको अनुमान उपलब्ध छैन। नक्साको परिवर्तन, सम्भावित प्रभाव, मोडेल अनुसार सडक सम्पर्क, स्रोत वा सीमाबारे सोध्नुहोस्।")
+CLARIFICATION = ("Which mapped feature or measurement do you mean? Please give the road, bridge, building or settlement name/ID, or name the measurement. The previous context does not identify a unique subject.",
+                 "कुन नक्सा अभिलेख वा मापनबारे सोध्नुभएको हो? सडक, पुल, भवन वा बस्तीको नाम/पहिचान वा मापनको नाम दिनुहोस्। अघिल्लो सन्दर्भबाट एउटा निश्चित विषय पहिचान हुन सकेन।")
 
 
 def claim_for(fact, operation="exact"):
@@ -61,9 +63,9 @@ def validate_draft(draft, context, language):
         raise GroundingError("Wrong analysis or language")
     if sum(len(section.claims) for section in draft.sections) > 80:
         raise GroundingError("Too many claims")
-    if draft.kind == "unsupported" and any(section.claims for section in draft.sections):
-        raise GroundingError("Unsupported response contains claims")
-    if draft.kind != "unsupported" and not any(section.claims for section in draft.sections):
+    if draft.kind in ("unsupported", "clarification") and draft.sections:
+        raise GroundingError("Unsupported or clarification response contains sections")
+    if draft.kind not in ("unsupported", "clarification") and not any(section.claims for section in draft.sections):
         raise GroundingError("No supported claims")
     for section in draft.sections:
         for claim in section.claims:
@@ -79,7 +81,7 @@ def validate_draft(draft, context, language):
                 raise GroundingError("Fact is associated with the wrong topic")
             if section.topic == "infrastructure" and fact.subject_type not in ("buildings", "roads", "bridges") and fact.field_name not in INFRA_FIELDS:
                 raise GroundingError("Fact is associated with the wrong infrastructure topic")
-            if section.topic == "connectivity" and fact.subject_type not in ("settlements", "destinations") and fact.field_name not in ACCESS_FIELDS:
+            if section.topic == "connectivity" and fact.subject_type not in ("settlements", "destinations") and fact.field_name not in ACCESS_FIELDS + CONNECTIVITY_QUERY_FIELDS:
                 raise GroundingError("Fact is associated with the wrong connectivity topic")
             if section.topic == "feature" and fact.subject_type in ("analysis", "observation"):
                 raise GroundingError("Aggregate evidence is not feature evidence")
@@ -136,8 +138,8 @@ def required_explanations(topic, facts):
 
 def render_draft(draft, context):
     i = draft.language == "ne"
-    if draft.kind == "unsupported":
-        text, facts = UNSUPPORTED[i], []
+    if draft.kind in ("unsupported", "clarification"):
+        text, facts = (CLARIFICATION if draft.kind == "clarification" else UNSUPPORTED)[i], []
     else:
         paragraphs, facts = [], []
         for section in draft.sections:

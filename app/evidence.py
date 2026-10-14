@@ -1,6 +1,7 @@
 """Read-only, typed views of a single analysis; no geospatial recalculation."""
 from datetime import date, datetime
 import hashlib
+import json
 import math
 from urllib.parse import urlsplit
 from uuid import UUID
@@ -28,6 +29,7 @@ METRICS = {
 FLOOD_FIELDS = tuple(METRICS)[:5]
 INFRA_FIELDS = ("buildings_exposed", "roads_exposed", "bridges_exposed", "road_exposed_km")
 ACCESS_FIELDS = tuple(METRICS)[9:]
+CONNECTIVITY_QUERY_FIELDS = ("filter_road_id", "matching_settlements_count", "route_membership_unavailable_count")
 FEATURE_FIELDS = {
     "name": ("Name", "नाम", None, "recorded_metadata"),
     "exposed": ("Mapped intersection", "नक्साको परिवर्तनसँग जुधेको", None, "potential_exposure"),
@@ -249,12 +251,47 @@ class EvidenceContext:
             next_offset=args.offset + args.limit if args.offset + args.limit < len(rows) else None,
             missing=[f"Saved {args.asset_type} layer unavailable"] if args.asset_type in self.layer_missing else [])
 
+    def route_membership(self, properties, road_id):
+        """None means unavailable; False requires at least one valid saved route."""
+        available = False
+        for key in ("baseline_route", "after_route"):
+            route = properties.get(key)
+            route_props = route.get("properties") if isinstance(route, dict) else None
+            ids = route_props.get("road_ids") if isinstance(route_props, dict) else None
+            if not isinstance(ids, list) or not all(isinstance(i, str) and ("roads", i) in self.index for i in ids):
+                continue
+            available = True
+            if road_id in ids:
+                return True
+        return False if available else None
+
     def settlement_connectivity(self, args):
+        if args.road_id and ("roads", args.road_id) not in self.index:
+            return self._result("settlement_connectivity", [], missing=["Road identifier is not present in this analysis"])
         rows = [(identifier, item) for (layer, identifier), item in self.index.items() if layer == "settlements"
                 and (args.status == "all" or item["properties"].get("status") == args.status)
                 and (not args.query or args.query.casefold() in (identifier+' '+str(item['properties'].get('name',''))).casefold())]
+        if args.road_id:
+            unknown = sum(self.route_membership(item["properties"], args.road_id) is None for _, item in rows)
+            rows = [(identifier, item) for identifier, item in rows if self.route_membership(item["properties"], args.road_id) is True]
+            scope = hashlib.sha256(json.dumps({"road_id": args.road_id, "status": args.status, "query": args.query}, sort_keys=True).encode()).hexdigest()[:20]
+            prefix = "queries.settlement_connectivity." + scope
+            missing_layer = "settlements" in self.layer_missing
+            facts = [
+                self._add(prefix + ".road_id", "filter_road_id", args.road_id,
+                          ("Road used to filter saved settlement routes", "बस्तीका अभिलेखित मार्ग छान्न प्रयोग गरिएको सडक"),
+                          source_ids=["roads.geojson", args.road_id]),
+                self._add(prefix + ".matching_count", "matching_settlements_count", None if missing_layer else len(rows),
+                          ("Recorded settlement route matches for the requested filters", "अनुरोध गरिएका सर्तसँग मिल्ने अभिलेखित बस्ती मार्ग"),
+                          unit="count", interpretation="modeled_connectivity", method="Saved baseline/disrupted route road-ID membership; before pagination",
+                          source_ids=["settlements.geojson", "roads.geojson", args.road_id]),
+                self._add(prefix + ".unavailable_count", "route_membership_unavailable_count", None if missing_layer else unknown,
+                          ("Settlements without valid saved route evidence for the requested filters", "अनुरोध गरिएका सर्तका लागि मान्य अभिलेखित मार्ग प्रमाण नभएका बस्ती"),
+                          unit="count", interpretation="modeled_connectivity", source_ids=["settlements.geojson"]),
+            ]
+        else:
+            facts = [self.global_fields[k] for k in ACCESS_FIELDS]
         selection = rows[args.offset:args.offset + args.limit]
-        facts = [self.global_fields[k] for k in ACCESS_FIELDS]
         for identifier, _ in selection:
             facts += self.feature_facts("settlements", identifier)
         return self._result("settlement_connectivity", facts, feature_ids=[x[0] for x in selection],
@@ -282,7 +319,7 @@ TOOL_REGISTRY = {
     "event_summary": (EmptyArgs, "Retrieve the selected event, computed aggregate metrics, acquisition dates and limitations."),
     "flood_surface_change": (EmptyArgs, "Retrieve measured potential water/surface change, units, method and thresholds."),
     "infrastructure_impacts": (InfrastructureArgs, "Retrieve saved potentially exposed buildings, roads or bridges, with feature IDs and measurements. Paginated."),
-    "settlement_connectivity": (ConnectivityArgs, "Retrieve modeled connectivity, destinations and baseline/disrupted route evidence. No field closures are confirmed. Paginated."),
+    "settlement_connectivity": (ConnectivityArgs, "Retrieve modeled connectivity, destinations and saved route evidence. Optionally filter by an exact road_id from this run; matches use recorded baseline/disrupted routes, not physical proximity. Filtered counts precede pagination; missing routes remain unknown. No field closures are confirmed. Paginated."),
     "sources_limitations": (EmptyArgs, "Retrieve actual recorded products, acquisition dates, historical OSM, processing and limitations."),
     "feature_evidence": (FeatureArgs, "Retrieve saved evidence for one exact feature ID and layer in this run; never accept filesystem paths."),
 }

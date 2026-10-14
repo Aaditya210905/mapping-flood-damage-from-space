@@ -63,6 +63,7 @@ class ConnectivityArgs(StrictModel):
     offset: int = Field(ge=0, le=100000)
     limit: int = Field(ge=1, le=25)
     query: str | None = Field(default=None, min_length=1, max_length=200)
+    road_id: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class FeatureArgs(StrictModel):
@@ -89,7 +90,7 @@ class AnswerSection(StrictModel):
 class AnswerDraft(StrictModel):
     run_id: str
     language: Language
-    kind: Literal["answer", "report", "unsupported"]
+    kind: Literal["answer", "report", "unsupported", "clarification"]
     sections: list[AnswerSection] = Field(max_length=8)
 
 
