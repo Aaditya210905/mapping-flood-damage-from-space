@@ -8,6 +8,7 @@ from rasterio.features import rasterize
 from shapely.geometry import shape
 
 from app.geo import Grid
+from app.storage import sha256
 
 
 def binary_metrics(prediction, reference, valid):
@@ -141,6 +142,10 @@ def evaluate_run(folder, reference_path, coverage_path, activation="EMSR927", al
         "status": status, "reason": reason, "run_id": run["id"],
         "reference_file": str(Path(reference_path).name), "coverage_file": str(Path(coverage_path).name),
         "reference_class_override": reference_class,
+        "input_sha256": {"prediction": sha256(folder / "change-mask.tif"),
+                         "result": sha256(folder / "result.json"),
+                         "eligibility": sha256(eligibility_path) if eligibility_path.exists() else None,
+                         "reference": sha256(reference_path), "reviewed_coverage": sha256(coverage_path)},
         "reference_classes": raw_labels, "unclassified_reference_features": unclassified,
         "evaluated_pixels": int(primary_valid.sum()), "evaluated_area_km2": float(primary_valid.sum() * grid.resolution ** 2 / 1e6),
         "reviewed_pixels_inside_grid": int(reviewed.sum()),

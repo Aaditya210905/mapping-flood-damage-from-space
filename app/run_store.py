@@ -14,7 +14,7 @@ from app.storage import save_json
 _lock = threading.RLock()
 _cache = OrderedDict()
 _MAX_CACHED_RUNS = 2
-_MAX_CACHED_BYTES = 100 * 1024 * 1024
+_MAX_CACHED_BYTES = 160 * 1024 * 1024
 
 
 def signature(path):

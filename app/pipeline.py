@@ -170,6 +170,11 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None, *
     (folder / "osm-snapshot.geojson").write_text(json.dumps(inputs["osm"], ensure_ascii=False), encoding="utf-8")
     for key, layer in layers.items():
         (folder / f"{key}.geojson").write_text(json.dumps(layer, ensure_ascii=False), encoding="utf-8")
-    (folder / "result.json").write_text(json.dumps(run, ensure_ascii=False, indent=2), encoding="utf-8")
+    # Indenting millions of coordinates can more than double a saved result.
+    # Stream compact JSON to avoid allocating another full-sized string.
+    temporary = folder / "result.json.part"
+    with temporary.open("w", encoding="utf-8") as stream:
+        json.dump(run, stream, ensure_ascii=False, separators=(",", ":"))
+    temporary.replace(folder / "result.json")
     progress("Analysis complete (partial observation coverage)" if run["analysis_status"] == "partial" else "Analysis complete", 100)
     return run

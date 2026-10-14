@@ -6,7 +6,7 @@
   "reports": [
     {
       "language": "en",
-      "report_id": "d714a52a-6ea6-4efb-a252-2c47a3b8b949",
+      "report_id": "3f6d9464-435f-495b-9f56-2691022a5086",
       "status": "partial",
       "missing_fields": [
         "optical_acquisition_dates",
@@ -26,21 +26,21 @@
       "files": {
         "pdf": {
           "name": "situation-report-en.pdf",
-          "sha256": "f05ef5f13f60bce809d393b5f2151f2c9ff1e247a97c6b67ee9c9d492a837d77"
+          "sha256": "78fa81e864fc794d9b4cbb6e56fa09aac4291d0550f0aeebd300493f4e7b756a"
         },
         "html": {
           "name": "situation-report-en.html",
-          "sha256": "c164e1d56a2ebfe26d6f6cd738daf784e9cbd241faa18aafabc05c9bda9cdbbd"
+          "sha256": "4c29d3e49f6ec6dd7211afb9e9cccc8dba49314b07f11f26002238a4f98067da"
         },
         "json": {
           "name": "situation-report-en.json",
-          "sha256": "9607ee99a5fb23c842e85e3597057f40b1b4b5b2a7af3ab5966299c2a0b6e3b2"
+          "sha256": "acc3be37bd2201c4b28fca76fd9817cd426b9d137c5da69bad90116dc3f510d2"
         }
       }
     },
     {
       "language": "ne",
-      "report_id": "1524ab3d-ab0c-4cb7-a8aa-8f157204c10c",
+      "report_id": "307ee725-4f0c-4fc7-be7a-f288cd5cb08a",
       "status": "partial",
       "missing_fields": [
         "optical_acquisition_dates",
@@ -60,15 +60,15 @@
       "files": {
         "pdf": {
           "name": "situation-report-ne.pdf",
-          "sha256": "da935d478fe568b98d7cad0453394d87b8f1357ae2128d5fff2e777f4778b406"
+          "sha256": "309bafe2a87098afbc34c15c7858ee66370b29e1836529a994a84521452ef00e"
         },
         "html": {
           "name": "situation-report-ne.html",
-          "sha256": "eccf51592f0ddf65a83f59698c338a4a78f1e783cfbc1b484fc1cc1e1aca968e"
+          "sha256": "54e3ea49e879fa63d0007cdd1fd0fefa9eda88444eb8ffc3a5fbe335caba6c0c"
         },
         "json": {
           "name": "situation-report-ne.json",
-          "sha256": "3fd20a6199e3184eb98e9cc4220060b414d286524a02e16c38ac5649fdc6b4cc"
+          "sha256": "7bc8e56c14ffc5f754f80b420ee377a455db001ff127e34ee1c2ade7193bb327"
         }
       }
     }

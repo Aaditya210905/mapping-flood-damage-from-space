@@ -25,7 +25,7 @@ def main():
     args = parser.parse_args()
     base = args.base_url.rstrip('/')
     with httpx.Client(base_url=base, timeout=20) as client:
-        selected = client.get('/api/analyses/' + args.run_id if args.run_id else '/api/analyses/latest-real')
+        selected = client.get(('/api/analyses/' + args.run_id if args.run_id else '/api/analyses/latest-real') + '?view=dashboard')
         if not selected.is_success:
             parser.error('A completed real analysis is required. Select an existing demo UUID with --preview only for a labeled software walkthrough.')
         run = selected.json()

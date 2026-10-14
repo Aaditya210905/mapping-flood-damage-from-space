@@ -22,7 +22,7 @@ def main():
             response=client.get(path);response.raise_for_status();return response.json()
         def post(path,body):
             response=client.post(path,json=body);response.raise_for_status();return response.json()
-        run=get('/api/analyses/'+args.run_id if args.run_id else '/api/analyses/latest-real')
+        run=get(('/api/analyses/'+args.run_id if args.run_id else '/api/analyses/latest-real')+'?view=dashboard')
         if run['mode']=='demo' and not args.allow_demo:
             parser.error('Synthetic run rejected. Use --allow-demo only for explicitly labeled software checks.')
         base='/api/analyses/'+run['id']

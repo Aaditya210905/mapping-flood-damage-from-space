@@ -10,7 +10,7 @@ This Copilot does not train a flood-segmentation model. Kuro Siwo and Sen1Floods
 
 The dashboard is implemented with the existing FastAPI backend and Leaflet interface. Analyses persist as UUID-identified result files containing measured statistics, map layers, source metadata, uncertainty and attribution. The Copilot reads this existing storage without replacing the geospatial engine or introducing a new database.
 
-Verification status: a real CDSE Sentinel-1 acquisition and historical OSM analysis has completed locally. The configured Groq provider has answered real-run questions. Current repairs are tested against acquired real inputs and controlled regression fixtures. Observation coverage remains partial: unavailable optical support prevents debris assessment, and a zero mapped water area does not establish no flooding throughout the AOI. Independent field and native Nepali review remain pending; archived videos do not validate this version.
+Verification status: a real CDSE Sentinel-1 acquisition and historical OSM analysis has completed locally. The configured Groq provider has answered real-run questions. Current repairs are tested against acquired real inputs and controlled regression fixtures. Observation coverage remains partial: unavailable optical support prevents debris assessment, and a zero mapped water area does not establish no flooding throughout the AOI. The repaired cached case has 13.6% water-eligible coverage, no eligible debris observations, 56 unassessed settlements and 47 with uncertain access. EMSR927 supplied landslide polygons, but no eligible debris pixels overlap; accuracy is N/A. Independent field and native Nepali review remain pending; archived videos do not validate this version.
 
 <!-- page -->
 

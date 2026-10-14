@@ -27,6 +27,7 @@ Run `uv sync --frozen --python 3.12`, then `./run.sh`. Open http://127.0.0.1:800
 | `LLM_BASE_URL` | `https://api.groq.com`; SDK root without `/openai/v1` |
 | `LLM_TIMEOUT_SECONDS` | `10`, allowed 1–30 seconds per request |
 | `LLM_BUDGET_SECONDS` | `30`, allowed 3–60 seconds for the whole request |
+| `LLM_MAX_COMPLETION_TOKENS` | `4096`, allowed 512–8192; account quotas still apply |
 | `CDSE_CLIENT_ID`, `CDSE_CLIENT_SECRET` | Optional Copernicus Sentinel Hub OAuth |
 | `OHSOME_API_KEY` | Optional historical ohsome v2 fallback |
 | `FLOOD_LENS_DATA` | Existing run directory; defaults to `data/runs` |

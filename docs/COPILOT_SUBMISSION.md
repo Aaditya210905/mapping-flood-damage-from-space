@@ -1,6 +1,6 @@
 # Copilot submission materials
 
-The selected component is Track B Option 2: Situation-Report Copilot. No new application tests are being run during this preparation task. The existing mapping engine and trained-flood-model exclusion remain unchanged.
+The selected component is Track B Option 2: Situation-Report Copilot. Current repairs, real CDSE verification and executed tests are recorded in [repair verification](REPAIR_VERIFICATION.md). Historical preparation statements below do not override that record.
 
 ## Prepared artifacts
 
@@ -18,13 +18,13 @@ The old technical report was copied to `docs/archive/segmentation-technical-repo
 
 ## Groq configuration
 
-The user supplied a Groq key in the private `.env`. Sanitized configuration reports Groq enabled/configured with model `openai/gpt-oss-120b`; the website has been restarted to load it. The key remains untracked and the file is owner-readable only (0600). No provider call or application test was executed to validate the key. Configuration does not guarantee provider availability or key validity.
+The user supplied a Groq key in the private `.env`. Sanitized configuration reports Groq enabled/configured with model `openai/gpt-oss-120b`; the website has been restarted to load it. The key remains untracked and the file is owner-readable only (0600). Actual English and Nepali Groq calls have now succeeded on the saved real CDSE run. Rate limits also exercised the labeled deterministic fallback; credentials do not guarantee continuing service availability.
 
 No key is committed to Git. For later changes, edit the private `.env` locally and restart `./run.sh`. `LLM_API_KEY` takes precedence if set; direct CLI commands can load configuration with `uv run --env-file .env`. In your recording, retain the visible response-engine status and do not describe a fallback response as Groq-generated.
 
 ## Produce the real report package
 
-Once a real mapping result exists, export its saved folder:
+Real report exports from run `0fb99632-2943-4d03-9656-55f1db0682cd` are available in `output/pdf/repair-real/`. They explicitly show cached real inputs, partial coverage and unavailable debris. To export another real saved folder:
 
 ```bash
 uv run --env-file .env python scripts/export_copilot_reports.py \

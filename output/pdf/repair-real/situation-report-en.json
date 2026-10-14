@@ -1,9 +1,9 @@
 {
-  "report_id": "d714a52a-6ea6-4efb-a252-2c47a3b8b949",
+  "report_id": "3f6d9464-435f-495b-9f56-2691022a5086",
   "run_id": "0fb99632-2943-4d03-9656-55f1db0682cd",
   "language": "en",
   "title": "Flood situation report",
-  "generated_at": "2026-10-14T14:54:51+00:00",
+  "generated_at": "2026-10-14T15:02:39+00:00",
   "analysis_name": "Trishuli river corridor",
   "event_date": "2026-08-26",
   "data_mode": "live",
@@ -70,7 +70,7 @@
         "Unassessed settlements: 56",
         "Settlements with uncertain access: 47",
         "Already disconnected settlements: 6",
-        "Connectivity assumes candidate-intersecting road segments are impassable. Actual closures and physical inaccessibility are unverified."
+        "Connectivity uses a thresholded candidate-overlap closure scenario. Water beneath a bridge does not prove failure. Actual closures remain unverified."
       ],
       "fact_ids": [
         "0fb99632-2943-4d03-9656-55f1db0682cd:7a790f7cc061f983b5ad",

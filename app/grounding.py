@@ -16,7 +16,7 @@ class GroundingError(ValueError):
 
 EXPLANATIONS = {
     "potential_damage": ("Mapped intersection indicates potential exposure, not confirmed damage or destruction.", "नक्साको परिवर्तनसँग जुध्नु सम्भावित प्रभाव हो; क्षति वा विनाश पुष्टि भएको होइन।"),
-    "modeled_closure": ("Connectivity assumes candidate-intersecting road segments are impassable. Actual closures and physical inaccessibility are unverified.", "परिवर्तनसँग जुधेका सडक खण्ड चल्न नसक्ने मानेर सडक सम्पर्क गणना गरिएको हो। वास्तविक सडक बन्द वा पहुँच नहुनु पुष्टि भएको छैन।"),
+    "modeled_closure": ("Connectivity uses a thresholded candidate-overlap closure scenario. Water beneath a bridge does not prove failure. Actual closures remain unverified.", "परिवर्तनसँग जुधेको लम्बाइको सीमा अनुसार सडक बन्द मानेर सम्पर्क गणना गरिएको हो। पुलमुनिको पानीले पुल बिग्रेको पुष्टि गर्दैन। वास्तविक सडक बन्द जाँचिएको छैन।"),
     "coverage_limits": ("Unobserved areas remain unknown. No mapped change does not prove absence of damage.", "अवलोकन नभएको क्षेत्र अज्ञात छ। परिवर्तन नदेखिनु क्षति नभएको प्रमाण होइन।"),
     "surface_change_uncertain": ("Surface-change/debris candidates can include other land-cover changes; they are not confirmed debris flows.", "माटो/ढुंगा वा भूआवरण परिवर्तनका सम्भावित क्षेत्र अन्य परिवर्तन पनि हुन सक्छन्; भग्नावशेषको बहाव पुष्टि भएको होइन।"),
     "satellite_limits": ("Satellite revisit gaps, terrain shadow, clouds and vegetation limit interpretation; the system cannot provide minute-ahead warnings.", "उपग्रहको पुनरागमन, भूभागको छाया, बादल र वनस्पतिले नतिजा सीमित गर्छन्; यसले केही मिनेटअघि चेतावनी दिन सक्दैन।"),
@@ -36,9 +36,9 @@ HEADINGS = {
 STATUS_TEXT = {
     "cut_off": ("Modeled loss of previous road connection", "मोडेल अनुसार पहिलेदेखिको सडक सम्पर्क गुमेको"),
     "connected": ("Modeled route available in the assessed network", "मूल्याङ्कन गरिएको सञ्जालमा मोडेल अनुसार मार्ग उपलब्ध"),
-    "uncertain_access": ("Uncertain access; route includes unobserved segments", "सडक सम्पर्क अनिश्चित; मार्गमा अवलोकन नभएका खण्ड छन्"),
+    "uncertain_access": ("Uncertain access; route, connectors or exterior alternatives are unverified", "सडक सम्पर्क अनिश्चित; मार्ग, जोड्ने बाटो वा क्षेत्रबाहिरका विकल्प जाँचिएका छैनन्"),
     "unassessed": ("Unassessed", "मूल्याङ्कन भएको छैन"),
-    "baseline_disconnected": ("Disconnected before the event", "घटनाअघिदेखि सडक सम्पर्क नभएको"),
+    "baseline_disconnected": ("No baseline connection in the mapped network", "घटनाअघिको नक्साको सञ्जालमा सम्पर्क नभेटिएको"),
     "potential_exposure": ("Potential exposure to mapped change", "नक्साको परिवर्तनबाट सम्भावित प्रभाव"),
     "no_mapped_change_at_observed_samples": ("No mapped change at observed samples", "अवलोकित नमुनामा परिवर्तन भेटिएन"),
     "no_mapped_change_in_assessed_hazard_scope": ("No mapped change within the assessed hazard classes; other classes remain unknown", "मूल्याङ्कन गरिएका विपद्का वर्गमा परिवर्तन भेटिएन; अन्य वर्ग अज्ञात छन्"),

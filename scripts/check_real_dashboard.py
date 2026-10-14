@@ -33,6 +33,11 @@ def main():
         assert page.locator("#observability").is_visible()
         assert "not operational" in page.locator(".prototype").inner_text()
         run = page.evaluate("({id:state.run.id,stats:state.run.stats,class_availability:state.run.class_availability})")
+        if page.evaluate("state.run.acquisition_mode === 'cached_reprocessing'"):
+            assert "Cached real inputs" in page.locator("#run-meta").inner_text()
+            report_html = context.request.get(args.base_url + f"/api/analyses/{args.run_id}/report?language=en")
+            assert report_html.ok and "CACHED REAL INPUTS" in report_html.text()
+            report["checks"].append("Cached acquisition is explicit in both dashboard and report")
         for kind in ("water", "debris"):
             if run["class_availability"][kind]["status"] == "unavailable":
                 assert run["stats"][kind + "_km2"] is None
