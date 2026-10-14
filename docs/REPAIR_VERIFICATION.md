@@ -47,7 +47,7 @@ Zero mapped exposure does not establish no damage throughout the AOI. The origin
 | Provider degradation | Actual rate limiting returned labeled deterministic fallback for compound/report requests; no invented replacement values |
 | Real dashboard browser | No page errors; no overflow at 360, 768 and 1280 px; settlement details, hospital evidence and clickable Nepali fact citations passed |
 | Complete browser workflow | No page errors; checked 360/768/1280/1440 px, before/after, layers, bilingual chat, compound/refusal cases, reports, reload preference and invalid-bounds recovery |
-| Current demo recording | Exactly 180 s; H.264, 1280 x 900, 25 fps; real English/Nepali Groq responses, no page errors or new acquisitions; decoded without errors |
+| Current demo recording | Exactly 180 s / 4,500 frames; fixed narration cues; H.264, 1280 x 900, 25 fps; English/Nepali Groq responses; no HTTP/page errors or new acquisitions; full decode and all scenes checked |
 | PDF checks | English and Nepali each one A4 page; six-page technical report; Poppler visual inspection and page counts passed |
 | Source checks | JavaScript/shell syntax and Git whitespace checks passed |
 
@@ -67,7 +67,7 @@ Recomputing the comparison left `result.json`, `change-mask.tif` and `eligibilit
 
 - [English one-page real-input report](../output/pdf/repair-real/situation-report-en.pdf), [Nepali report](../output/pdf/repair-real/situation-report-ne.pdf), alongside offline HTML, typed JSON and checksum manifest.
 - [Six-page technical report](technical-report.pdf) and [editable source](technical-report.md).
-- [Current three-minute video](../output/video/copilot-demo.mp4), [recording manifest](../output/video/copilot-demo.json) and [capture notes](demo-script.md).
+- [Current three-minute video](../output/video/flooline-script-demo.mp4), [recording manifest](../output/video/flooline-script-demo.json) and [capture notes](demo-script.md).
 - [Copilot configuration and contracts](COPILOT.md), [Nepali review handout](NEPALI_GLOSSARY.md), and [timed video script](demo-script.md).
 
-Native-speaker Nepali sign-off, field validation and usable independent class-matched mapping accuracy remain outstanding. Current source coverage cannot be repaired into observations the satellites did not provide. Unknown-area acquisition still depends on compatible scenes, historical OSM, quotas and provider availability; the prototype retains its one-degree/2,500-pixel-per-side bounds. Complete OSM node identity/turn restrictions, exterior/cross-border routes, actual bridge failure and facility operation remain unverified. The [current captioned three-minute video](../output/video/copilot-demo.mp4) now records the repaired interface using cached real inputs, with its response metadata in the companion JSON. It does not demonstrate a new acquisition or benchmark live runtime. Archived segmentation videos remain historical.
+Native-speaker Nepali sign-off, field validation and usable independent class-matched mapping accuracy remain outstanding. Current source coverage cannot be repaired into observations the satellites did not provide. Unknown-area acquisition still depends on compatible scenes, historical OSM, quotas and provider availability; the prototype retains its one-degree/2,500-pixel-per-side bounds. Complete OSM node identity/turn restrictions, exterior/cross-border routes, actual bridge failure and facility operation remain unverified. The [current captioned three-minute video](../output/video/flooline-script-demo.mp4) now records the repaired interface using cached real inputs, with its response metadata in the companion JSON. It does not demonstrate a new acquisition or benchmark live runtime. Archived segmentation videos remain historical.

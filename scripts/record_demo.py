@@ -16,6 +16,10 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
 
+# Final playback cues match the supplied three-minute voiceover. Each captured
+# scene is edited independently so API latency cannot shift later sections.
+PLAYBACK_CUES = [0, 6, 12, 21, 36, 45, 57, 69, 99, 108, 120, 123, 135, 147, 156, 180]
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -23,6 +27,8 @@ def main():
     parser.add_argument('--run-id')
     parser.add_argument('--preview', action='store_true')
     parser.add_argument('--output', type=Path)
+    parser.add_argument('--require-llm', action='store_true',
+                        help='Reject the take if either supported answer uses the fallback.')
     args = parser.parse_args()
     base = args.base_url.rstrip('/')
     with httpx.Client(base_url=base, timeout=20) as client:
@@ -49,7 +55,7 @@ def main():
         label = 'SAVED REAL SATELLITE INPUTS - no new acquisition - educational prototype'
     coverage = run['stats'].get('water_eligible_coverage_pct')
     coverage_label = f'{coverage:g}%' if isinstance(coverage, (int, float)) else 'unavailable'
-    segments, replies, reports, page_errors, acquisitions = [], [], [], [], []
+    segments, replies, reports, page_errors, acquisitions, failed_responses = [], [], [], [], [], []
     with sync_playwright() as playwright:
         options = {'headless': True, 'chromium_sandbox': True}
         if shutil.which('chromium'):
@@ -63,6 +69,8 @@ def main():
         page.on('pageerror', lambda error: page_errors.append(str(error)))
         page.on('request', lambda request: acquisitions.append(request.url)
                 if request.method == 'POST' and request.url.endswith('/api/analyses') else None)
+        page.on('response', lambda response: failed_responses.append({'url': response.url, 'status': response.status})
+                if response.status >= 400 else None)
         page.goto(base, wait_until='networkidle', timeout=60000)
         page.wait_for_function('state.run !== null', timeout=30000)
         if page.evaluate('state.run.id') != run['id']:
@@ -93,6 +101,11 @@ def main():
                 box.textContent=text;
             }""", [label, text])
 
+        def check_screen():
+            page.wait_for_timeout(300)
+            if page.locator('.error:visible').count():
+                raise RuntimeError('A visible error would appear in the recording.')
+
         def until(seconds):
             remaining = seconds - (time.monotonic() - started)
             while remaining > 0:
@@ -109,6 +122,10 @@ def main():
             if result.get('run_id') != run['id'] or result.get('language') != language:
                 raise RuntimeError('Recorded answer belongs to a different run or language.')
             replies.append({'question': question, **result})
+            if args.require_llm and result.get('intent') != 'unsupported' and result['generation']['mode'] != 'llm':
+                raise RuntimeError('The supplied narration requires a genuine Groq answer; discard this take.')
+            if result.get('report_error'):
+                raise RuntimeError('The answer contains a report-generation error.')
             print(f"       Engine: {result['generation']['mode']} ({result['generation'].get('reason') or 'validated'})", flush=True)
             page.locator('#conversation').scroll_into_view_if_needed()
             page.locator('#conversation').evaluate('''element => {
@@ -116,10 +133,11 @@ def main():
                 const latest=questions[questions.length-1];
                 if (latest) element.scrollTop += latest.getBoundingClientRect().top - element.getBoundingClientRect().top - 10;
             }''')
+            check_screen()
             return result
 
         provider = health.get('llm', {})
-        caption('Flood Lens: a situation-report copilot using saved satellite maps and pre-event OpenStreetMap. This is a recorded real-input walkthrough; it does not show a new acquisition.')
+        caption('Flooline: a flood-mapping copilot. Saved real satellite inputs and pre-event OpenStreetMap; this walkthrough does not acquire new imagery.')
         until(5)
         page.locator('#map-panel' if page.locator('#map-panel').count() else '.map-panel').scroll_into_view_if_needed()
         page.locator('#before-button').click()
@@ -133,38 +151,44 @@ def main():
         caption('Ask a compound English question. The copilot retrieves mapped water and observation coverage. The displayed engine identifies Groq or the deterministic fallback actually used.')
         ask('How much new water was detected, and how much of the area was eligible?', 'en')
         until(37)
+        caption('Clicking a citation opens the exact fact, source path and method. Area-wide measurements refer to the selected analysis, rather than an invented map location.')
         page.locator('.chat-answer .fact-link').first.click()
         page.locator('#feature-detail').scroll_into_view_if_needed()
-        caption('Clicking a citation opens the exact fact, source path and method. Area-wide measurements refer to the selected analysis, rather than an invented map location.')
+        check_screen()
         until(48)
+        caption('Access results distinguish uncertain, unassessed and baseline-disconnected settlements. A missing observed route does not automatically mean a village was cut off by flooding.')
         page.locator('#close-feature-detail').click()
         page.locator('#access-tab').click()
         page.locator('#access-filter').select_option('uncertain_access')
         page.locator('#access-summary').scroll_into_view_if_needed()
-        caption('Access results distinguish uncertain, unassessed and baseline-disconnected settlements. A missing observed route does not automatically mean a village was cut off by flooding.')
         until(59)
+        caption('Settlement details link modeled routes, destination-specific hospital evidence and unverified connectors. Water below a bridge does not establish bridge failure or a confirmed road closure.')
         if page.locator('#settlement-table .feature-link').count():
             page.locator('#settlement-table .feature-link').first.click()
             page.wait_for_function('document.getElementById("feature-detail-title").textContent !== "Loading feature evidence…"')
             page.locator('#feature-detail').scroll_into_view_if_needed()
-        caption('Settlement details link modeled routes, destination-specific hospital evidence and unverified connectors. Water below a bridge does not establish bridge failure or a confirmed road closure.')
+        if 'unavailable' in page.locator('#feature-detail-title').inner_text().lower():
+            raise RuntimeError('Settlement feature evidence failed to load.')
+        check_screen()
         until(74)
+        caption('Switch to Nepali and ask about observation coverage. Saved values and uncertainty remain unchanged; native-speaker terminology review is pending.')
         page.locator('#close-feature-detail').click()
         page.locator('#copilot-form').scroll_into_view_if_needed()
-        caption('The same saved facts are available in Nepali. Names, values and uncertainty remain tied to this run. Native-speaker terminology review is still pending.')
-        until(85)
+        page.locator('#language').select_option('ne')
+        until(77)
         ask('अवलोकन क्षेत्र कति छ?', 'ne')
         until(105)
+        caption('The evidence panel exposes fact IDs and canonical values. Matching saved facts verifies numerical consistency; it does not verify physical mapping accuracy.')
         page.locator('.evidence summary').last.click()
         page.locator('#conversation').evaluate('element => element.scrollTop=element.scrollHeight')
-        caption('The evidence panel exposes fact IDs and canonical values. Matching saved facts verifies numerical consistency; it does not verify physical mapping accuracy.')
         until(114)
+        caption('Casualty and population statistics cannot be established from these inputs. The copilot refuses the request and supplies no invented estimate.')
         result = ask('How many people died?', 'en')
         if result.get('intent') != 'unsupported' or result.get('facts'):
             raise RuntimeError('The unsupported-statistic refusal was not preserved.')
         page.locator('#conversation').evaluate('element => element.scrollTop=element.scrollHeight')
-        caption('Casualty and population statistics cannot be established from these inputs. The copilot refuses the request and supplies no invented estimate.')
         until(124)
+        caption('Generate a fixed-format Nepali situation report from the selected facts. HTML, PDF and JSON preserve the snapshot, source dates, partial coverage and attribution.')
         page.locator('#language').select_option('ne')
         with page.expect_response(lambda response: response.url.endswith('/report') and response.request.method == 'POST', timeout=45000) as generated:
             page.locator('#generate-report').click()
@@ -174,11 +198,12 @@ def main():
             raise RuntimeError('The saved Nepali report could not be generated for this run.')
         reports.append({'language': 'ne', 'status': report['status'], 'links': report['links'], 'generation': report['generation']})
         page.locator('#conversation').evaluate('element => element.scrollTop=element.scrollHeight')
-        caption('Generate a fixed-format Nepali situation report from the selected facts. HTML, PDF and JSON preserve the snapshot, source dates, partial coverage and attribution.')
+        check_screen()
         until(132)
         report_url = report['links']['html']
         page.goto(base + report_url, wait_until='networkidle')
         caption('The one-page report explicitly marks cached real inputs, incomplete observations and unavailable debris. Nepali text uses bundled Devanagari fonts; the report needs independent field and language review.')
+        check_screen()
         until(143)
         page.goto(base, wait_until='networkidle')
         page.wait_for_function('state.run !== null', timeout=30000)
@@ -196,8 +221,9 @@ def main():
         until(166)
         caption(credits)
         until(181)
-        if page_errors or acquisitions:
-            raise RuntimeError('The recording had a page error or unexpectedly started a new acquisition.')
+        check_screen()
+        if page_errors or acquisitions or failed_responses:
+            raise RuntimeError('Discard the take: page error, failed HTTP response or unexpected new acquisition.')
         captured_seconds = time.monotonic() - started
         video = page.video
         page.close()
@@ -206,11 +232,31 @@ def main():
         browser.close()
     duration = float(subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
                                              '-of', 'default=noprint_wrappers=1:nokey=1', str(source)], text=True).strip())
-    usable_duration = max(1, duration - leading_trim)
-    subprocess.run(['ffmpeg', '-y', '-hide_banner', '-loglevel', 'error', '-ss', str(leading_trim), '-i', str(source),
-                    '-vf', f'setpts={180 / usable_duration:.10f}*PTS,fps=25,tpad=stop_mode=clone:stop_duration=2,setpts=N/(25*TB)',
-                    '-frames:v', '4500', '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23',
-                    '-pix_fmt', 'yuv420p', '-movflags', '+faststart', str(destination)], check=True)
+    if len(segments) != len(PLAYBACK_CUES) - 1:
+        raise RuntimeError('The captured scenes do not match the narration cues.')
+    clips = []
+    for index, segment in enumerate(segments):
+        clip_start = leading_trim + segment['capture_seconds']
+        clip_end = (leading_trim + segments[index + 1]['capture_seconds']
+                    if index + 1 < len(segments) else duration)
+        captured = clip_end - clip_start
+        if captured <= .2:
+            raise RuntimeError('A scene has no readable capture; discard this take.')
+        target = PLAYBACK_CUES[index + 1] - PLAYBACK_CUES[index]
+        segment.update({'playback_start_seconds': PLAYBACK_CUES[index],
+                        'playback_end_seconds': PLAYBACK_CUES[index + 1],
+                        'capture_duration_seconds': round(captured, 3)})
+        clip = recordings / f'script-scene-{index:02d}.mp4'
+        subprocess.run(['ffmpeg', '-y', '-hide_banner', '-loglevel', 'error',
+                        '-ss', str(clip_start), '-t', str(captured), '-i', str(source),
+                        '-vf', f'setpts={target / captured:.10f}*(PTS-STARTPTS),fps=25,tpad=stop_mode=clone:stop_duration=2,setpts=N/(25*TB)',
+                        '-frames:v', str(target * 25), '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20',
+                        '-pix_fmt', 'yuv420p', str(clip)], check=True)
+        clips.append(clip)
+    clip_list = recordings / 'script-scenes.txt'
+    clip_list.write_text(''.join(f"file '{clip.name}'\n" for clip in clips), encoding='utf-8')
+    subprocess.run(['ffmpeg', '-y', '-hide_banner', '-loglevel', 'error', '-f', 'concat', '-safe', '0',
+                    '-i', str(clip_list), '-c', 'copy', '-movflags', '+faststart', str(destination)], check=True)
     actual_duration = float(subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
                                                     '-of', 'default=noprint_wrappers=1:nokey=1', str(destination)], text=True).strip())
     if abs(actual_duration - 180) > .001:
@@ -220,7 +266,9 @@ def main():
                 'captioned': True, 'narration': False, 'actual_duration_seconds': actual_duration,
                 'llm_configuration': provider, 'segments': segments,
                 'captured_seconds': round(captured_seconds, 3), 'leading_trim_seconds': round(leading_trim, 3),
-                'playback_time_scale': 180 / usable_duration, 'page_errors': page_errors, 'new_acquisitions': acquisitions,
+                'editing': 'Each scene edited to the supplied narration cues; not a live latency benchmark.',
+                'llm_required_for_supported_answers': args.require_llm,
+                'page_errors': page_errors, 'new_acquisitions': acquisitions, 'failed_http_responses': failed_responses,
                 'replies': replies, 'reports': reports, 'sha256': hashlib.sha256(destination.read_bytes()).hexdigest(),
                 'attributions': [credits], 'limitations': 'Captioned saved-run walkthrough edited to three minutes, not a new acquisition, runtime benchmark, field-accuracy validation or native Nepali sign-off. Actual response-engine labels remain visible.'}
     destination.with_suffix('.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')

@@ -10,7 +10,7 @@ The selected component is Track B Option 2: Situation-Report Copilot. Current re
 | English/Nepali one-page exports | `output/pdf/repair-real/situation-report-en.pdf`, `situation-report-ne.pdf` | Cached real CDSE inputs; partial coverage and unavailable debris are explicit |
 | Offline printable reports | Same folder, `.html` files | Embedded Devanagari fonts; no server needed |
 | Typed evidence/report export | Same folder, `.json` and `manifest.json` | Source run, source checksum, missing fields and output checksums |
-| Current demonstration | `output/video/copilot-demo.mp4`, `copilot-demo.json` | Three-minute captioned recording of the repaired interface, with real cached inputs and response metadata |
+| Current demonstration | `output/video/flooline-script-demo.mp4`, `flooline-script-demo.json` | Three-minute captioned recording of the repaired interface, with real cached inputs and response metadata |
 | Capture notes | `docs/demo-script.md` | Scope, reproduction and judge Q&A |
 | Nepali terminology handout | `docs/NEPALI_GLOSSARY.md` | Authored phrases; independent native-speaker sign-off remains pending |
 | Configuration | `.env.example`; private untracked `.env` | Startup, Groq and optional satellite OAuth placeholders |
@@ -36,17 +36,17 @@ The exporter rejects demo runs unless `--allow-demo` is explicitly supplied. It 
 
 ## Current recording and reproduction
 
-[Watch the current demo](../output/video/copilot-demo.mp4). The companion JSON records the source run, acquisition mode, captions, actual response engines and output checksum. This is a captioned screen recording without voiceover, showing cached real CDSE run `0fb99632-2943-4d03-9656-55f1db0682cd`, rather than a new acquisition. It includes English/Nepali questions, linked map evidence, uncertain settlement access, casualty refusal, the Nepali report, N/A evaluation and required credits.
+[Watch the current demo](../output/video/flooline-script-demo.mp4). The companion JSON records the source run, acquisition mode, captions, actual response engines and output checksum. This is a captioned screen recording without voiceover, showing cached real CDSE run `0fb99632-2943-4d03-9656-55f1db0682cd`, rather than a new acquisition. It includes English/Nepali questions, linked map evidence, uncertain settlement access, casualty refusal, the Nepali report, N/A evaluation and required credits.
 
 The recorder uses an isolated Chromium context and never captures a private browser profile or credentials. To reproduce it, start `./run.sh`, install Playwright's video encoder once if needed, then run:
 
 ```bash
 uv run playwright install ffmpeg
-uv run python scripts/record_demo.py --run-id REAL_RUN_UUID \
-  --output output/video/copilot-demo.mp4
+uv run python scripts/record_demo.py --run-id REAL_RUN_UUID --require-llm \
+  --output output/video/flooline-script-demo.mp4
 ```
 
-The actual response engine remains visible. The final MP4 is edited to three minutes; it is not a runtime benchmark. A synthetic preview requires explicit `--preview` and keeps its synthetic label throughout. Archived videos under `docs/` show the removed segmentation implementation.
+The actual response engine remains visible. Each scene is edited to the fixed cues in [the narration](demo-script.md); the final MP4 is exactly three minutes and is not a runtime benchmark. `--require-llm` rejects fallback responses for supported questions. [Plain narration text](../output/video/flooline-voiceover.txt) and [timed cues](../output/video/flooline-voiceover.srt) are supplied separately for adding audio. A synthetic preview requires explicit `--preview` and keeps its synthetic label throughout. Archived videos under `docs/` show the removed segmentation implementation.
 
 ## Remaining external inputs
 

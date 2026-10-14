@@ -1,47 +1,64 @@
 # Three-minute Situation-Report Copilot demonstration
 
-The current recording is [output/video/copilot-demo.mp4](../output/video/copilot-demo.mp4), with a [source/response manifest](../output/video/copilot-demo.json). It uses cached real CDSE run `0fb99632-2943-4d03-9656-55f1db0682cd`. The recording has burned-in captions and no voiceover. It shows the existing saved analysis and actual API responses; it does not show a new acquisition or prove performance on a judge-selected AOI/date.
+The current recording is [output/video/flooline-script-demo.mp4](../output/video/flooline-script-demo.mp4), with a [source/response manifest](../output/video/flooline-script-demo.json). It uses cached real CDSE run `0fb99632-2943-4d03-9656-55f1db0682cd`. The recording has burned-in captions and no voiceover. It shows the existing saved analysis and actual API responses; it does not show a new acquisition or prove performance on a judge-selected AOI/date.
 
-Nominal capture schedule, before editing the completed recording to three minutes:
-
-| Time | Demonstration |
-| --- | --- |
-| 0:00-0:20 | Cached real-input label, before/after radar, source dates and 13.6% water eligibility |
-| 0:20-0:48 | Compound English water/coverage question and fact-ID map inspection |
-| 0:48-1:14 | Uncertain settlements, destination-specific evidence and unverified connectors |
-| 1:14-1:54 | Nepali question, actual answer engine and supporting evidence |
-| 1:54-2:04 | Casualty question refused without an estimate |
-| 2:04-2:24 | Generate a Nepali report and open its saved preview |
-| 2:24-2:38 | Separate EMSR927 evaluation with unavailable class-matched accuracy |
-| 2:38-3:00 | Educational scope, outstanding review and required attribution |
+The final playback cues below match the supplied narration. Each scene is edited independently, so provider latency does not shift the later sections. Read at approximately 125 words per minute; fit the generated audio to these cues. The MP4 intentionally has no audio track.
 
 ## Presenter narration
 
-Opening: "FloodLens AI turns a selected map analysis into an evidence-backed briefing. Our chosen AI component is the Situation-Report Copilot. This walkthrough uses cached real CDSE inputs and historical OSM; it does not acquire new imagery."
+**00:00:00 --> 00:00:21**
 
-English answer: "I ask how much new water was detected. The assistant retrieves the stored measurement. Groq can interpret the request when configured; a clearly labeled deterministic fallback remains available. We never claim that the model was used when the answer came from a template."
+Hello everyone. Now I will start the introduction to Flooline, our flood-mapping copilot. We compare saved, real radar images from before and after the event. Only thirteen point six percent of this area supports water assessment. Debris assessment is unavailable.
 
-Evidence: "This expandable panel shows the fact ID, source path, original unit and calculation method. Every fact belongs to this selected run. A mapped intersection is potential exposure, not proof of physical destruction."
+**00:00:21 --> 00:00:36**
 
-Nepali: "Changing the language selects Nepali text from the same underlying facts. Numbers, identifiers and uncertainty are preserved. Native-speaker review of the terminology remains pending."
+First, I ask how much new water was detected and how much of the area was eligible. Groq retrieves the saved measurements and returns an answer with linked evidence and observation limits.
 
-Compound query: "This question combines roads and settlements. The tools retrieve the two types of evidence independently. A modeled loss of road connection uses an explicit overlap threshold. Water beneath bridges does not establish failure; actual closure remains unverified."
+**00:00:36 --> 00:00:45**
 
-Unsupported question: "The available inputs cannot establish casualties or population. The assistant supplies no estimate for this question. Missing evidence is never replaced with a plausible number or a zero."
+Clicking a citation opens its fact, source, and method. Every number stays traceable to this specific analysis.
 
-Report: "The report generator resolves numerical fields in Python and creates a saved report snapshot. English and Nepali HTML, PDF and JSON downloads preserve provenance, limitations and attribution. Older or synthetic observations can lack acquisition dates, which remain marked unavailable."
+**00:00:45 --> 00:01:09**
 
-Closing: "This is an educational prototype. Fact binding constrains claims, but it cannot prove map accuracy, field access or translation quality. Satellite revisit gaps prevent minute-ahead warnings. Reference damage maps are kept separate and used only for independent evaluation."
+Next, we examine settlement access. The dashboard separates uncertain access, unassessed settlements, and places already disconnected in the mapped baseline. Opening a settlement reveals route evidence and a hospital-specific assessment. These are modeled scenarios. Unverified connections and water beneath a bridge do not prove that a road is closed.
+
+**00:01:09 --> 00:01:39**
+
+Now I switch to Nepali and ask about observation coverage. The response uses the same saved facts, preserving names, values, and uncertainty. Groq answers in Nepali, while the visible engine label confirms how the response was produced. Language quality still requires native-speaker review. The aim is consistent access to evidence across languages, without changing the measurements or turning uncertainty into certainty.
+
+**00:01:39 --> 00:01:48**
+
+Here, the evidence panel exposes fact identifiers and original values. Matching saved facts verifies consistency, rather than physical mapping accuracy.
+
+**00:01:48 --> 00:02:00**
+
+When I ask how many people died, the copilot refuses to estimate. Satellite images and mapped infrastructure cannot establish casualties, missing people, or population impacts.
+
+**00:02:00 --> 00:02:15**
+
+Next, I generate a Nepali situation report. Its downloadable formats preserve source dates, evidence, and limitations. The preview explicitly identifies cached real inputs, partial coverage, and measurements that remain unavailable.
+
+**00:02:15 --> 00:02:27**
+
+Published Copernicus emergency maps are used only for evaluation. Here, the landslide reference lacks eligible matching observations, so accuracy is marked unavailable.
+
+**00:02:27 --> 00:02:36**
+
+Flooline is an educational prototype, not an operational warning system. Independent field checks and native Nepali review remain necessary.
+
+**00:02:36 --> 00:03:00**
+
+Data credits go to Copernicus Sentinel, Copernicus WorldDEM, and OpenStreetMap contributors. Full acknowledgements appear on screen. Flooline combines satellite mapping, access analysis, and bilingual reporting in one workspace. It presents traceable information with visible limitations, helping users understand the evidence and recognize where additional verification is still needed. Thank you for watching.
 
 ## Recording commands
 
 After starting the website, record a real selected analysis:
 
 ```bash
-uv run python scripts/record_demo.py --run-id REAL_RUN_UUID --output output/video/copilot-demo.mp4
+uv run python scripts/record_demo.py --run-id REAL_RUN_UUID --require-llm --output output/video/flooline-script-demo.mp4
 ```
 
-For an explicitly synthetic walkthrough, add --preview and use a current-route demo UUID. The helper uses an isolated Chromium profile and ffmpeg, records captions without voiceover, retains engine/mode labels and exports a three-minute MP4 plus a manifest. If provider latency extends capture time, the complete recording is rescaled to three minutes so the final attribution is preserved. Do not use victim imagery.
+For an explicitly synthetic walkthrough, add --preview and use a current-route demo UUID. The helper uses an isolated Chromium profile and ffmpeg, records captions without voiceover, retains engine/mode labels and exports a three-minute MP4 plus a manifest. Each scene is edited to its fixed playback cue, preserving the narration timing and final attribution. The --require-llm flag rejects supported answers that fall back instead of using Groq. A take is also rejected for visible UI errors, HTTP errors, JavaScript page errors or new acquisition requests. Do not use victim imagery.
 
 ## Judge Q&A prompts
 
