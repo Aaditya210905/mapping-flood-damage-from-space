@@ -274,7 +274,7 @@ function renderRun(run) {
   $("map-badge").classList.toggle("demo", run.mode === "demo");
   $("run-title").textContent = run.name;
   const mappingMethod = run.provenance.mapping?.algorithm || run.provenance.water_model?.algorithm || "Rule-based change detection";
-  $("run-meta").textContent = `${dateLabel(run.flood_date)} · ${mappingMethod}`;
+  $("run-meta").textContent = `${run.acquisition_mode === "cached_reprocessing" ? "Cached real inputs · " : ""}${dateLabel(run.flood_date)} · ${mappingMethod}`;
   $("evidence-mode").textContent = run.mode === "demo" ? "Synthetic inputs" : "Actual observations";
   $("evidence-mode").classList.toggle("demo", run.mode === "demo");
   $("notice").className = `notice ${run.mode}`;
@@ -311,7 +311,7 @@ function renderRun(run) {
   $("provenance-content").innerHTML = rows.map(([k, v]) => `<div class="provenance-row"><span>${escapeHTML(k)}</span><strong>${escapeHTML(v)}</strong></div>`).join("") + run.warnings.map((w) => `<p class="field-note">${escapeHTML(w)}</p>`).join("");
   $("limitations-list").innerHTML = run.limitations.map((item) => `<li>${escapeHTML(item)}</li>`).join("");
   const score = (value) => Number.isFinite(value) ? value.toFixed(3) : "N/A";
-  $("evaluation-status").textContent = run.evaluation.metrics ? `${run.mode === "demo" ? "Synthetic sanity check" : "Official EMSR927 comparison"}: IoU ${score(run.evaluation.metrics.iou)}, F1 ${score(run.evaluation.metrics.f1)}. ${run.evaluation.limitations}` : run.evaluation.reason;
+  $("evaluation-status").textContent = run.evaluation.metrics ? `${run.mode === "demo" ? "Synthetic sanity check" : "Official EMSR927 comparison"}: IoU ${score(run.evaluation.metrics.iou)}, F1 ${score(run.evaluation.metrics.f1)}. ${run.evaluation.reason || ""} ${run.evaluation.primary_target || ""}. ${run.evaluation.limitations}` : run.evaluation.reason;
   $("conversation").replaceChildren();
   renderMap(run);
   renderSources();

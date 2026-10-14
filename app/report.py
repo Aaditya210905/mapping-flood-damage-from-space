@@ -82,6 +82,7 @@ def report_html(run, language='en', data=None, *, font_size=9.5):
     partial=('<p class="notice">'+('अपूर्ण प्रतिवेदन — आंशिक अवलोकन। उपलब्ध नभएका मापन शून्य होइनन्।' if i else 'INCOMPLETE REPORT — partial observations. Unavailable measurements are not zero.')+' '+escape(', '.join(missing_labels))+'</p>') if data.status=='partial' else ''
     sections=''.join('<section><h2>'+escape(section.heading)+'</h2>'+''.join('<p>'+escape(line)+'</p>' for line in section.lines)+'</section>' for section in data.sections)
     credits='<br>'.join(escape(text) for text in data.attributions)
+    data_mode_label='CACHED REAL INPUTS' if run.get('acquisition_mode')=='cached_reprocessing' else data.data_mode.upper()
     mode_label=('Groq-assisted; values verified from map facts' if data.generation.mode=='llm' else 'Deterministic evidence-backed report') if not i else ('Groq सहयोग; मापन नक्साको तथ्यबाट जाँचिएको' if data.generation.mode=='llm' else 'नक्साको प्रमाणमा आधारित निश्चित प्रतिवेदन')
     return f'''<!doctype html><html lang="{language}"><head><meta charset="utf-8"><title>{escape(data.title)}</title>
 <style>
@@ -95,7 +96,7 @@ header{{border-bottom:2px solid #286e56;padding-bottom:8px}}small{{font-size:7.2
 footer{{border-top:1px solid #cbd8c9;margin-top:10px;padding-top:6px;font-size:6.8pt;line-height:1.25}}button{{padding:9px 14px;background:#286e56;color:white;border:0;margin-bottom:12px;cursor:pointer}}
 @media print{{body{{margin:0;padding:0;max-width:none}}button{{display:none}}}}
 </style></head><body><button onclick="window.print()">Print / Save PDF</button>
-<header><small>FLOODLENS AI · {escape(data.data_mode.upper())} · {escape(mode_label)}</small><h1>{escape(data.title)}</h1>
+<header><small>FLOODLENS AI · {escape(data_mode_label)} · {escape(mode_label)}</small><h1>{escape(data.title)}</h1>
 <p>{escape(data.analysis_name)} · {escape(data.event_date)}</p><small>{'तयार भएको समय' if i else 'Generated'}: {escape(data.generated_at)}<br>Run {escape(data.run_id)} · Report {escape(data.report_id)}</small>{demo}{partial}</header>
 {sections}<footer>{credits}<br>{'शैक्षिक नमुना; क्षेत्रीय सत्यापन आवश्यक।' if i else 'Educational prototype; independent field verification required.'}</footer></body></html>'''
 
