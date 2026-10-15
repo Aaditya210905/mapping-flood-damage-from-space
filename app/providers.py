@@ -13,6 +13,7 @@ from shapely import from_wkb
 from shapely.geometry import box, shape, mapping
 
 from app.models import Scene, validate_pair
+from app.presets import osm_cutoff
 
 
 STAC_URL = "https://stac.dataspace.copernicus.eu/v1/search"
@@ -20,7 +21,6 @@ PROCESS_URL = "https://sh.dataspace.copernicus.eu/process/v1"
 TOKEN_URL = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
 OSM_URL = "https://api.ohsome.org/v1"
 OSM_V2_URL = "https://api.heigit.org/ohsome-api/v2-rc"
-NEPAL_OSM_CUTOFF = datetime(2026, 7, 27, 23, 59, 59, tzinfo=timezone.utc)
 OSM_FILTER = "building=* or highway=* or bridge=* or man_made=bridge or place in (village,hamlet,isolated_dwelling,town,city) or amenity=hospital"
 
 
@@ -63,8 +63,8 @@ def search_catalog(bbox, start, end, collection="sentinel-1-grd"):
 
 def scene_from_item(item):
     props = item["properties"]
-    if "VV" not in props.get("sar:polarizations", []):
-        raise ValueError("VV polarization unavailable")
+    if not {"VV", "VH"}.issubset(props.get("sar:polarizations", [])):
+        raise ValueError("This acquisition path requires both VV and VH polarizations")
     return Scene(id=item["id"], acquired=datetime.fromisoformat(props["datetime"].replace("Z", "+00:00")),
                  relative_orbit=props["sat:relative_orbit"], direction=props["sat:orbit_state"],
                  platform=props["platform"], instrument_mode=props.get("sar:instrument_mode", "UNKNOWN"))
@@ -108,11 +108,11 @@ def metadata_times(body):
             datetime.fromisoformat(end.replace("Z", "+00:00")))
 
 
-def choose_snapshot(body, event, hint=None):
+def choose_snapshot(body, event, hint=None, cutoff=None):
     earliest, latest = metadata_times(body)
     limit = event - timedelta(seconds=1)
-    if event.date().isoformat() == "2026-08-26":
-        limit = min(limit, NEPAL_OSM_CUTOFF)
+    if cutoff is not None:
+        limit = min(limit, cutoff)
     snapshot = min(latest, limit, hint) if hint else min(latest, limit)
     if earliest and snapshot < earliest:
         raise ValueError("The event predates the historical OSM service coverage.")
@@ -129,7 +129,7 @@ def historical_v2(client, params, event, snapshot_hint=None):
     metadata = client.get(f"{OSM_V2_URL}/metadata", headers=headers)
     metadata.raise_for_status()
     body = metadata.json()
-    snapshot = choose_snapshot(body, event, snapshot_hint)
+    snapshot = choose_snapshot(body, event, snapshot_hint, osm_cutoff(params))
     timestamp = snapshot.isoformat().replace("+00:00", "Z")
     response = client.get(f"{OSM_V2_URL}/extraction/features.parquet", params={
         "aoi": ",".join(map(str, params.bbox)), "time": timestamp, "filter": OSM_FILTER, "clip": "true",
@@ -157,7 +157,7 @@ def osm_snapshot(params):
         try:
             metadata = historical_request(client,"GET",f"{OSM_URL}/metadata")
             metadata.raise_for_status()
-            snapshot = choose_snapshot(metadata.json(), event)
+            snapshot = choose_snapshot(metadata.json(), event, cutoff=osm_cutoff(params))
             timestamp = snapshot.isoformat().replace("+00:00", "Z")
             response = historical_request(client,"POST",f"{OSM_URL}/elements/geometry", data={
                 "bboxes": ",".join(map(str, params.bbox)), "time": timestamp,

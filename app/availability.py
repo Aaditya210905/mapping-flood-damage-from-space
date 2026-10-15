@@ -30,8 +30,13 @@ def normalize_analysis_availability(run):
         if not _percentage(coverage):
             coverage = None
         status = entry.get("status")
-        if entry.get("eligible_pixels") == 0 or coverage == 0:
+        pixels = entry.get("eligible_pixels")
+        if type(pixels) is int and pixels > 0 and coverage == 0 and type(entry.get('aoi_pixels')) is int and entry['aoi_pixels'] > 0:
+            coverage = 100 * pixels / entry['aoi_pixels']
+        if pixels == 0 or (pixels is None and coverage == 0):
             status = "unavailable"
+        elif type(pixels) is int and pixels > 0 and status not in ("available", "partial"):
+            status = "available" if pixels == entry.get("aoi_pixels") else "partial"
         elif status not in ("available", "partial", "unavailable") and coverage is not None:
             status = "available" if coverage == 100 else "partial"
         if status in ("available", "partial", "unavailable"):

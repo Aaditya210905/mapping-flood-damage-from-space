@@ -14,20 +14,21 @@ def draft_for(context, fact, language='en', topic='summary', **updates):
         sections=[AnswerSection(topic=topic,claims=[claim],explanations=[])])
 
 
-def test_six_tools_are_read_only_run_bound_and_typed(evidence_run):
+def test_tools_are_read_only_run_bound_and_typed(evidence_run):
     before=copy.deepcopy(evidence_run)
     context=EvidenceContext(evidence_run,evidence_run['id'])
     feature=next(f for f in evidence_run['layers']['settlements']['features'])['properties']['id']
     requests=[('event_summary',{}),('flood_surface_change',{}),
         ('infrastructure_impacts',{'asset_type':'roads','only_exposed':True,'offset':0,'limit':2}),
         ('settlement_connectivity',{'status':'all','offset':0,'limit':2}),
-        ('sources_limitations',{}),('feature_evidence',{'layer':'settlements','feature_id':feature})]
+        ('sources_limitations',{}),('feature_evidence',{'layer':'settlements','feature_id':feature}),
+        ('mapped_inventory',{'layer':'destinations','destination_type':'hospital'})]
     for name,args in requests:
         result=context.call(name,args)
         assert result.run_id==context.run_id
         assert all(f.run_id==context.run_id and f.fact_id.startswith(context.run_id+':') for f in result.facts)
     assert evidence_run==before
-    assert len(tool_definitions())==6
+    assert len(tool_definitions())==7
     with pytest.raises(ValidationError):
         context.call('event_summary',{'run_id':str(uuid.uuid4())})
     with pytest.raises(EvidenceError):

@@ -164,3 +164,11 @@ def test_reprocessing_refuses_osm_version_outside_snapshot(cdse_cache):
     path.write_text(json.dumps(osm))
     with pytest.raises(ValueError, match="not valid"):
         load_cached_cdse_inputs(source)
+def test_reprocessing_accepts_the_supported_historical_v2_source(cdse_cache):
+    source, _, _, _ = cdse_cache
+    path = source / 'osm-snapshot.geojson'
+    osm = json.loads(path.read_text())
+    osm['metadata']['sourceApi'] = 'https://api.heigit.org/ohsome-api/v2-rc'
+    path.write_text(json.dumps(osm))
+    _, inputs = load_cached_cdse_inputs(source)
+    assert inputs['osm']['metadata']['sourceApi'] == 'https://api.heigit.org/ohsome-api/v2-rc'

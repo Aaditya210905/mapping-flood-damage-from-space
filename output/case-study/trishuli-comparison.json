@@ -1,0 +1,142 @@
+{
+  "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+  "source_sha256": "75b97042104b057a8e24ed14232e48b404e5cf5c828d8af0aa093c1c1be5b099",
+  "mode": "live",
+  "acquisition_mode": "cached_reprocessing",
+  "analysis_status": "partial",
+  "bbox": [
+    85.19,
+    27.9,
+    85.41,
+    28.3
+  ],
+  "flood_date": "2026-08-26",
+  "parameters": {
+    "name": "Trishuli river corridor",
+    "bbox": [
+      85.19,
+      27.9,
+      85.41,
+      28.3
+    ],
+    "flood_date": "2026-08-26",
+    "case_id": null,
+    "mode": "live",
+    "satellite_provider": "copernicus",
+    "resolution_m": 30,
+    "search_days": 24,
+    "water_threshold_db": -17.0,
+    "change_threshold_db": 3.0,
+    "max_slope_deg": 20.0,
+    "min_component_pixels": 9
+  },
+  "statistics": {
+    "buildings_total": 49468,
+    "buildings_exposed": 0,
+    "roads_total": 817,
+    "roads_exposed": 0,
+    "road_exposed_km": 0.0,
+    "bridges_total": 118,
+    "bridges_exposed": 0,
+    "settlements_total": 109,
+    "settlements_cut_off": 0,
+    "settlements_unassessed": 56,
+    "settlements_baseline_disconnected": 6,
+    "settlements_access_uncertain": 47,
+    "roads_unassessed_or_partial": 711,
+    "buildings_unassessed_or_partial": 26382,
+    "bridges_unassessed_or_partial": 70,
+    "destinations_total": 9,
+    "water_km2": 0.0,
+    "debris_km2": null,
+    "permanent_water_km2": 0.701,
+    "valid_area_km2": 130.7,
+    "valid_coverage_pct": 13.6,
+    "optical_clear_pct": 0.0,
+    "radar_valid_coverage_pct": 97.6,
+    "water_eligible_coverage_pct": 13.639364832487576,
+    "debris_eligible_coverage_pct": 0.0
+  },
+  "class_availability": {
+    "water": {
+      "status": "partial",
+      "eligible_pixels": 145222,
+      "aoi_pixels": 1064727,
+      "eligible_area_km2": 130.7,
+      "coverage_pct": 13.639364832487576,
+      "missing_reason": null,
+      "interpretation": "Potential new water within eligible low-slope observations"
+    },
+    "debris": {
+      "status": "unavailable",
+      "eligible_pixels": 0,
+      "aoi_pixels": 1064727,
+      "eligible_area_km2": 0.0,
+      "coverage_pct": 0.0,
+      "missing_reason": "No suitable paired optical scenes are available for debris assessment.",
+      "interpretation": "Possible debris or land-cover change within paired clear optical observations"
+    }
+  },
+  "radar_scenes": [
+    {
+      "id": "S1D_IW_GRDH_1SDV_20260816T122141_20260816T122206_004151_007980_B091_COG",
+      "acquired": "2026-08-16T12:21:41.058298Z",
+      "relative_orbit": 85,
+      "direction": "ascending",
+      "platform": "sentinel-1d",
+      "polarization": "VV",
+      "instrument_mode": "IW"
+    },
+    {
+      "id": "S1D_IW_GRDH_1SDV_20260828T122141_20260828T122206_004326_007FA4_C73B_COG",
+      "acquired": "2026-08-28T12:21:41.762029Z",
+      "relative_orbit": 85,
+      "direction": "ascending",
+      "platform": "sentinel-1d",
+      "polarization": "VV",
+      "instrument_mode": "IW"
+    }
+  ],
+  "osm_snapshot": "2026-07-27T08:59:58Z",
+  "mapping_configuration": {
+    "version": "rule-based-v2",
+    "resolution_m": 30,
+    "search_days": 24,
+    "water_threshold_db": -17.0,
+    "change_threshold_db": 3.0,
+    "max_slope_deg": 20.0,
+    "min_component_pixels": 9,
+    "optical_water_threshold": 0.2,
+    "vegetation_baseline_threshold": 0.3,
+    "vegetation_loss_threshold": 0.25,
+    "bare_surface_increase_threshold": 0.1,
+    "optical_only_vegetation_loss_threshold": 0.4,
+    "optical_only_bare_increase_threshold": 0.2,
+    "road_overlap_cell_fraction": 0.5,
+    "road_snap_distance_m": 100.0
+  },
+  "acquisition_provider": "Copernicus Data Space Sentinel Hub Processing API",
+  "attributions": [
+    "Contains modified Copernicus Sentinel data 2026.",
+    "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.",
+    "© OpenStreetMap contributors."
+  ],
+  "generated_at": "2026-10-15T02:01:12.412771+00:00",
+  "comparisons": {
+    "extent": {
+      "status": "unavailable",
+      "file": "emsr927-extent-evaluation.json",
+      "sha256": "1c4a6e183479bc4e849ae169b278c8d555c3e54e6cce0c48394727e192baed47"
+    },
+    "assets": {
+      "status": "unavailable",
+      "file": "emsr927-assets-evaluation.json",
+      "sha256": "0578b23b28c28429f5f86d3c6950ba7e5f6b295d82c63b2f3b6d89b4ad5ba21f"
+    }
+  },
+  "limitations": "Evaluation only; unavailable matching observations are not negative impact or accuracy. No field verification or native Nepali sign-off.",
+  "fresh_verification": {
+    "file": "fresh-run-summary.json",
+    "sha256": "c4de72a8850de22c03573b0c984c4073c80c5c330f875af0549b0846519c01f5"
+  }
+}

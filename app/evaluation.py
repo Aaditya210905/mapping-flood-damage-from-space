@@ -11,6 +11,17 @@ from app.geo import Grid
 from app.storage import sha256
 
 
+def joint_hazard_observations(folder,grid,observed):
+    """Absence of any hazard is assessable only when both classes were observed."""
+    path=Path(folder)/'eligibility.tif'
+    if not path.is_file():return np.zeros_like(observed,dtype=bool)
+    with rasterio.open(path) as source:
+        if (source.count<3 or (source.height,source.width)!=(grid.height,grid.width)
+                or source.crs!=rasterio.crs.CRS.from_string(grid.crs) or source.transform!=grid.transform):
+            raise ValueError('Class eligibility must match the prediction grid')
+        return np.asarray(observed,dtype=bool)&(source.read(2)>0)&(source.read(3)>0)
+
+
 def binary_metrics(prediction, reference, valid):
     prediction, reference = np.asarray(prediction, dtype=bool)[valid], np.asarray(reference, dtype=bool)[valid]
     tp = int(np.sum(prediction & reference))

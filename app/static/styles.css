@@ -358,3 +358,7 @@ td:first-child { font-weight: 500; }
   .feature-link, .fact-link, .map-tools button { min-height: 44px; }
   .map-tools button { min-width: 44px; }
 }
+.matching-list { margin: 12px 0; max-width: 100%; overflow-x: auto; }
+.matching-list-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.matching-list-table td { padding: 7px 5px; border-bottom: 1px solid var(--border, #d4ddd0); overflow-wrap: anywhere; }
+.matching-list-table td:first-child { width: 40%; }

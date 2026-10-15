@@ -16,6 +16,8 @@ from app.models import ATTRIBUTIONS, LIMITATIONS, validate_pair
 from app.providers import acquire_live
 from app.public_data import acquire_public
 from app.sources import MAPPING_METHOD
+from app.presets import osm_cutoff
+from app.settings import MAPPING
 
 ANALYSIS_SOURCE_POLICY = "Only Sentinel-1, Sentinel-2, Copernicus DEM and pre-event OSM are analysis inputs. No flood-segmentation model or external training dataset is used. Published damage maps are evaluation-only."
 
@@ -40,7 +42,7 @@ def class_availability(detected, aoi, grid, optical_pair_available):
             "eligible_pixels": count,
             "aoi_pixels": total,
             "eligible_area_km2": round(count * grid.resolution ** 2 / 1e6, 3),
-            "coverage_pct": round(100 * count / max(1, total), 1),
+            "coverage_pct": 100 * count / max(1, total),
             "missing_reason": reason,
             "interpretation": ("Potential new water within eligible low-slope observations"
                                if kind == "water" else
@@ -68,8 +70,9 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None, *
     validate_pair(*inputs["scenes"], params.flood_date)
     if str(inputs["snapshot"])[:10] >= str(params.flood_date):
         raise ValueError("OSM snapshot must predate the event.")
-    if params.mode != "demo" and str(params.flood_date) == "2026-08-26" and str(inputs["snapshot"])[:10] > "2026-07-27":
-        raise ValueError("The Nepal case requires historical OSM from 27 July 2026 or earlier. Reacquire an allowed snapshot before analysis.")
+    cutoff = osm_cutoff(params)
+    if params.mode != "demo" and cutoff is not None and datetime.fromisoformat(str(inputs["snapshot"]).replace("Z", "+00:00")) > cutoff:
+        raise ValueError(f"The selected case requires historical OSM at or before {cutoff.isoformat()}. Reacquire an allowed snapshot before analysis.")
     progress("Mapping new inundation and possible debris", 72)
     detected = detect_changes(inputs["before"], inputs["after"], grid, params, inputs["dem"], inputs["optical_before"], inputs["optical_after"])
     # A geographic rectangle is not axis-aligned in UTM. Exclude padding cells
@@ -113,8 +116,8 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None, *
         "valid_coverage_pct": round(float(detected["valid"].sum() / max(1, aoi.sum())) * 100, 1),
         "optical_clear_pct": round(float(detected["optical_valid"].sum() / max(1, aoi.sum())) * 100, 1),
         "radar_valid_coverage_pct": round(float(detected["radar_valid"].sum()/max(1,aoi.sum()))*100,1),
-        "water_eligible_coverage_pct": round(float(detected["water_eligible"].sum()/max(1,aoi.sum()))*100,1),
-        "debris_eligible_coverage_pct": round(float(detected["debris_eligible"].sum()/max(1,aoi.sum()))*100,1),
+        "water_eligible_coverage_pct": availability["water"]["coverage_pct"],
+        "debris_eligible_coverage_pct": availability["debris"]["coverage_pct"],
     })
     warnings = list(inputs.get("warnings", []))
     if not any(c["eligible_pixels"] for c in availability.values()):
@@ -146,7 +149,7 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None, *
                           "osm_source_api": inputs["osm"].get("metadata", {}).get("sourceApi", "synthetic"),
                           "crs": grid.crs, "resolution_m": grid.resolution, "grid_bounds": grid.bounds,
                           "source_policy": ANALYSIS_SOURCE_POLICY,
-                          "ai_component": COPILOT_INFO},
+                          "ai_component": COPILOT_INFO, "mapping_configuration": MAPPING.model_dump()},
            "warnings": warnings, "limitations": LIMITATIONS, "attributions": ATTRIBUTIONS,
            "evaluation": {"status": "pending", "activation": "EMSR927", "reason": "No official reference inundation geometry and reviewed coverage have been supplied. No accuracy claim is made."}}
     if inputs.get("reprocessing"):

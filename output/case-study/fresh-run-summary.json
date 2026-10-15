@@ -1,0 +1,124 @@
+{
+  "run_id": "25236045-4d1e-4fd5-baac-26918b4224e7",
+  "source_sha256": "218a99c6b629765e5d152b0e4e52469228bcaf542177e79d3c149923e06885f9",
+  "mode": "live",
+  "acquisition_mode": "fresh_acquisition",
+  "analysis_status": "partial",
+  "bbox": [
+    85.28,
+    28.0,
+    85.32,
+    28.04
+  ],
+  "flood_date": "2026-08-26",
+  "parameters": {
+    "name": "Trishuli small-area validation",
+    "bbox": [
+      85.28,
+      28.0,
+      85.32,
+      28.04
+    ],
+    "flood_date": "2026-08-26",
+    "case_id": "custom",
+    "mode": "live",
+    "satellite_provider": "copernicus",
+    "resolution_m": 30,
+    "search_days": 24,
+    "water_threshold_db": -17.0,
+    "change_threshold_db": 3.0,
+    "max_slope_deg": 20.0,
+    "min_component_pixels": 9
+  },
+  "statistics": {
+    "buildings_total": 1744,
+    "buildings_exposed": 0,
+    "roads_total": 18,
+    "roads_exposed": 0,
+    "road_exposed_km": 0.0,
+    "bridges_total": 5,
+    "bridges_exposed": 0,
+    "settlements_total": 11,
+    "settlements_cut_off": 0,
+    "settlements_unassessed": 11,
+    "settlements_baseline_disconnected": 0,
+    "settlements_access_uncertain": 0,
+    "roads_unassessed_or_partial": 17,
+    "buildings_unassessed_or_partial": 933,
+    "bridges_unassessed_or_partial": 5,
+    "destinations_total": 0,
+    "water_km2": 0.0,
+    "debris_km2": null,
+    "permanent_water_km2": 0.0,
+    "valid_area_km2": 2.256,
+    "valid_coverage_pct": 12.9,
+    "optical_clear_pct": 0.0,
+    "radar_valid_coverage_pct": 99.9,
+    "water_eligible_coverage_pct": 12.942026741004595,
+    "debris_eligible_coverage_pct": 0.0
+  },
+  "class_availability": {
+    "water": {
+      "status": "partial",
+      "eligible_pixels": 2507,
+      "aoi_pixels": 19371,
+      "eligible_area_km2": 2.256,
+      "coverage_pct": 12.942026741004595,
+      "missing_reason": null,
+      "interpretation": "Potential new water within eligible low-slope observations"
+    },
+    "debris": {
+      "status": "unavailable",
+      "eligible_pixels": 0,
+      "aoi_pixels": 19371,
+      "eligible_area_km2": 0.0,
+      "coverage_pct": 0.0,
+      "missing_reason": "No suitable paired optical scenes are available for debris assessment.",
+      "interpretation": "Possible debris or land-cover change within paired clear optical observations"
+    }
+  },
+  "radar_scenes": [
+    {
+      "id": "S1D_IW_GRDH_1SDV_20260816T122141_20260816T122206_004151_007980_B091_COG",
+      "acquired": "2026-08-16T12:21:41.058298Z",
+      "relative_orbit": 85,
+      "direction": "ascending",
+      "platform": "sentinel-1d",
+      "polarization": "VV",
+      "instrument_mode": "IW"
+    },
+    {
+      "id": "S1D_IW_GRDH_1SDV_20260828T122141_20260828T122206_004326_007FA4_C73B_COG",
+      "acquired": "2026-08-28T12:21:41.762029Z",
+      "relative_orbit": 85,
+      "direction": "ascending",
+      "platform": "sentinel-1d",
+      "polarization": "VV",
+      "instrument_mode": "IW"
+    }
+  ],
+  "osm_snapshot": "2026-07-27T08:59:58Z",
+  "mapping_configuration": {
+    "version": "rule-based-v2",
+    "resolution_m": 30,
+    "search_days": 24,
+    "water_threshold_db": -17.0,
+    "change_threshold_db": 3.0,
+    "max_slope_deg": 20.0,
+    "min_component_pixels": 9,
+    "optical_water_threshold": 0.2,
+    "vegetation_baseline_threshold": 0.3,
+    "vegetation_loss_threshold": 0.25,
+    "bare_surface_increase_threshold": 0.1,
+    "optical_only_vegetation_loss_threshold": 0.4,
+    "optical_only_bare_increase_threshold": 0.2,
+    "road_overlap_cell_fraction": 0.5,
+    "road_snap_distance_m": 100.0
+  },
+  "acquisition_provider": "Copernicus Data Space Sentinel Hub Processing API",
+  "attributions": [
+    "Contains modified Copernicus Sentinel data 2026.",
+    "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.",
+    "© OpenStreetMap contributors."
+  ]
+}

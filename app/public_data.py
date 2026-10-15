@@ -253,6 +253,9 @@ def acquire_public(params, grid, folder, progress):
     catalog_path = cache / "radar-catalog.json"
     items = json.loads(catalog_path.read_text()) if catalog_path.exists() else catalog(params, "sentinel-1-grd")
     save_json(catalog_path, items)
+    # A STAC polarization declaration does not guarantee both downloadable
+    # measurements are present. Reject incomplete products before selection.
+    items = [item for item in items if {"vv", "vh"}.issubset(item.get("assets", {}))]
     scenes = select_pair(items, params)
     selected = [next(item for item in items if item["id"] == scene.id) for scene in scenes]
     pad = 64
@@ -295,7 +298,7 @@ def acquire_public(params, grid, folder, progress):
         write_grid(Path(folder) / f"terrain-{'before' if index == 0 else 'after'}.tif", quality, grid)
     optical_before, optical_after, optical_scenes = None, None, []
     optical_observations = []
-    warnings = ["Annotation-driven local layover/self-shadow and DEM ray screening are applied over a 1.92 km horizon. Visibility is approximate; distant occlusion and subpixel terrain remain uncertain."]
+    warnings = [f"Annotation-driven local layover/self-shadow and DEM ray screening are applied over a {pad * grid.resolution / 1000:g} km horizon. Visibility is approximate; distant occlusion and subpixel terrain remain uncertain."]
     progress("Downloading actual Sentinel-2 clear-sky support", 63)
     try:
         optical_catalog = cache / "optical-catalog.json"

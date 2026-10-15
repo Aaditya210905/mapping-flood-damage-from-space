@@ -1,0 +1,43 @@
+1
+00:00:00,000 --> 00:00:21,000
+Hello everyone. Now I will start the introduction to Flooline, our flood-mapping copilot. We compare saved, real radar images from before and after the event. Only thirteen point six percent of this area supports water assessment. Debris assessment is unavailable.
+
+2
+00:00:21,000 --> 00:00:36,000
+First, I ask how much new water was detected and how much of the area was eligible. Groq retrieves the saved measurements and returns an answer with linked evidence and observation limits.
+
+3
+00:00:36,000 --> 00:00:45,000
+Clicking a citation opens its fact, source, and method. Every number stays traceable to this specific analysis.
+
+4
+00:00:45,000 --> 00:01:09,000
+Next, we examine settlement access. The dashboard separates uncertain access, unassessed settlements, and places already disconnected in the mapped baseline. Opening a settlement reveals route evidence and a hospital-specific assessment. These are modeled scenarios. Unverified connections and water beneath a bridge do not prove that a road is closed.
+
+5
+00:01:09,000 --> 00:01:39,000
+Now I switch to Nepali and ask about observation coverage. The response uses the same saved facts, preserving names, values, and uncertainty. Groq answers in Nepali, while the visible engine label confirms how the response was produced. Language quality still requires native-speaker review. The aim is consistent access to evidence across languages, without changing the measurements or turning uncertainty into certainty.
+
+6
+00:01:39,000 --> 00:01:48,000
+Here, the evidence panel exposes fact identifiers and original values. Matching saved facts verifies consistency, rather than physical mapping accuracy.
+
+7
+00:01:48,000 --> 00:02:00,000
+Next, I check the analysis sources. This panel identifies satellite imagery, elevation data, and historical OpenStreetMap, with dates and provenance tied to this run.
+
+8
+00:02:00,000 --> 00:02:15,000
+Next, I generate a Nepali situation report. Its downloadable formats preserve source dates, evidence, and limitations. The preview explicitly identifies cached real inputs, partial coverage, and measurements that remain unavailable.
+
+9
+00:02:15,000 --> 00:02:27,000
+Published Copernicus emergency maps are used only for evaluation. Here, the landslide reference lacks eligible matching observations, so accuracy is marked unavailable.
+
+10
+00:02:27,000 --> 00:02:36,000
+Flooline is an educational prototype, not an operational warning system. Independent field checks and native Nepali review remain necessary.
+
+11
+00:02:36,000 --> 00:03:00,000
+Data credits go to Copernicus Sentinel, Copernicus WorldDEM, and OpenStreetMap contributors. Full acknowledgements appear on screen. Flooline combines satellite mapping, access analysis, and bilingual reporting in one workspace. It presents traceable information with visible limitations, helping users understand the evidence and recognize where additional verification is still needed. Thank you for watching.

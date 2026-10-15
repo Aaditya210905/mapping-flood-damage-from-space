@@ -1,0 +1,389 @@
+{
+  "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+  "data_mode": "live",
+  "synthetic_preview": false,
+  "duration_seconds": 180,
+  "acquisition_mode": "cached_reprocessing",
+  "analysis_status": "partial",
+  "captioned": true,
+  "narration": false,
+  "actual_duration_seconds": 180.0,
+  "llm_configuration": {
+    "provider": "groq",
+    "enabled": true,
+    "configured": true,
+    "model": "openai/gpt-oss-120b",
+    "fallback_available": true,
+    "status": "configured"
+  },
+  "segments": [
+    {
+      "capture_seconds": 0.0,
+      "caption": "Flooline: a flood-mapping copilot. Saved real satellite inputs and pre-event OpenStreetMap; this walkthrough does not acquire new imagery.",
+      "playback_start_seconds": 0,
+      "playback_end_seconds": 6,
+      "capture_duration_seconds": 5.08
+    },
+    {
+      "capture_seconds": 5.08,
+      "caption": "Before and after Sentinel-1 observations use compatible radar geometry. Historical OSM and source dates stay attached to this analysis.",
+      "playback_start_seconds": 6,
+      "playback_end_seconds": 12,
+      "capture_duration_seconds": 4.98
+    },
+    {
+      "capture_seconds": 10.06,
+      "caption": "Water assessment covers 13.6% of this area. Debris needs usable paired optical observations. Results describe assessed areas; other areas remain unknown.",
+      "playback_start_seconds": 12,
+      "playback_end_seconds": 21,
+      "capture_duration_seconds": 9.96
+    },
+    {
+      "capture_seconds": 20.02,
+      "caption": "Ask a compound English question. The copilot retrieves mapped water and observation coverage. The displayed engine identifies Groq or the deterministic fallback actually used.",
+      "playback_start_seconds": 21,
+      "playback_end_seconds": 36,
+      "capture_duration_seconds": 16.99
+    },
+    {
+      "capture_seconds": 37.01,
+      "caption": "Clicking a citation opens the exact fact, source path and method. Area-wide measurements refer to the selected analysis, rather than an invented map location.",
+      "playback_start_seconds": 36,
+      "playback_end_seconds": 45,
+      "capture_duration_seconds": 10.99
+    },
+    {
+      "capture_seconds": 48.0,
+      "caption": "Access results distinguish uncertain, unassessed and baseline-disconnected settlements. A missing observed route does not automatically mean a village was cut off by flooding.",
+      "playback_start_seconds": 45,
+      "playback_end_seconds": 57,
+      "capture_duration_seconds": 11.0
+    },
+    {
+      "capture_seconds": 59.0,
+      "caption": "Settlement details link modeled routes, destination-specific hospital evidence and unverified connectors. Water below a bridge does not establish bridge failure or a confirmed road closure.",
+      "playback_start_seconds": 57,
+      "playback_end_seconds": 69,
+      "capture_duration_seconds": 15.0
+    },
+    {
+      "capture_seconds": 74.0,
+      "caption": "Switch to Nepali and ask about observation coverage. Saved values and uncertainty remain unchanged; native-speaker terminology review is pending.",
+      "playback_start_seconds": 69,
+      "playback_end_seconds": 99,
+      "capture_duration_seconds": 31.0
+    },
+    {
+      "capture_seconds": 105.0,
+      "caption": "The evidence panel exposes fact IDs and canonical values. Matching saved facts verifies numerical consistency; it does not verify physical mapping accuracy.",
+      "playback_start_seconds": 99,
+      "playback_end_seconds": 108,
+      "capture_duration_seconds": 9.0
+    },
+    {
+      "capture_seconds": 114.0,
+      "caption": "Inspect Data & method: recorded satellite inputs, elevation and historical OpenStreetMap stay attached to the selected analysis.",
+      "playback_start_seconds": 108,
+      "playback_end_seconds": 120,
+      "capture_duration_seconds": 10.0
+    },
+    {
+      "capture_seconds": 124.0,
+      "caption": "Generate a Nepali situation report using validated narrative and selected map facts. HTML, PDF and JSON preserve the snapshot, source dates, partial coverage and attribution.",
+      "playback_start_seconds": 120,
+      "playback_end_seconds": 123,
+      "capture_duration_seconds": 8.53
+    },
+    {
+      "capture_seconds": 132.53,
+      "caption": "The one-page report explicitly marks cached real inputs, incomplete observations and unavailable debris. Nepali text uses bundled Devanagari fonts; the report needs independent field and language review.",
+      "playback_start_seconds": 123,
+      "playback_end_seconds": 135,
+      "capture_duration_seconds": 11.59
+    },
+    {
+      "capture_seconds": 144.12,
+      "caption": "EMSR927 is evaluation-only. Its landslide references have no eligible debris observations here, so accuracy is N/A. A class mismatch or empty comparison is never presented as a perfect score.",
+      "playback_start_seconds": 135,
+      "playback_end_seconds": 147,
+      "capture_duration_seconds": 13.9
+    },
+    {
+      "capture_seconds": 158.02,
+      "caption": "Educational prototype, not operational. Field verification and native Nepali review remain necessary. The copilot uses a hosted model; this application trains no model.",
+      "playback_start_seconds": 147,
+      "playback_end_seconds": 156,
+      "capture_duration_seconds": 7.98
+    },
+    {
+      "capture_seconds": 166.0,
+      "caption": "Contains modified Copernicus Sentinel data 2026. Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. © OpenStreetMap contributors.",
+      "playback_start_seconds": 156,
+      "playback_end_seconds": 180,
+      "capture_duration_seconds": 28.951
+    }
+  ],
+  "captured_seconds": 181.306,
+  "leading_trim_seconds": 1.009,
+  "editing": "Each scene edited to the supplied narration cues; not a live latency benchmark.",
+  "llm_required_for_supported_answers": true,
+  "coverage_presentation": "Compact neutral data-status panel; saved values and partial-coverage limitations are unchanged.",
+  "page_errors": [],
+  "new_acquisitions": [],
+  "failed_http_responses": [],
+  "replies": [
+    {
+      "question": "How much new water was detected, and how much of the area was eligible?",
+      "answer": "The recorded findings are Potential new inundation [Trishuli river corridor]: 0.000 km². The value covers only class-eligible observations; unavailable classes and the rest of the analysis area remain unknown. [0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:b681492b71d54fdd92a7] and Water-class eligible coverage [Trishuli river corridor]: 13.6 %. [0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:0ea70b88b0a9c10b9bb8].\nUnobserved areas remain unknown. No mapped change does not prove absence of damage.\nSurface-change/debris candidates can include other land-cover changes; they are not confirmed debris flows.",
+      "intent": "extent",
+      "intent_confidence": null,
+      "evidence": [
+        {
+          "path": "stats.water_km2",
+          "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+          "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:b681492b71d54fdd92a7"
+        },
+        {
+          "path": "stats.water_eligible_coverage_pct",
+          "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+          "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:0ea70b88b0a9c10b9bb8"
+        }
+      ],
+      "method": "Groq structured tool calling + validated facts",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "language": "en",
+      "facts": [
+        {
+          "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:b681492b71d54fdd92a7",
+          "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+          "field_name": "water_km2",
+          "path": "stats.water_km2",
+          "subject_type": "analysis",
+          "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+          "subject_name": "Trishuli river corridor",
+          "value": 0.0,
+          "unit": "km²",
+          "status": "available",
+          "label_en": "Potential new inundation",
+          "label_ne": "सम्भावित नयाँ डुबान",
+          "source_ids": [
+            "result.json"
+          ],
+          "method": "Saved raster class area and observation masks",
+          "timestamp": "2026-10-14T18:52:44.532008+00:00",
+          "interpretation": "measurement",
+          "uncertainty": "The value covers only class-eligible observations; unavailable classes and the rest of the analysis area remain unknown.",
+          "missing_reason": null
+        },
+        {
+          "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:0ea70b88b0a9c10b9bb8",
+          "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+          "field_name": "water_eligible_coverage_pct",
+          "path": "stats.water_eligible_coverage_pct",
+          "subject_type": "analysis",
+          "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+          "subject_name": "Trishuli river corridor",
+          "value": 13.639364832487576,
+          "unit": "%",
+          "status": "available",
+          "label_en": "Water-class eligible coverage",
+          "label_ne": "डुबान वर्गका लागि योग्य अवलोकन क्षेत्र",
+          "source_ids": [
+            "result.json"
+          ],
+          "method": "Saved raster class area and observation masks",
+          "timestamp": "2026-10-14T18:52:44.532008+00:00",
+          "interpretation": "measurement",
+          "uncertainty": "Satellite change/exposure and simulated connectivity require independent field verification.",
+          "missing_reason": null
+        }
+      ],
+      "generation": {
+        "mode": "llm",
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "reason": null,
+        "validation": "validated_claims",
+        "elapsed_ms": 933,
+        "provider_requests": 1,
+        "prompt_tokens": 1574,
+        "completion_tokens": 202,
+        "rate_limit_retries": 0,
+        "retry_after_seconds": null,
+        "provider_http_status": null
+      },
+      "missing_fact_ids": [],
+      "draft": {
+        "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+        "language": "en",
+        "kind": "answer",
+        "sections": [
+          {
+            "topic": "flood",
+            "claims": [
+              {
+                "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:b681492b71d54fdd92a7",
+                "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+                "subject_type": "analysis",
+                "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+                "field_name": "water_km2",
+                "interpretation": "measurement",
+                "operation": "exact"
+              },
+              {
+                "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:0ea70b88b0a9c10b9bb8",
+                "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+                "subject_type": "analysis",
+                "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+                "field_name": "water_eligible_coverage_pct",
+                "interpretation": "measurement",
+                "operation": "exact"
+              }
+            ],
+            "explanations": [],
+            "narrative": [
+              {
+                "text": "The recorded findings are {fact:0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:b681492b71d54fdd92a7} and {fact:0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:0ea70b88b0a9c10b9bb8}.",
+                "fact_ids": [
+                  "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:b681492b71d54fdd92a7",
+                  "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:0ea70b88b0a9c10b9bb8"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "lists": [],
+      "unsupported_parts": [],
+      "attributions": [
+        "Contains modified Copernicus Sentinel data 2026.",
+        "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.",
+        "© OpenStreetMap contributors."
+      ],
+      "report_links": null
+    },
+    {
+      "question": "अवलोकन क्षेत्र कति छ?",
+      "answer": "विश्लेषणका लागि योग्य अवलोकन क्षेत्र विश्लेषणका लागि योग्य अवलोकन क्षेत्र [Trishuli river corridor]: 13.6 %. [0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:63221f8c38d5869c1cd2] छ।\nअवलोकन नभएको क्षेत्र अज्ञात छ। परिवर्तन नदेखिनु क्षति नभएको प्रमाण होइन।\nमाटो/ढुंगा वा भूआवरण परिवर्तनका सम्भावित क्षेत्र अन्य परिवर्तन पनि हुन सक्छन्; भग्नावशेषको बहाव पुष्टि भएको होइन।",
+      "intent": "extent",
+      "intent_confidence": null,
+      "evidence": [
+        {
+          "path": "stats.valid_coverage_pct",
+          "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+          "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:63221f8c38d5869c1cd2"
+        }
+      ],
+      "method": "Groq structured tool calling + validated facts",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "language": "ne",
+      "facts": [
+        {
+          "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:63221f8c38d5869c1cd2",
+          "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+          "field_name": "valid_coverage_pct",
+          "path": "stats.valid_coverage_pct",
+          "subject_type": "analysis",
+          "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+          "subject_name": "Trishuli river corridor",
+          "value": 13.6,
+          "unit": "%",
+          "status": "available",
+          "label_en": "Eligible observation coverage",
+          "label_ne": "विश्लेषणका लागि योग्य अवलोकन क्षेत्र",
+          "source_ids": [
+            "result.json"
+          ],
+          "method": "Saved raster class area and observation masks",
+          "timestamp": "2026-10-14T18:52:44.532008+00:00",
+          "interpretation": "measurement",
+          "uncertainty": "Satellite change/exposure and simulated connectivity require independent field verification.",
+          "missing_reason": null
+        }
+      ],
+      "generation": {
+        "mode": "llm",
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "reason": null,
+        "validation": "validated_claims",
+        "elapsed_ms": 1580,
+        "provider_requests": 1,
+        "prompt_tokens": 1786,
+        "completion_tokens": 248,
+        "rate_limit_retries": 0,
+        "retry_after_seconds": null,
+        "provider_http_status": null
+      },
+      "missing_fact_ids": [],
+      "draft": {
+        "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+        "language": "ne",
+        "kind": "answer",
+        "sections": [
+          {
+            "topic": "flood",
+            "claims": [
+              {
+                "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:63221f8c38d5869c1cd2",
+                "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+                "subject_type": "analysis",
+                "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+                "field_name": "valid_coverage_pct",
+                "interpretation": "measurement",
+                "operation": "exact"
+              }
+            ],
+            "explanations": [],
+            "narrative": [
+              {
+                "text": "विश्लेषणका लागि योग्य अवलोकन क्षेत्र {fact:0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:63221f8c38d5869c1cd2} छ।",
+                "fact_ids": [
+                  "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:63221f8c38d5869c1cd2"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "lists": [],
+      "unsupported_parts": [],
+      "attributions": [
+        "Contains modified Copernicus Sentinel data 2026.",
+        "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.",
+        "© OpenStreetMap contributors."
+      ],
+      "report_links": null
+    }
+  ],
+  "reports": [
+    {
+      "language": "ne",
+      "status": "partial",
+      "links": {
+        "html": "/api/analyses/0717d3b1-ac72-48d2-a8bb-8ecb93e9663c/reports/8f98b5a7-9ea4-45ed-b472-397340beaaf3?format=html",
+        "pdf": "/api/analyses/0717d3b1-ac72-48d2-a8bb-8ecb93e9663c/reports/8f98b5a7-9ea4-45ed-b472-397340beaaf3?format=pdf",
+        "json": "/api/analyses/0717d3b1-ac72-48d2-a8bb-8ecb93e9663c/reports/8f98b5a7-9ea4-45ed-b472-397340beaaf3?format=json"
+      },
+      "generation": {
+        "mode": "llm",
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "reason": null,
+        "validation": "validated_claims",
+        "elapsed_ms": 2598,
+        "provider_requests": 1,
+        "prompt_tokens": 2869,
+        "completion_tokens": 918,
+        "rate_limit_retries": 0,
+        "retry_after_seconds": null,
+        "provider_http_status": null
+      }
+    }
+  ],
+  "sha256": "ebfb1f83c93a4f05dbc225f5d3379ce9b66a775f78b84c58a4de08173f5ee34d",
+  "attributions": [
+    "Contains modified Copernicus Sentinel data 2026. Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. © OpenStreetMap contributors."
+  ],
+  "limitations": "Captioned saved-run walkthrough edited to three minutes, not a new acquisition, runtime benchmark, field-accuracy validation or native Nepali sign-off. Actual response-engine labels remain visible."
+}

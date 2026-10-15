@@ -1,0 +1,99 @@
+{
+  "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+  "data_mode": "live",
+  "source_sha256": "75b97042104b057a8e24ed14232e48b404e5cf5c828d8af0aa093c1c1be5b099",
+  "synthetic_preview": false,
+  "reports": [
+    {
+      "language": "en",
+      "report_id": "c4df360f-9323-4b03-b712-bff588a86357",
+      "status": "partial",
+      "missing_fields": [
+        "optical_acquisition_dates",
+        "debris_km2"
+      ],
+      "generation": {
+        "mode": "llm",
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "reason": null,
+        "validation": "validated_claims",
+        "elapsed_ms": 2641,
+        "provider_requests": 1,
+        "prompt_tokens": 2750,
+        "completion_tokens": 976,
+        "rate_limit_retries": 0,
+        "retry_after_seconds": null,
+        "provider_http_status": null
+      },
+      "verified_snapshot": {
+        "name": "c4df360f-9323-4b03-b712-bff588a86357.json",
+        "sha256": "235455f86fc4650e303cbf637737d846f27d8003cf971d57005b9d92c7fa73ed"
+      },
+      "files": {
+        "pdf": {
+          "name": "situation-report-en.pdf",
+          "sha256": "c0284f311548c10fec3ae91e9ed44c377d6799f06640470c44c59bfa534e007c"
+        },
+        "html": {
+          "name": "situation-report-en.html",
+          "sha256": "70f87ed3ad93fc5da2b2bd0100365120d2b0e95d1493e100e870681d3be8adbb"
+        },
+        "json": {
+          "name": "situation-report-en.json",
+          "sha256": "1eb99bdcffdf0764930ae0237501b8bee2bf7739d9055c2ee5e588ebb39af199"
+        }
+      }
+    },
+    {
+      "language": "ne",
+      "report_id": "bf531872-ca8a-4c6e-87db-60625d1e5070",
+      "status": "partial",
+      "missing_fields": [
+        "optical_acquisition_dates",
+        "debris_km2"
+      ],
+      "generation": {
+        "mode": "llm",
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "reason": null,
+        "validation": "validated_claims",
+        "elapsed_ms": 2716,
+        "provider_requests": 1,
+        "prompt_tokens": 2848,
+        "completion_tokens": 1024,
+        "rate_limit_retries": 0,
+        "retry_after_seconds": null,
+        "provider_http_status": null
+      },
+      "verified_snapshot": {
+        "name": "bf531872-ca8a-4c6e-87db-60625d1e5070.json",
+        "sha256": "5e9ae4e948f3b5e3b8391c295be16a4de8c3958c29aed8d04fc1ef5e170be755"
+      },
+      "files": {
+        "pdf": {
+          "name": "situation-report-ne.pdf",
+          "sha256": "aa540e67600245697fd66ba1d9d35dd4247138b0f5cc9a8619b1a5184578ede1"
+        },
+        "html": {
+          "name": "situation-report-ne.html",
+          "sha256": "5db392d7d66a5d296acc0f3f84d16f5445af4c0f43ebaf20dbbb4406af9c7042"
+        },
+        "json": {
+          "name": "situation-report-ne.json",
+          "sha256": "bf9b8bb958f71e602e7f03fefb2a74044d99bf09a082b997ffa9cb7e9e021020"
+        }
+      }
+    }
+  ],
+  "acquisition_mode": "cached_reprocessing",
+  "api_verification_sha256": "d06afcdc6ddc0258eed9d90985a7b5fb9e9d2a19f1a4e12dc7213cc5b60323b0",
+  "attributions": [
+    "Contains modified Copernicus Sentinel data 2026.",
+    "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.",
+    "© OpenStreetMap contributors.",
+    "European Union, Copernicus Emergency Management Service data"
+  ],
+  "limitations": "Saved real inputs retain their original observation dates and partial coverage. Missing evidence remains unavailable. Field verification and native-speaker review are pending."
+}

@@ -1,0 +1,16 @@
+# Versioned processing defaults. Per-run parameters remain in result.json.
+version = "rule-based-v2"
+resolution_m = 30
+search_days = 24
+water_threshold_db = -17.0
+change_threshold_db = 3.0
+max_slope_deg = 20.0
+min_component_pixels = 9
+optical_water_threshold = 0.2
+vegetation_baseline_threshold = 0.3
+vegetation_loss_threshold = 0.25
+bare_surface_increase_threshold = 0.1
+optical_only_vegetation_loss_threshold = 0.4
+optical_only_bare_increase_threshold = 0.2
+road_overlap_cell_fraction = 0.5
+road_snap_distance_m = 100.0

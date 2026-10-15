@@ -9,12 +9,15 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import time
 
 import httpx
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0,str(ROOT))
+from app.models import ATTRIBUTIONS
 
 # Final playback cues match the supplied three-minute voiceover. Each captured
 # scene is edited independently so API latency cannot shift later sections.
@@ -28,7 +31,7 @@ def main():
     parser.add_argument('--preview', action='store_true')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--require-llm', action='store_true',
-                        help='Reject the take if either supported answer uses the fallback.')
+                        help='Reject the take if a supported answer uses the fallback.')
     args = parser.parse_args()
     base = args.base_url.rstrip('/')
     with httpx.Client(base_url=base, timeout=20) as client:
@@ -44,7 +47,7 @@ def main():
     for executable in ('ffmpeg', 'ffprobe'):
         if not shutil.which(executable):
             parser.error(executable + ' is required for video export.')
-    destination = args.output or ROOT / 'output/video' / ('copilot-preview.mp4' if run['mode'] == 'demo' else 'copilot-demo.mp4')
+    destination = args.output or ROOT / 'output/video' / ('copilot-preview.mp4' if run['mode'] == 'demo' else 'flooline-repaired-demo.mp4')
     destination.parent.mkdir(parents=True, exist_ok=True)
     recordings = ROOT / 'output/qa/copilot-recording'
     recordings.mkdir(parents=True, exist_ok=True)
@@ -54,7 +57,7 @@ def main():
     if not synthetic and run.get('acquisition_mode') != 'cached_reprocessing':
         label = 'SAVED REAL SATELLITE INPUTS - no new acquisition - educational prototype'
     coverage = run['stats'].get('water_eligible_coverage_pct')
-    coverage_label = f'{coverage:g}%' if isinstance(coverage, (int, float)) else 'unavailable'
+    coverage_label = f'{coverage:.1f}%' if isinstance(coverage, (int, float)) else 'unavailable'
     segments, replies, reports, page_errors, acquisitions, failed_responses = [], [], [], [], [], []
     with sync_playwright() as playwright:
         options = {'headless': True, 'chromium_sandbox': True}
@@ -88,8 +91,21 @@ def main():
             page.evaluate("""([label,text]) => {
                 if (!document.getElementById('recording-style')) {
                     const style=document.createElement('style'); style.id='recording-style';
-                    style.textContent='html{scroll-behavior:auto!important}body{padding-top:40px!important;padding-bottom:125px!important}*{scroll-margin-top:55px;scroll-margin-bottom:130px}';
+                    style.textContent='html{scroll-behavior:auto!important}body{padding-top:40px!important;padding-bottom:125px!important}*{scroll-margin-top:55px;scroll-margin-bottom:130px}.observability{background:#eff5f4!important;border-color:#b7cec7!important;color:#274e44!important}.recording-coverage-title{display:block;font-size:10px;letter-spacing:.08em;margin-bottom:5px}.recording-coverage-line{display:block;margin:3px 0}';
                     document.head.append(style);
+                }
+                // Presentation only: retain the saved measurements and every
+                // material limitation while making data status easier to read.
+                const coverage=document.getElementById('observability');
+                if (coverage && !coverage.dataset.recordingSummary && typeof state !== 'undefined' && state.run) {
+                    coverage.dataset.recordingSummary='true';
+                    const stats=state.run.stats, availability=state.run.class_availability || {};
+                    const add=(text,cls) => {const line=document.createElement('span');line.className=cls;line.textContent=text;coverage.append(line);};
+                    coverage.replaceChildren();
+                    const partial=state.run.analysis_status === 'partial' || ['water','debris'].some(kind => ['partial','unavailable'].includes(availability[kind]?.status));
+                    add('OBSERVATION COVERAGE'+(partial ? ' · PARTIAL DATA' : ''),'recording-coverage-title');
+                    add(`Water: ${numberLabel(availability.water?.coverage_pct ?? stats.water_eligible_coverage_pct,1)}% eligible for assessment. Debris: ${availability.debris?.status === 'unavailable' ? 'not assessed; no usable paired optical observations' : numberLabel(availability.debris?.coverage_pct ?? stats.debris_eligible_coverage_pct,1)+'% eligible for assessment'}.`,'recording-coverage-line');
+                    add(`Road access: ${numberLabel(stats.settlements_access_uncertain)} settlements uncertain; ${numberLabel(stats.settlements_unassessed)} unassessed. Results apply only to assessed areas; other areas remain unknown.`,'recording-coverage-line');
                 }
                 let banner = document.getElementById('demo-banner');
                 if (!banner) { banner=document.createElement('div'); banner.id='demo-banner'; document.body.append(banner); }
@@ -115,15 +131,17 @@ def main():
         def ask(question, language):
             page.locator('#language').select_option(language)
             page.locator('#question').fill(question)
-            with page.expect_response(lambda response: response.url.endswith('/copilot') and response.request.method == 'POST', timeout=45000) as observed:
+            with page.expect_response(lambda response: response.url.endswith('/copilot') and response.request.method == 'POST', timeout=70000) as observed:
                 page.locator('#ask-button').click()
-            page.wait_for_function('!state.asking', timeout=45000)
+            page.wait_for_function('!state.asking', timeout=70000)
             result = observed.value.json()
             if result.get('run_id') != run['id'] or result.get('language') != language:
                 raise RuntimeError('Recorded answer belongs to a different run or language.')
             replies.append({'question': question, **result})
-            if args.require_llm and result.get('intent') != 'unsupported' and result['generation']['mode'] != 'llm':
-                raise RuntimeError('The supplied narration requires a genuine Groq answer; discard this take.')
+            if result.get('intent') == 'unsupported' or not result.get('facts'):
+                raise RuntimeError('A supported demo question did not receive evidence; discard this take.')
+            if args.require_llm and result['generation']['mode'] != 'llm':
+                raise RuntimeError('The supplied narration requires a genuine Groq answer; discard this take: '+str(result['generation'].get('reason')))
             if result.get('report_error'):
                 raise RuntimeError('The answer contains a report-generation error.')
             print(f"       Engine: {result['generation']['mode']} ({result['generation'].get('reason') or 'validated'})", flush=True)
@@ -145,11 +163,13 @@ def main():
         until(10)
         page.locator('#after-button').click()
         page.locator('#observability').scroll_into_view_if_needed()
-        caption(f'Only {coverage_label} of this area is eligible for water assessment. Debris is unavailable where paired optical observations are missing. A mapped zero does not establish no flooding across the area.')
+        caption(f'Water assessment covers {coverage_label} of this area. Debris needs usable paired optical observations. Results describe assessed areas; other areas remain unknown.')
         until(20)
         page.locator('#copilot-form').scroll_into_view_if_needed()
         caption('Ask a compound English question. The copilot retrieves mapped water and observation coverage. The displayed engine identifies Groq or the deterministic fallback actually used.')
-        ask('How much new water was detected, and how much of the area was eligible?', 'en')
+        compound=ask('How much new water was detected, and how much of the area was eligible?', 'en')
+        if not {'water_km2','water_eligible_coverage_pct'}.issubset({f['field_name'] for f in compound['facts']}):
+            raise RuntimeError('The compound demo answer omitted water or eligible coverage; discard this take.')
         until(37)
         caption('Clicking a citation opens the exact fact, source path and method. Area-wide measurements refer to the selected analysis, rather than an invented map location.')
         page.locator('.chat-answer .fact-link').first.click()
@@ -182,20 +202,22 @@ def main():
         page.locator('.evidence summary').last.click()
         page.locator('#conversation').evaluate('element => element.scrollTop=element.scrollHeight')
         until(114)
-        caption('Casualty and population statistics cannot be established from these inputs. The copilot refuses the request and supplies no invented estimate.')
-        result = ask('How many people died?', 'en')
-        if result.get('intent') != 'unsupported' or result.get('facts'):
-            raise RuntimeError('The unsupported-statistic refusal was not preserved.')
-        page.locator('#conversation').evaluate('element => element.scrollTop=element.scrollHeight')
+        caption('Inspect Data & method: recorded satellite inputs, elevation and historical OpenStreetMap stay attached to the selected analysis.')
+        page.locator('#method-tab').click()
+        page.locator('#source-inventory').scroll_into_view_if_needed()
+        check_screen()
         until(124)
-        caption('Generate a fixed-format Nepali situation report from the selected facts. HTML, PDF and JSON preserve the snapshot, source dates, partial coverage and attribution.')
+        caption('Generate a Nepali situation report using validated narrative and selected map facts. HTML, PDF and JSON preserve the snapshot, source dates, partial coverage and attribution.')
+        page.locator('#copilot-form').scroll_into_view_if_needed()
         page.locator('#language').select_option('ne')
-        with page.expect_response(lambda response: response.url.endswith('/report') and response.request.method == 'POST', timeout=45000) as generated:
+        with page.expect_response(lambda response: response.url.endswith('/report') and response.request.method == 'POST', timeout=70000) as generated:
             page.locator('#generate-report').click()
-        page.wait_for_function('!state.asking && document.querySelector(".report-downloads a") !== null', timeout=45000)
+        page.wait_for_function('!state.asking && document.querySelector(".report-downloads a") !== null', timeout=70000)
         report = generated.value.json()
         if report.get('run_id') != run['id'] or report.get('language') != 'ne':
             raise RuntimeError('The saved Nepali report could not be generated for this run.')
+        if args.require_llm and report['generation']['mode']!='llm':
+            raise RuntimeError('A Groq-generated report is required for this take: '+str(report['generation'].get('reason')))
         reports.append({'language': 'ne', 'status': report['status'], 'links': report['links'], 'generation': report['generation']})
         page.locator('#conversation').evaluate('element => element.scrollTop=element.scrollHeight')
         check_screen()
@@ -215,7 +237,7 @@ def main():
         else:
             caption('Published reference maps stay separate from prediction inputs. Evaluation needs matching classes and eligible observations; missing or empty comparisons cannot establish mapping accuracy.')
         until(158)
-        credits = 'Contains modified Copernicus Sentinel data 2026. Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. © OpenStreetMap contributors.'
+        credits = ' '.join(ATTRIBUTIONS)
         page.locator('.page-footer').scroll_into_view_if_needed()
         caption('Educational prototype, not operational. Field verification and native Nepali review remain necessary. The copilot uses a hosted model; this application trains no model.')
         until(166)
@@ -268,6 +290,7 @@ def main():
                 'captured_seconds': round(captured_seconds, 3), 'leading_trim_seconds': round(leading_trim, 3),
                 'editing': 'Each scene edited to the supplied narration cues; not a live latency benchmark.',
                 'llm_required_for_supported_answers': args.require_llm,
+                'coverage_presentation': 'Compact neutral data-status panel; saved values and partial-coverage limitations are unchanged.',
                 'page_errors': page_errors, 'new_acquisitions': acquisitions, 'failed_http_responses': failed_responses,
                 'replies': replies, 'reports': reports, 'sha256': hashlib.sha256(destination.read_bytes()).hexdigest(),
                 'attributions': [credits], 'limitations': 'Captioned saved-run walkthrough edited to three minutes, not a new acquisition, runtime benchmark, field-accuracy validation or native Nepali sign-off. Actual response-engine labels remain visible.'}

@@ -1,0 +1,77 @@
+{
+  "activation": "EMSR927",
+  "mode": "reference comparison",
+  "status": "unavailable",
+  "reason": "No shared class-eligible prediction and reviewed reference coverage.",
+  "run_id": "0fb99632-2943-4d03-9656-55f1db0682cd",
+  "reference_file": "reference-extent.geojson",
+  "coverage_file": "reviewed-coverage.geojson",
+  "reference_class_override": null,
+  "input_sha256": {
+    "prediction": "d75312053be1048e690c38995f1cbbeddf34b347b4e2fe289df4f4935bf49dc7",
+    "result": "9bfef51deddc3c913d082f2a6b3ef9653dcd1e387a0f3440ae9fb20a1f5c3f06",
+    "eligibility": "71b3d72f8431fa30cb709293b9b2c06e096c697e2d4b4fbfa772322fd5a78181",
+    "reference": "9664005efdc7fdb71382290d847aa9b958eae1e658564410647bbb001deb521d",
+    "reviewed_coverage": "2dca5bfdda95f246c81465a18e7d15a57bdab5ee9c48953a8f3b005e4979ffc0"
+  },
+  "reference_classes": [
+    "Landslide"
+  ],
+  "unclassified_reference_features": 0,
+  "evaluated_pixels": 0,
+  "evaluated_area_km2": 0.0,
+  "reviewed_pixels_inside_grid": 7316,
+  "valid_reviewed_coverage_pct": 0.0,
+  "reference_positive_pixels_inside_reviewed": 2752,
+  "reference_positive_evaluated_pixels": 0,
+  "reference_positive_evaluated_pct": 0.0,
+  "primary_target": "debris candidate versus supplied debris/landslide extent",
+  "primary_evaluated_pixels": 0,
+  "metrics": {
+    "true_positive_pixels": 0,
+    "false_positive_pixels": 0,
+    "false_negative_pixels": 0,
+    "true_negative_pixels": 0,
+    "iou": null,
+    "precision": null,
+    "recall": null,
+    "f1": null,
+    "status": "unavailable",
+    "reason": "No shared eligible reviewed pixels."
+  },
+  "separate_classes": {
+    "new_water": {
+      "true_positive_pixels": 0,
+      "false_positive_pixels": 0,
+      "false_negative_pixels": 0,
+      "true_negative_pixels": 0,
+      "iou": null,
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "status": "unavailable",
+      "reason": "Reference has no reviewed matching class.",
+      "evaluated_pixels": 0
+    },
+    "debris_candidate": {
+      "true_positive_pixels": 0,
+      "false_positive_pixels": 0,
+      "false_negative_pixels": 0,
+      "true_negative_pixels": 0,
+      "iou": null,
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "status": "unavailable",
+      "reason": "No shared eligible reviewed pixels for this class.",
+      "evaluated_pixels": 0
+    }
+  },
+  "water_validation": {
+    "status": "unavailable",
+    "reason": "Reference has no reviewed matching class."
+  },
+  "comparison_type": "class-matched supplied reference comparison",
+  "attribution": "European Union, Copernicus Emergency Management Service data",
+  "limitations": "Pixel-center comparison inside reviewed and class-eligible coverage. Combined scores require both water and debris eligibility. Empty positive classes have no IoU/F1 score. Acquisition timing, candidate-versus-confirmed class definitions and map scale differ. Structural damage and actual road closures remain unverified."
+}

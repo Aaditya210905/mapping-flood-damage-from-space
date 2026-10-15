@@ -1,5 +1,7 @@
 # Repair verification - 14 October 2026
 
+For the subsequent project-audit repairs, current regression results and new cached replay, see [15 October audit repairs](AUDIT_REPAIRS.md). The records below describe the earlier implementation/checks.
+
 This records executed software checks and a **cached real CDSE analysis**. It does not establish flood accuracy, actual damage/closures, native Nepali approval or successful live operation on an arbitrary new AOI/date.
 
 ## Implemented repairs
@@ -67,7 +69,7 @@ Recomputing the comparison left `result.json`, `change-mask.tif` and `eligibilit
 
 - [English one-page real-input report](../output/pdf/repair-real/situation-report-en.pdf), [Nepali report](../output/pdf/repair-real/situation-report-ne.pdf), alongside offline HTML, typed JSON and checksum manifest.
 - [Six-page technical report](technical-report.pdf) and [editable source](technical-report.md).
-- [Current three-minute video](../output/video/flooline-script-demo.mp4), [recording manifest](../output/video/flooline-script-demo.json) and [capture notes](demo-script.md).
+- [Current three-minute video](../output/video/flooline-final-demo.mp4), [recording manifest](../output/video/flooline-final-demo.json) and [capture notes](demo-script.md).
 - [Copilot configuration and contracts](COPILOT.md), [Nepali review handout](NEPALI_GLOSSARY.md), and [timed video script](demo-script.md).
 
-Native-speaker Nepali sign-off, field validation and usable independent class-matched mapping accuracy remain outstanding. Current source coverage cannot be repaired into observations the satellites did not provide. Unknown-area acquisition still depends on compatible scenes, historical OSM, quotas and provider availability; the prototype retains its one-degree/2,500-pixel-per-side bounds. Complete OSM node identity/turn restrictions, exterior/cross-border routes, actual bridge failure and facility operation remain unverified. The [current captioned three-minute video](../output/video/flooline-script-demo.mp4) now records the repaired interface using cached real inputs, with its response metadata in the companion JSON. It does not demonstrate a new acquisition or benchmark live runtime. Archived segmentation videos remain historical.
+Native-speaker Nepali sign-off, field validation and usable independent class-matched mapping accuracy remain outstanding. Current source coverage cannot be repaired into observations the satellites did not provide. Unknown-area acquisition still depends on compatible scenes, historical OSM, quotas and provider availability; the prototype retains its one-degree/2,500-pixel-per-side bounds. Complete OSM node identity/turn restrictions, exterior/cross-border routes, actual bridge failure and facility operation remain unverified. The [current captioned three-minute video](../output/video/flooline-final-demo.mp4) now records the repaired interface using cached real inputs, with its response metadata in the companion JSON. It does not demonstrate a new acquisition or benchmark live runtime. Archived segmentation videos remain historical.

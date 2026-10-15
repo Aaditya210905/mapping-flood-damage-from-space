@@ -5,6 +5,7 @@ units, labels or unrestricted factual prose. Evidence accuracy still depends on
 input provenance and the geospatial engine; this is not a field-truth guarantee.
 """
 from decimal import Decimal, ROUND_HALF_UP
+import re
 
 from app.copilot_types import AnswerDraft, Claim
 from app.evidence import FLOOD_FIELDS, INFRA_FIELDS, INFRA_CONTEXT_FIELDS, ACCESS_FIELDS, CONNECTIVITY_QUERY_FIELDS
@@ -28,6 +29,7 @@ HEADINGS = {
     "summary": ("Analysis summary", "विश्लेषणको सारांश"),
     "flood": ("Flood and surface change", "डुबान र भूआवरण परिवर्तन"),
     "infrastructure": ("Potential infrastructure exposure", "पूर्वाधारमा सम्भावित प्रभाव"),
+    "inventory": ("Mapped inventory", "नक्सामा रहेका अभिलेख"),
     "connectivity": ("Modeled settlement connectivity", "मोडेल अनुसार बस्तीको सडक सम्पर्क"),
     "sources": ("Recorded observations and sources", "अभिलेखित अवलोकन र स्रोत"),
     "limitations": ("Limitations", "सीमाहरू"),
@@ -95,6 +97,28 @@ def validate_draft(draft, context, language):
                 raise GroundingError("Measurement is not a limitation")
             if section.topic == "sources" and fact.interpretation not in ("recorded_metadata", "limitation", "unavailable"):
                 raise GroundingError("Measurement is not a source")
+            if section.topic == "inventory" and fact.field_name not in ("inventory_count", "name"):
+                raise GroundingError("Exposure or access is not an inventory count")
+        if section.narrative:
+            selected = {claim.fact_id for claim in section.claims}
+            narrated = set()
+            for sentence in section.narrative:
+                identifiers = re.findall(r'\{fact:([^{}]+)\}', sentence.text)
+                if not identifiers or set(identifiers) != set(sentence.fact_ids) or not set(identifiers).issubset(selected):
+                    raise GroundingError('Narrative must cite exactly its validated claims')
+                prose = re.sub(r'\{fact:[^{}]+\}', '', sentence.text)
+                if re.search(r'[\d{}<>]|\b(?:zero|one|two|three|four|five|hundred|thousand|million)\b', prose, re.I):
+                    raise GroundingError('Narrative values, names and markup must come from fact placeholders')
+                if re.search(r'\b(?:destroyed|dead|died|fatalit\w*|casualt\w*|population|safe|impassable|evacuat\w*|rescue|guarantee\w*)\b|confirmed (?:damage|closure|destruction)|no (?:damage|flood|water)|roads? (?:are )?(?:open|closed)|मृत|घाइते|जनसङ्ख्या|जनसंख्या|सुरक्षित|विनाश', prose, re.I):
+                    raise GroundingError('Narrative contains an unsupported physical or operational claim')
+                # A generated sentence cannot type a feature name beside a
+                # different feature's facts, including plausible saved names.
+                from app.feature_lookup import lookup
+                if lookup(context, prose):
+                    raise GroundingError('Narrative feature names must use fact placeholders')
+                narrated.update(identifiers)
+            if narrated != selected:
+                raise GroundingError('Narrative omitted a selected claim')
     return draft
 
 
@@ -121,17 +145,17 @@ def format_value(fact, language="en", operation="exact"):
     return str(value)
 
 
-def fact_line(fact, language="en", operation="exact"):
+def fact_line(fact, language="en", operation="exact", *, compact=False):
     label = fact.label_ne if language == "ne" else fact.label_en
     subject = ""
     if fact.subject_type not in ("analysis", "observation"):
         subject = f" [{fact.subject_name or fact.subject_id} · {fact.subject_id}]"
-    elif fact.subject_type == "analysis" and fact.subject_name:
+    elif fact.subject_type == "analysis" and fact.subject_name and not compact:
         subject = f" [{fact.subject_name}]"
     line = f"{label}{subject}: {format_value(fact, language, operation)}."
-    if fact.status != "available" and fact.missing_reason:
+    if not compact and fact.status != "available" and fact.missing_reason:
         line += " " + ("कारण: सम्बन्धित मापन वा गन्तव्य अनुसारको प्रमाण यस विश्लेषणमा उपलब्ध छैन।" if language == "ne" else fact.missing_reason)
-    if fact.uncertainty and fact.uncertainty.startswith("The value covers only"):
+    if not compact and fact.uncertainty and fact.uncertainty.startswith("The value covers only"):
         line += " " + ("यो मापन त्यस वर्गका लागि योग्य अवलोकन क्षेत्रमा मात्र लागू हुन्छ।" if language == "ne" else fact.uncertainty)
     return line + f" [{fact.fact_id}]"
 
@@ -153,7 +177,7 @@ def required_explanations(topic, facts):
     return codes
 
 
-def render_draft(draft, context):
+def render_draft(draft, context, *, compact=False):
     i = draft.language == "ne"
     if draft.kind in ("unsupported", "clarification"):
         text, facts = (CLARIFICATION if draft.kind == "clarification" else UNSUPPORTED)[i], []
@@ -161,10 +185,16 @@ def render_draft(draft, context):
         paragraphs, facts = [], []
         for section in draft.sections:
             section_facts = [context.facts[claim.fact_id] for claim in section.claims]
-            lines = [HEADINGS[section.topic][i]]
-            lines.extend(fact_line(context.facts[claim.fact_id], draft.language, claim.operation) for claim in section.claims)
-            codes = required_explanations(section.topic, section_facts) | set(section.explanations)
-            lines.extend(EXPLANATIONS[code][i] for code in EXPLANATIONS if code in codes)
+            if section.narrative:
+                operations = {claim.fact_id: claim.operation for claim in section.claims}
+                lines = [re.sub(r'\{fact:([^{}]+)\}', lambda match: fact_line(context.facts[match.group(1)], draft.language, operations[match.group(1)], compact=compact).rstrip('.'), sentence.text)
+                         for sentence in section.narrative]
+            else:
+                lines = [HEADINGS[section.topic][i]]
+                lines.extend(fact_line(context.facts[claim.fact_id], draft.language, claim.operation) for claim in section.claims)
+            if not compact:
+                codes = required_explanations(section.topic, section_facts) | set(section.explanations)
+                lines.extend(EXPLANATIONS[code][i] for code in EXPLANATIONS if code in codes)
             paragraphs.append("\n".join(lines))
             facts.extend(section_facts)
         text = "\n\n".join(paragraphs)

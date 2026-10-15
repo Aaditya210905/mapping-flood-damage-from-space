@@ -19,6 +19,7 @@ from app.geo import Grid
 from app.models import AnalysisRequest, Scene, validate_pair
 from app.pipeline import ANALYSIS_SOURCE_POLICY, run_analysis
 from app.storage import sha256
+from app.presets import osm_cutoff
 
 
 CDSE_PROVIDER = "Copernicus Data Space Sentinel Hub Processing API"
@@ -86,7 +87,8 @@ def load_cached_cdse_inputs(source_folder):
     snapshot = provenance.get("osm_snapshot")
     snapshot_instant = _instant(snapshot)
     event = datetime.combine(params.flood_date, datetime.min.time(), tzinfo=timezone.utc)
-    if snapshot_instant >= event or (str(params.flood_date) == "2026-08-26" and snapshot_instant.date().isoformat() > "2026-07-27"):
+    cutoff = osm_cutoff(params)
+    if snapshot_instant >= event or (cutoff is not None and snapshot_instant > cutoff):
         raise ValueError("Cached OSM does not satisfy the pre-event snapshot rule.")
     optical_scenes = provenance.get("optical_scenes", [])
     optical_observations = provenance.get("optical_observations", [])
@@ -130,7 +132,7 @@ def load_cached_cdse_inputs(source_folder):
     metadata = osm.get("metadata") or {}
     if metadata.get("snapshot") and _instant(metadata["snapshot"]) != snapshot_instant:
         raise ValueError("Cached OSM metadata disagrees with the saved historical timestamp.")
-    if not str(metadata.get("sourceApi", "")).startswith("https://api.ohsome.org/"):
+    if metadata.get("sourceApi") not in {"https://api.ohsome.org/v1", "https://api.heigit.org/ohsome-api/v2-rc"}:
         raise ValueError("Cached OSM does not identify a historical ohsome source.")
     for feature in osm["features"]:
         properties = feature.get("properties") or {}

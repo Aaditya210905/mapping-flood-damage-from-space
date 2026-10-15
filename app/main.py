@@ -29,6 +29,8 @@ from app.sources import MAPPING_METHOD, SOURCES
 from app.run_store import load_result, run_metadata
 from app.storage import save_json
 from app.availability import normalize_analysis_availability
+from app.presets import PRESETS
+from app.settings import MAPPING
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -115,6 +117,7 @@ def dashboard():
     return (ROOT / "app" / "static" / "index.html").read_text(encoding="utf-8")
 
 
+@app.get("/health", include_in_schema=False)
 @app.get("/api/health")
 def health():
     return {"status": "ok", "live_configured": bool(os.getenv("CDSE_CLIENT_ID") and os.getenv("CDSE_CLIENT_SECRET")),
@@ -134,6 +137,8 @@ def data_sources():
         except (OSError, ValueError):
             continue
     return {"sources": SOURCES, "mapping": MAPPING_METHOD, "copilot": {**COPILOT_INFO, "llm": provider_status()},
+            "presets": PRESETS, "mapping_configuration": MAPPING.model_dump(),
+            "parameter_schema": AnalysisRequest.model_json_schema(),
             "workspace": {"completed_actual_runs": completed["live"], "completed_synthetic_runs": completed["demo"],
                           "preferred_satellite_provider": "copernicus" if os.getenv("CDSE_CLIENT_ID") and os.getenv("CDSE_CLIENT_SECRET") else "public",
                           "training_data_loading": False, "default_detection": "rule_based"}}

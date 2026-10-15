@@ -1,16 +1,17 @@
 # Copilot submission materials
 
-The selected component is Track B Option 2: Situation-Report Copilot. Current repairs, real CDSE verification and executed tests are recorded in [repair verification](REPAIR_VERIFICATION.md). Historical preparation statements below do not override that record.
+The selected component is Track B Option 2: Situation-Report Copilot. Current executed checks are in [audit repairs](AUDIT_REPAIRS.md), [hardcoding audit](HARDCODING_AUDIT.md) and the [PDF requirement checklist](TRACK_B_CHECKLIST.md). The repaired artifacts below use current evidence; prior user recordings and historical outputs remain preserved.
 
 ## Prepared artifacts
 
 | Material | Location | Scope |
 | --- | --- | --- |
 | Current technical report | `docs/technical-report.md`, `docs/technical-report.pdf`; export copy in `output/pdf/copilot-technical-report.pdf` | Six pages, current Copilot architecture, setup, grounding, language, reports and honest limitations |
-| English/Nepali one-page exports | `output/pdf/repair-real/situation-report-en.pdf`, `situation-report-ne.pdf` | Cached real CDSE inputs; partial coverage and unavailable debris are explicit |
+| English/Nepali one-page exports | `output/pdf/copilot-real/situation-report-en.pdf`, `situation-report-ne.pdf` | Genuine Groq-assisted snapshots; cached real CDSE inputs, partial coverage and unavailable debris are explicit |
 | Offline printable reports | Same folder, `.html` files | Embedded Devanagari fonts; no server needed |
 | Typed evidence/report export | Same folder, `.json` and `manifest.json` | Source run, source checksum, missing fields and output checksums |
-| Current demonstration | `output/video/flooline-script-demo.mp4`, `flooline-script-demo.json` | Three-minute captioned recording of the repaired interface, with real cached inputs and response metadata |
+| Current demonstration | `output/video/flooline-repaired-demo.mp4`, `flooline-repaired-demo.json` | Exactly 180-second captioned recording; genuine English/Nepali Groq answers and Nepali report, saved real inputs, response metadata and checksum |
+| Independent case study | `output/case-study/` | Extent and official asset comparison, source/output hashes, class-specific N/A explanations and a separate fresh-acquisition summary |
 | Capture notes | `docs/demo-script.md` | Scope, reproduction and judge Q&A |
 | Nepali terminology handout | `docs/NEPALI_GLOSSARY.md` | Authored phrases; independent native-speaker sign-off remains pending |
 | Configuration | `.env.example`; private untracked `.env` | Startup, Groq and optional satellite OAuth placeholders |
@@ -25,7 +26,7 @@ No key is committed to Git. For later changes, edit the private `.env` locally a
 
 ## Produce the real report package
 
-Real report exports from run `0fb99632-2943-4d03-9656-55f1db0682cd` are available in `output/pdf/repair-real/`. They explicitly show cached real inputs, partial coverage and unavailable debris. To export another real saved folder:
+Real Groq report exports from run `0717d3b1-ac72-48d2-a8bb-8ecb93e9663c` are in `output/pdf/copilot-real/`. Both generated in one provider request and rendered one page. They explicitly show cached real inputs, partial coverage and unavailable debris. The final six-check API verification record is `output/qa/audit-real-api.json` (local QA, excluded from Git). To export another real saved folder:
 
 ```bash
 uv run --env-file .env python scripts/export_copilot_reports.py \
@@ -34,22 +35,31 @@ uv run --env-file .env python scripts/export_copilot_reports.py \
 
 The exporter rejects demo runs unless `--allow-demo` is explicitly supplied. It preserves original raw/results files and creates derived PDF/HTML/JSON reports plus a manifest. Missing evidence is marked unavailable. Do not replace unavailable measurements with example numbers.
 
+To verify and export actual API snapshots together, avoiding extra generation calls:
+
+```bash
+uv run python scripts/verify_copilot.py --run-id REAL_RUN_UUID --require-llm \
+  --request-gap-seconds 45 --export-reports output/pdf/copilot-real
+```
+
+The exporter also accepts `--verified-api-record output/qa/copilot-e2e.json` to reuse persisted snapshots. It validates ownership and every selected fact against the saved source. A separate fresh small-area acquisition completed as `25236045-4d1e-4fd5-baac-26918b4224e7`; its source summary is packaged with the case study. It does not replace the wider corridor case or guarantee all future judge-selected areas.
+
 ## Current recording and reproduction
 
-[Watch the current demo](../output/video/flooline-script-demo.mp4). The companion JSON records the source run, acquisition mode, captions, actual response engines and output checksum. This is a captioned screen recording without voiceover, showing cached real CDSE run `0fb99632-2943-4d03-9656-55f1db0682cd`, rather than a new acquisition. It includes English/Nepali questions, linked map evidence, uncertain settlement access, casualty refusal, the Nepali report, N/A evaluation and required credits.
+[Watch the current repaired demo](../output/video/flooline-repaired-demo.mp4). The companion JSON records the source run, acquisition mode, captions, actual response engines and output checksum. It is a captioned recording without voiceover of cached real CDSE run `0717d3b1-ac72-48d2-a8bb-8ecb93e9663c`. It includes genuine English/Nepali Groq questions, linked evidence, uncertain settlement access, source-provenance inspection, a genuine Groq-assisted Nepali report, N/A evaluation and credits. No new acquisition is shown. Previous `flooline-final-demo.*` user artifacts are unchanged.
 
 The recorder uses an isolated Chromium context and never captures a private browser profile or credentials. To reproduce it, start `./run.sh`, install Playwright's video encoder once if needed, then run:
 
 ```bash
 uv run playwright install ffmpeg
 uv run python scripts/record_demo.py --run-id REAL_RUN_UUID --require-llm \
-  --output output/video/flooline-script-demo.mp4
+  --output output/video/flooline-repaired-demo.mp4
 ```
 
-The actual response engine remains visible. Each scene is edited to the fixed cues in [the narration](demo-script.md); the final MP4 is exactly three minutes and is not a runtime benchmark. `--require-llm` rejects fallback responses for supported questions. [Plain narration text](../output/video/flooline-voiceover.txt) and [timed cues](../output/video/flooline-voiceover.srt) are supplied separately for adding audio. A synthetic preview requires explicit `--preview` and keeps its synthetic label throughout. Archived videos under `docs/` show the removed segmentation implementation.
+The actual response engine remains visible. Each scene is edited to the fixed cues in [the narration](demo-script.md); the MP4 is exactly three minutes and is not a runtime benchmark. `--require-llm` rejects fallback for supported questions and the generated report. Preserved [narration text](../output/video/flooline-final-voiceover.txt) and [timed cues](../output/video/flooline-final-voiceover.srt) remain available for adding audio. Synthetic previews require explicit `--preview` and keep their label. Archived `docs/` videos show the removed segmentation implementation.
 
 ## Remaining external inputs
 
-Native-speaker Nepali approval and field verification remain pending. The current EMSR927 comparison is N/A because its landslide reference lacks eligible debris observations in this run; it does not validate water mapping. A new judge-selected AOI/date still requires compatible satellite acquisitions, historical OSM, quotas and provider availability. No satellite training dataset is required by the copilot.
+Native-speaker Nepali approval and independent field/mapping verification remain pending. Extent and asset EMSR927 comparison are N/A because matching/joint debris observations are unavailable; neither validates water accuracy. A new judge-selected AOI/date still needs compatible acquisitions, historical OSM, quotas and provider availability. Local changes need review and commit/push before GitHub submission; this task has not published them. No satellite training dataset is required by the copilot.
 
 Older synthetic report previews remain in `output/pdf/copilot-preview/` for software demonstrations. They are separate from the real-input reports and current video and must not be described as real event observations.

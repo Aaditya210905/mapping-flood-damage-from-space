@@ -51,7 +51,7 @@
             <label for="region">Area of interest</label>
             <select id="region"><option value="trishuli">Trishuli river corridor, Nepal</option><option value="custom">Custom area</option></select>
             <label for="event-date">Flood date</label>
-            <input id="event-date" type="date" value="2026-08-26" required>
+            <input id="event-date" type="date" required>
             <label for="mode">Analysis data</label>
             <select id="mode"><option value="live">Actual satellite observations</option><option value="demo">Synthetic demonstration</option></select>
             <p class="field-note" id="mode-note">Observations are fetched when you run an analysis.</p>
@@ -59,15 +59,15 @@
             <details id="advanced">
               <summary>Area bounds & resolution <span aria-hidden="true">+</span></summary>
               <div class="bounds-inputs">
-                <label for="west">West<input id="west" type="number" step="0.001" value="85.19" required></label>
-                <label for="south">South<input id="south" type="number" step="0.001" value="27.90" required></label>
-                <label for="east">East<input id="east" type="number" step="0.001" value="85.41" required></label>
-                <label for="north">North<input id="north" type="number" step="0.001" value="28.30" required></label>
+                <label for="west">West<input id="west" type="number" step="0.001" required></label>
+                <label for="south">South<input id="south" type="number" step="0.001" required></label>
+                <label for="east">East<input id="east" type="number" step="0.001" required></label>
+                <label for="north">North<input id="north" type="number" step="0.001" required></label>
               </div>
-              <label for="area-name">Area name</label><input id="area-name" value="Trishuli river corridor" maxlength="120">
+              <label for="area-name">Area name</label><input id="area-name" maxlength="120">
               <label for="resolution">Pixel resolution</label><select id="resolution"><option value="30">30 metres</option><option value="10">10 metres</option><option value="60">60 metres</option><option value="100">100 metres</option></select>
-              <label for="change">Radar change threshold <output id="change-value">3 dB</output></label>
-              <input id="change" type="range" min="1" max="8" value="3" step="0.5">
+              <label for="change">Radar change threshold <output id="change-value"></output></label>
+              <input id="change" type="range" step="0.5">
               <p class="field-note">WGS84 bounds. Maximum one degree and 2,500 pixels per side.</p>
             </details>
 

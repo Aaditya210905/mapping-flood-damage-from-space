@@ -2,7 +2,7 @@
 
 const $ = (id) => document.getElementById(id);
 const state = { run: null, sources: null, epoch: "after", layers: {}, rasters: {}, tracing: false, busy: false, asking: false, trace: null, history: [], needsMapFit: false, selection: null };
-const map = L.map("map", { zoomControl: true, attributionControl: true, preferCanvas: true, minZoom: 3, maxZoom: 19, zoomSnap: 0.25 }).setView([28.10, 85.30], 10);
+const map = L.map("map", { zoomControl: true, attributionControl: true, preferCanvas: true, minZoom: 3, maxZoom: 19, zoomSnap: 0.25 }).setView([0, 0], 3);
 map.createPane("radar");
 map.getPane("radar").style.zIndex = 250;
 map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noreferrer">Leaflet</a>');
@@ -285,7 +285,7 @@ function renderRun(run) {
   $("observability").textContent = `Water assessment: ${numberLabel(availability.water?.coverage_pct ?? s.water_eligible_coverage_pct, 1)}% of AOI. Debris assessment: ${availability.debris?.status === "unavailable" ? "unavailable — no eligible paired optical observations" : numberLabel(availability.debris?.coverage_pct ?? s.debris_eligible_coverage_pct, 1) + "% of AOI"}. ${numberLabel(s.settlements_access_uncertain)} settlements have uncertain access; ${numberLabel(s.settlements_unassessed)} are unassessed. A zero is limited to the assessed area.`;
   $("layer-availability").textContent = availability.debris?.status === "unavailable" ? "Debris is unavailable for this run. Water-only evidence cannot establish debris absence." : "Click mapped features for saved evidence. Road colors describe modeled exposure and observation coverage.";
   $("map-caption").textContent = `${run.mode === "demo" ? "Synthetic" : "Estimated"} · ${run.name}`;
-  $("coverage-label").textContent = `${s.valid_coverage_pct}% eligible observations · ${s.water_eligible_coverage_pct ?? s.valid_coverage_pct}% water-eligible · ${run.provenance.resolution_m} m grid`;
+  $("coverage-label").textContent = `${numberLabel(s.valid_coverage_pct, 1)}% eligible observations · ${numberLabel(s.water_eligible_coverage_pct ?? s.valid_coverage_pct, 1)}% water-eligible · ${run.provenance.resolution_m} m grid`;
   const scenes = run.provenance.radar_scenes;
   $("before-date").textContent = dateLabel(scenes[0].acquired);
   $("after-date").textContent = dateLabel(scenes[1].acquired);
@@ -304,7 +304,7 @@ function renderRun(run) {
     ["Scientific completeness", run.analysis_status || "Coverage must be reviewed"],
     ["Processing", run.provenance.radar_processing], ["Analysis projection", `${run.provenance.crs} · ${run.provenance.resolution_m} m`],
     ["Mapping method", mappingMethod],
-    ["Radar / water / debris eligibility", `${s.radar_valid_coverage_pct ?? s.valid_coverage_pct}% / ${s.water_eligible_coverage_pct ?? s.valid_coverage_pct}% / ${s.debris_eligible_coverage_pct ?? s.optical_clear_pct}%`],
+    ["Radar / water / debris eligibility", `${numberLabel(s.radar_valid_coverage_pct ?? s.valid_coverage_pct,1)}% / ${numberLabel(s.water_eligible_coverage_pct ?? s.valid_coverage_pct,1)}% / ${numberLabel(s.debris_eligible_coverage_pct ?? s.optical_clear_pct,1)}%`],
     ["Uncertain road access", `${s.settlements_access_uncertain ?? "Not assessed"} settlements; unobserved segments are not confirmed intact`],
     ["AI component", "Situation-report copilot; optional Groq tool calling, validated claims and deterministic fallback"],
   ];
@@ -342,7 +342,7 @@ async function runAnalysis() {
   $("form-error").hidden = true;
   $("progress-fill").style.width = "0%";
   $("progress-track").setAttribute("aria-valuenow", "0");
-  const payload = { name: $("area-name").value, bbox: ["west", "south", "east", "north"].map((id) => Number($(id).value)), flood_date: $("event-date").value, mode: $("mode").value, satellite_provider: $("satellite-provider").value, resolution_m: Number($("resolution").value), change_threshold_db: Number($("change").value) };
+  const payload = { name: $("area-name").value, bbox: ["west", "south", "east", "north"].map((id) => Number($(id).value)), case_id: $("region").value, flood_date: $("event-date").value, mode: $("mode").value, satellite_provider: $("satellite-provider").value, resolution_m: Number($("resolution").value), change_threshold_db: Number($("change").value) };
   try {
     const job = await post("/api/analyses", payload);
     while (true) {
@@ -390,6 +390,7 @@ async function ask(question) {
     const text = document.createElement("div"); text.className = "chat-answer";
     text.classList.toggle("refusal", response.intent === "unsupported");
     appendCitedAnswer(text, response); container.append(text);
+    appendMatchingLists(container, response, queriedRun, language);
     const status = document.createElement("p"); status.className = "generation-status";
     status.textContent = response.generation.mode === "llm" ? (language === "ne" ? "Groq · प्रमाणसँग जाँचिएका तथ्य" : "Groq · evidence-validated claims") : (language === "ne" ? "निश्चित वैकल्पिक उत्तर · सुरक्षित तथ्य" : "Deterministic fallback · evidence-backed answer"); container.append(status);
     if (response.facts.some((fact) => fact.status === "available")) {
@@ -397,6 +398,7 @@ async function ask(question) {
       verified.textContent = language === "ne" ? "✓ मानहरू सुरक्षित तथ्यसँग मिल्छन् · वास्तविक अवस्था पुष्टि भएको होइन" : "✓ Values match this saved run · physical accuracy unverified"; container.append(verified);
     }
     if (response.generation.reason && response.generation.mode !== "llm") status.textContent += ` · ${response.generation.reason.replaceAll("_", " ")}`;
+    if (response.generation.retry_after_seconds != null) status.textContent += ` · ${language === "ne" ? "पुनः प्रयास समय" : "provider retry delay"}: ${response.generation.retry_after_seconds}s`;
     const evidence = document.createElement("details"); evidence.className = "evidence";
     const summary = document.createElement("summary"); summary.textContent = `${language === "ne" ? "प्रमाण" : "Supporting evidence"} · ${response.facts.length} · Run ${queriedRun.slice(0, 8)}`; evidence.append(summary);
     for (const fact of response.facts) {
@@ -420,6 +422,36 @@ async function ask(question) {
     state.asking = false;
     syncResultControls();
     container.scrollTop = container.scrollHeight;
+  }
+}
+
+function appendMatchingLists(container, response, runId, language) {
+  const facts = new Map(response.facts.map((fact) => [fact.fact_id, fact]));
+  for (const list of response.lists || []) {
+    const details = document.createElement("details"); details.className = "matching-list";
+    const summary = document.createElement("summary");
+    summary.textContent = `${language === "ne" ? "मिल्ने सूची" : "Matching list"} · ${list.returned_count}/${list.total_count ?? "—"} · ${list.layer}`;
+    details.append(summary);
+    const table = document.createElement("table"); table.className = "matching-list-table";
+    const body = document.createElement("tbody");
+    for (const row of list.rows) {
+      const tr = document.createElement("tr");
+      const name = document.createElement("td"), status = document.createElement("td");
+      const button = document.createElement("button"); button.type = "button"; button.className = "fact-link"; button.textContent = row.name;
+      button.addEventListener("click", () => inspectFeature(list.layer, row.feature_id)); name.append(button);
+      status.textContent = row.status;
+      for (const identifier of row.fact_ids) {
+        const fact = facts.get(identifier);
+        if (!fact || fact.run_id !== runId) throw new Error("List evidence does not match the selected analysis.");
+      }
+      tr.append(name, status); body.append(tr);
+    }
+    table.append(body); details.append(table);
+    if (list.export_url.startsWith(`/api/analyses/${runId}/`)) {
+      const link = document.createElement("a"); link.href = list.export_url;
+      link.textContent = language === "ne" ? "पूर्ण तह निर्यात ↓" : "Full layer export ↓"; details.append(link);
+    }
+    container.append(details);
   }
 }
 
@@ -485,9 +517,10 @@ $("change").addEventListener("input", () => { $("change-value").textContent = `$
 $("mode").addEventListener("change", syncSetup);
 $("satellite-provider").addEventListener("change", syncSetup);
 $("region").addEventListener("change", () => {
-  if ($("region").value === "trishuli") {
-    ["west", "south", "east", "north"].forEach((id, i) => { $(id).value = [85.19, 27.90, 85.41, 28.30][i]; });
-    $("area-name").value = "Trishuli river corridor";
+  const preset = state.sources?.presets?.[$("region").value];
+  if (preset) {
+    ["west", "south", "east", "north"].forEach((id, i) => { $(id).value = preset.bbox[i]; });
+    $("area-name").value = preset.name; $("event-date").value = preset.flood_date;
   } else { $("advanced").open = true; $("area-name").value = "Custom analysis area"; $("west").focus(); }
 });
 $("trace-toggle").addEventListener("click", () => {
@@ -515,6 +548,20 @@ async function initialize() {
   syncResultControls();
   try {
     state.sources = await api("/api/data-sources");
+    const preset = state.sources.presets?.[$("region").value];
+    const configuration = state.sources.mapping_configuration;
+    if (preset) {
+      ["west", "south", "east", "north"].forEach((id, i) => { $(id).value = preset.bbox[i]; });
+      $("area-name").value = preset.name; $("event-date").value = preset.flood_date;
+      map.fitBounds([[preset.bbox[1], preset.bbox[0]], [preset.bbox[3], preset.bbox[2]]]);
+    }
+    if (configuration) {
+      const changeBounds = state.sources.parameter_schema?.properties?.change_threshold_db;
+      if (changeBounds) { $("change").min = changeBounds.minimum; $("change").max = changeBounds.maximum; }
+      $("resolution").value = configuration.resolution_m;
+      $("change").value = configuration.change_threshold_db;
+      $("change-value").textContent = `${configuration.change_threshold_db} dB`;
+    }
     if (state.sources.workspace?.preferred_satellite_provider === "copernicus") $("satellite-provider").value = "copernicus";
     renderSources();
   } catch (error) {
@@ -523,7 +570,9 @@ async function initialize() {
     $("workspace-data-status").textContent = "Source status unavailable";
   }
   let saved;
-  try { saved = localStorage.getItem("flood-lens-run"); } catch { saved = null; }
+  const requested = new URLSearchParams(location.search).get("run");
+  if (/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(requested || "")) saved = requested;
+  else { try { saved = localStorage.getItem("flood-lens-run"); } catch { saved = null; } }
   try {
     let run;
     if (saved) {
@@ -536,6 +585,8 @@ async function initialize() {
     }
     if (!run) return;
     $("event-date").value = run.flood_date; $("mode").value = run.mode; $("area-name").value = run.name;
+    const legacyPreset = Object.values(state.sources?.presets || {}).find((preset) => preset.flood_date === run.flood_date && preset.bbox.every((value, index) => value === run.bbox[index]));
+    $("region").value = run.parameters.case_id || legacyPreset?.id || "custom";
     $("satellite-provider").value = run.parameters.satellite_provider || "public";
     ["west", "south", "east", "north"].forEach((id, i) => { $(id).value = run.bbox[i]; });
     $("resolution").value = run.parameters.resolution_m;

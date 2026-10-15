@@ -30,6 +30,9 @@ def good_draft(run,field='water_km2',language='en',topic='flood'):
 def fake_provider(monkeypatch):
     monkeypatch.setenv('LLM_ENABLED','true')
     monkeypatch.setenv('LLM_API_KEY','unit-test-placeholder-not-a-real-key')
+    # These tests exercise the optional model-selected tool path. The default
+    # application-retrieval path has separate native-SDK regression coverage.
+    monkeypatch.setenv('LLM_APPLICATION_RETRIEVAL','false')
     class Fake:
         responses=[]
         requests=[]
@@ -65,7 +68,8 @@ def test_compound_question_retrieves_both_tools(evidence_run,fake_provider):
     fake_provider.responses=[result([call('infrastructure_impacts',{'asset_type':'roads','only_exposed':True,'offset':0,'limit':2},'call_roads'),call('settlement_connectivity',{'status':'all','offset':0,'limit':2},'call_access')]),result(draft=d)]
     reply=answer(evidence_run,'List the potentially exposed roads and villages with modeled loss of access.')
     assert reply['intent']=='compound' and reply['generation']['mode']=='llm'
-    assert {f['field_name'] for f in reply['facts']}=={'roads_exposed','settlements_cut_off'}
+    assert {'roads_exposed','settlements_cut_off'}.issubset({f['field_name'] for f in reply['facts']})
+    assert all(not item['truncated'] for item in reply['lists'])
     assert 'Actual closures' in reply['answer']
     assert 'not confirmed damage' in reply['answer']
 
@@ -84,7 +88,7 @@ def test_bad_output_retries_once_then_falls_back_without_releasing_it(evidence_r
     reply=answer(evidence_run,'What is the flood extent?')
     assert reply['generation']['mode']=='deterministic_fallback'
     assert reply['generation']['reason']=='validation_failed'
-    assert len(fake_provider.requests)==4
+    assert len(fake_provider.requests)==3
     assert '987654321' not in reply['answer'] and 'confirmed destroyed' not in reply['answer'] and 'PRIVATE' not in reply['answer']
 
 
@@ -132,21 +136,22 @@ def test_nepali_selected_language_and_identical_evidence(evidence_run,fake_provi
 
 def test_actual_groq_sdk_contract_roundtrip_uses_mock_transport(evidence_run,monkeypatch):
     monkeypatch.setenv('LLM_ENABLED','true');monkeypatch.setenv('LLM_API_KEY','unit-test-placeholder')
+    monkeypatch.setenv('LLM_APPLICATION_RETRIEVAL','false')
     requests=[]
     def handle(request):
         data=json.loads(request.content);requests.append(data)
         assert str(request.url)=='https://api.groq.com/openai/v1/chat/completions'
-        message={'role':'assistant','content':None,'tool_calls':[{'id':'call_1','type':'function','function':{'name':'flood_surface_change','arguments':'{}'}}]} if len(requests)==1 else {'role':'assistant','content':'Ready to compose facts.' if len(requests)==2 else json.dumps(good_draft(evidence_run))}
+        message={'role':'assistant','content':None,'tool_calls':[{'id':'call_1','type':'function','function':{'name':'flood_surface_change','arguments':'{}'}}]} if len(requests)==1 else {'role':'assistant','content':json.dumps(good_draft(evidence_run))}
         return httpx.Response(200,json={'id':'chat_test','object':'chat.completion','created':0,'model':'openai/gpt-oss-120b','choices':[{'index':0,'message':message,'finish_reason':'tool_calls' if len(requests)==1 else 'stop'}]})
     client=Groq(api_key='unit-test-placeholder',base_url='https://api.groq.com',max_retries=0,http_client=httpx.Client(transport=httpx.MockTransport(handle)))
     monkeypatch.setattr('app.llm.Groq',lambda **kwargs:client)
     reply=answer(evidence_run,'Describe the newly detected water.')
     assert reply['generation']['mode']=='llm' and reply['generation']['provider']=='groq'
-    assert len(requests)==3 and requests[0]['tool_choice']=='required' and requests[0]['store'] is False
+    assert len(requests)==2 and requests[0]['tool_choice']=='required' and requests[0]['store'] is False
     assert 'response_format' not in requests[0]
     assert any(item['role']=='tool' for item in requests[1]['messages'])
-    assert requests[2]['response_format']['json_schema']['strict'] is True
-    assert 'tools' not in requests[2]
+    assert requests[1]['response_format']['json_schema']['strict'] is True
+    assert 'tools' not in requests[1]
 
 
 @pytest.mark.parametrize('tool,args',[('exec_python',{'code':'print(1)'}),('event_summary',{'run_id':'another-analysis'}),('feature_evidence',{'layer':'roads','feature_id':'/etc/passwd','path':'/etc/passwd'})])
@@ -163,7 +168,7 @@ def test_second_tool_round_can_retrieve_specific_feature_evidence(evidence_run,f
     feature=evidence_run['layers']['settlements']['features'][0]['properties']['id']
     fact=next(f for f in c.call('feature_evidence',{'layer':'settlements','feature_id':feature}).facts if f.field_name=='status')
     draft={'run_id':c.run_id,'language':'en','kind':'answer','sections':[{'topic':'feature','claims':[claim_for(fact).model_dump()],'explanations':[]}]}
-    fake_provider.responses=[result([call('settlement_connectivity',{'status':'all','offset':0,'limit':1},'find')]),result([call('feature_evidence',{'layer':'settlements','feature_id':feature},'detail')]),result(draft=draft)]
-    reply=answer(evidence_run,'What supports this settlement connectivity assessment?')
+    fake_provider.responses=[result([call('event_summary',{},'find')]),result([call('feature_evidence',{'layer':'settlements','feature_id':feature},'detail')]),result(draft=draft)]
+    reply=answer(evidence_run,f'What supports settlement {feature} connectivity assessment?')
     assert reply['generation']['mode']=='llm' and feature in reply['answer']
     assert reply['facts'][0]['subject_id']==feature

@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 import sys
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent))
-import numpy as np
 import pyogrio
 import rasterio
 from shapely.geometry import shape,box
@@ -13,12 +12,15 @@ from shapely.ops import unary_union
 from shapely.strtree import STRtree
 from app.storage import save_json,sha256
 from app.sources import REFERENCE_FOLDER
-from app.geo import Grid
+from app.geo import Grid,observation_fraction
+from app.evaluation import joint_hazard_observations
 
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('run_folder',type=Path)
 parser.add_argument('--reference',type=Path,default=REFERENCE_FOLDER)
+parser.add_argument('--observation-threshold',type=float,default=.8)
 args=parser.parse_args()
+if not 0<args.observation_threshold<=1:parser.error('--observation-threshold must be above zero and at most one')
 folder=args.run_folder
 before={p.name:sha256(p) for p in (folder/'result.json',folder/'change-mask.tif',folder/'extent.geojson')}
 run=json.loads((folder/'result.json').read_text())
@@ -26,20 +28,14 @@ if run['mode']!='live':raise ValueError('Real official grading requires an actua
 with rasterio.open(folder/'change-mask.tif') as source:
     grid=Grid(str(source.crs),source.transform,source.width,source.height,abs(source.transform.a))
     observed=source.read(1)!=255
+observed=joint_hazard_observations(folder,grid,observed)
 hazard=unary_union([grid.project(shape(f['geometry'])) for f in run['layers']['extent']['features']])
 aoi=grid.project(box(*run['bbox']))
 layers={k:run['layers'][k]['features'] for k in ('buildings','roads','bridges')}
 geometries={k:[grid.project(shape(f['geometry'])) for f in fs] for k,fs in layers.items()}
 trees={k:STRtree(gs) for k,gs in geometries.items() if gs}
 def coverage(geometry):
-    if geometry.geom_type=='LineString':
-        points=[geometry.interpolate(x) for x in np.linspace(0,geometry.length,max(2,int(np.ceil(geometry.length/grid.resolution))+1))]
-    else:points=[geometry.representative_point()]
-    total=0
-    for p in points:
-        row=int(np.floor((grid.transform.f-p.y)/grid.resolution));col=int(np.floor((p.x-grid.transform.c)/grid.resolution))
-        total+=bool(0<=row<grid.height and 0<=col<grid.width and observed[row,col])
-    return total/len(points)
+    return observation_fraction(geometry,observed,grid)
 counts={};rows=[];seen=set()
 manifest=json.loads((args.reference/'manifest.json').read_text())
 for product in manifest['products']:
@@ -62,7 +58,7 @@ for product in manifest['products']:
             if not g.intersects(aoi):continue
             record={'category':category,'aoi':product['aoi'],'product_id':product['product_id'],'official_grade':grade,'observed_fraction':round(coverage(g),3)}
             tally=counts.setdefault(category,Counter());tally['reference_assets_inside_aoi']+=1
-            if record['observed_fraction'] < .8:
+            if record['observed_fraction'] < args.observation_threshold:
                 record['status']='insufficient_observation';tally['insufficient_observation']+=1
             elif category not in trees:
                 record['status']='no_historical_osm_match';tally['unmatched']+=1
@@ -94,10 +90,13 @@ for product in manifest['products']:
 scores={}
 for category,c in counts.items():
     tp,fp,fn,tn=[c[k] for k in ('tp','fp','fn','tn')]
-    scores[category]={**dict(c),'compared_assets':tp+fp+fn+tn,'precision':tp/(tp+fp) if tp+fp else None,
+    scores[category]={**dict(c),'compared_assets':tp+fp+fn+tn,'status':'available' if tp+fp+fn else 'unavailable',
+        'reason':None if tp+fp+fn else 'No positive, jointly observed, matched reference/prediction asset comparisons.',
+        'precision':tp/(tp+fp) if tp+fp else None,
         'recall':tp/(tp+fn) if tp+fn else None,'f1':2*tp/(2*tp+fp+fn) if 2*tp+fp+fn else None}
 result={'run_id':run['id'],'activation':manifest['activation'],'role':'evaluation only',
-    'method':'Initial products only. Reference assets inside AOI; >=80% observed samples; pre-event OSM matching: 50m point distance / >=50% road length within 30m. Uncertain grades excluded from binary agreement.',
+    'status':'available' if any(s['status']=='available' for s in scores.values()) else 'unavailable',
+    'method':f'Initial products only. Reference assets inside AOI; >={args.observation_threshold:.0%} footprint area or length-weighted samples jointly eligible for water AND debris. Missing class observations cannot establish negative exposure. Pre-event OSM matching: 50m point distance / >=50% road length within 30m. Uncertain grades excluded from binary agreement.',
     'scores':scores,'assets':rows,'attribution':'European Union, Copernicus Emergency Management Service data',
     'limitations':'Exposure-versus-grading agreement is indirect: intersection does not establish structural damage, impassability or actual settlement cutoff. Matching and observation selection affect coverage; excluded assets are reported explicitly.',
     'prediction_unchanged':all(sha256(folder/name)==value for name,value in before.items())}

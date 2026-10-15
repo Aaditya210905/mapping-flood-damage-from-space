@@ -1,8 +1,8 @@
 # Three-minute Situation-Report Copilot demonstration
 
-The current recording is [output/video/flooline-script-demo.mp4](../output/video/flooline-script-demo.mp4), with a [source/response manifest](../output/video/flooline-script-demo.json). It uses cached real CDSE run `0fb99632-2943-4d03-9656-55f1db0682cd`. The recording has burned-in captions and no voiceover. It shows the existing saved analysis and actual API responses; it does not show a new acquisition or prove performance on a judge-selected AOI/date.
+The current repaired recording is [output/video/flooline-repaired-demo.mp4](../output/video/flooline-repaired-demo.mp4), with a [source/response manifest](../output/video/flooline-repaired-demo.json). It uses cached real CDSE run `0717d3b1-ac72-48d2-a8bb-8ecb93e9663c`. English/Nepali chat and the Nepali report used genuine Groq responses. It has burned-in captions and no voiceover. It does not show a new acquisition or prove all judge-selected AOIs/dates. The previous `flooline-final-demo.*` user artifacts are preserved.
 
-The final playback cues below match the supplied narration. Each scene is edited independently, so provider latency does not shift the later sections. Read at approximately 125 words per minute; fit the generated audio to these cues. The MP4 intentionally has no audio track.
+The final playback cues below match the revised narration. The 1:48–2:00 section demonstrates the source-provenance panel; replace that section of any audio made from the earlier script. Each scene is edited independently, so provider latency does not shift the later sections. Read at approximately 125 words per minute; fit the generated audio to these cues. The MP4 intentionally has no audio track.
 
 ## Presenter narration
 
@@ -32,7 +32,7 @@ Here, the evidence panel exposes fact identifiers and original values. Matching 
 
 **00:01:48 --> 00:02:00**
 
-When I ask how many people died, the copilot refuses to estimate. Satellite images and mapped infrastructure cannot establish casualties, missing people, or population impacts.
+Next, I check the analysis sources. This panel identifies satellite imagery, elevation data, and historical OpenStreetMap, with dates and provenance tied to this run.
 
 **00:02:00 --> 00:02:15**
 
@@ -55,7 +55,7 @@ Data credits go to Copernicus Sentinel, Copernicus WorldDEM, and OpenStreetMap c
 After starting the website, record a real selected analysis:
 
 ```bash
-uv run python scripts/record_demo.py --run-id REAL_RUN_UUID --require-llm --output output/video/flooline-script-demo.mp4
+uv run python scripts/record_demo.py --run-id REAL_RUN_UUID --require-llm --output output/video/flooline-repaired-demo.mp4
 ```
 
 For an explicitly synthetic walkthrough, add --preview and use a current-route demo UUID. The helper uses an isolated Chromium profile and ffmpeg, records captions without voiceover, retains engine/mode labels and exports a three-minute MP4 plus a manifest. Each scene is edited to its fixed playback cue, preserving the narration timing and final attribution. The --require-llm flag rejects supported answers that fall back instead of using Groq. A take is also rejected for visible UI errors, HTTP errors, JavaScript page errors or new acquisition requests. Do not use victim imagery.

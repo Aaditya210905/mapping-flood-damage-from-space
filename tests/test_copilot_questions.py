@@ -168,6 +168,7 @@ def test_missing_settlement_layer_is_unavailable_instead_of_zero(route_run):
 def scoped_provider(monkeypatch):
     monkeypatch.setenv('LLM_ENABLED', 'true')
     monkeypatch.setenv('LLM_API_KEY', 'unit-test-placeholder')
+    monkeypatch.setenv('LLM_APPLICATION_RETRIEVAL', 'false')
 
     class Provider:
         responses = []
@@ -258,8 +259,8 @@ def test_scoped_tool_selection_does_not_gate_general_llm_questions(route_run):
     coverage = plan_question(context, 'How much of the study area could actually be observed?', [])
     assert [tool['name'] for tool in _query_tools(coverage)] == ['flood_surface_change']
     general = plan_question(context, 'How do the road observations affect confidence?', [])
-    assert len(_query_tools(general)) == 6
+    assert len(_query_tools(general)) == 7
     for tool in _query_tools(general):
         limit = tool['parameters'].get('properties', {}).get('limit')
         if limit:
-            assert limit['maximum'] == 2
+            assert limit['maximum'] == 5

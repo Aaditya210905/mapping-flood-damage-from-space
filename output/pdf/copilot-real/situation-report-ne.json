@@ -1,0 +1,675 @@
+{
+  "report_id": "bf531872-ca8a-4c6e-87db-60625d1e5070",
+  "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+  "language": "ne",
+  "title": "बाढी स्थिति प्रतिवेदन",
+  "generated_at": "2026-10-15T02:02:34+00:00",
+  "analysis_name": "Trishuli river corridor",
+  "event_date": "2026-08-26",
+  "data_mode": "live",
+  "status": "partial",
+  "sections": [
+    {
+      "heading": "उपग्रह अवलोकन",
+      "lines": [
+        "घटनाअघि राडार अवलोकन मिति: 2026-08-16T12:21:41.058298Z; घटनापछि राडार अवलोकन मिति: 2026-08-28T12:21:41.762029Z; प्रशोधित अप्टिकल तस्बिर पहिचान: कुनै अभिलेख छैन; प्रशोधित अप्टिकल अवलोकन मिति: उपलब्ध छैन."
+      ],
+      "fact_ids": [
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:b9ebca08cf171326611b",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:6fbe66fcc941423df09a",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:0ede4fd067469d91c62a",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:d0bd0b505ba4cd140316"
+      ]
+    },
+    {
+      "heading": "डुबान र भूआवरण परिवर्तन",
+      "lines": [
+        "सम्भावित नयाँ डुबान सम्भावित नयाँ डुबान: 0.000 वर्ग कि.मि.. र विश्लेषणका लागि योग्य अवलोकन क्षेत्र विश्लेषणका लागि योग्य अवलोकन क्षेत्र: 13.6 %. तथा राडारको प्रयोगयोग्य क्षेत्र डुबान वर्गको छनोटअघि प्रयोगयोग्य राडार अवलोकन क्षेत्र: 97.6 %. छन्।",
+        "सम्भावित माटो/ढुंगा वा भूआवरण परिवर्तन: उपलब्ध छैन; पहिलेदेखिको पानी: 0.701 वर्ग कि.मि.; दुवै मितिको बादलरहित अप्टिकल क्षेत्र: 0.0 %; डुबान वर्गका लागि योग्य अवलोकन क्षेत्र: 13.6 %; भूआवरण परिवर्तन वर्गका लागि योग्य अवलोकन क्षेत्र: 0.0 %.",
+        "माटो/ढुंगा वा भूआवरण परिवर्तनका सम्भावित क्षेत्र अन्य परिवर्तन पनि हुन सक्छन्; भग्नावशेषको बहाव पुष्टि भएको होइन।",
+        "अवलोकन नभएको क्षेत्र अज्ञात छ। परिवर्तन नदेखिनु क्षति नभएको प्रमाण होइन।"
+      ],
+      "fact_ids": [
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:b681492b71d54fdd92a7",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:6d62fc5d3cbc465d91d4",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:789b8988011f2fa9901e",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:63221f8c38d5869c1cd2",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:2ed3882922834957cdb0",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:0ea70b88b0a9c10b9bb8",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:18e63aaebb3cca8ca5e3",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:51c11bbbd09592dadc0d"
+      ]
+    },
+    {
+      "heading": "पूर्वाधारमा सम्भावित प्रभाव",
+      "lines": [
+        "सम्भावित प्रभावित भवन सम्भावित प्रभावित भवन: 0., सडक अभिलेख सम्भावित प्रभावित सडक अभिलेख: 0., सडक लम्बाइ नक्साको परिवर्तन क्षेत्रमा पर्ने सडक लम्बाइ: 0.000 कि.मि.. तथा पुल सम्भावित प्रभावित पुल: 0. शून्य देखिन्छ।",
+        "नक्साको परिवर्तनसँग जुध्नु सम्भावित प्रभाव हो; क्षति वा विनाश पुष्टि भएको होइन।"
+      ],
+      "fact_ids": [
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:92e4e8516fc874b93271",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:68a0bf452ff61838ca2d",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:bc164ff4721c6d9d5903",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:79d0c883de664c999a5f"
+      ]
+    },
+    {
+      "heading": "मोडेल अनुसार बस्तीको सडक सम्पर्क",
+      "lines": [
+        "मोडेल अनुसार सडक सम्पर्क गुमाएका बस्ती मोडेल अनुसार सडक सम्पर्क गुमाएका बस्ती: 0., मूल्याङ्कन हुन नसकेका बस्ती मूल्याङ्कन हुन नसकेका बस्ती: 56., सम्पर्क अनिश्चित बस्ती सडक सम्पर्क अनिश्चित भएका बस्ती: 47., र पहिले नै असम्बन्धित बस्ती पहिलेदेखि सम्पर्क नभएका बस्ती: 6. छन्।",
+        "परिवर्तनसँग जुधेको लम्बाइको सीमा अनुसार सडक बन्द मानेर सम्पर्क गणना गरिएको हो। पुलमुनिको पानीले पुल बिग्रेको पुष्टि गर्दैन। वास्तविक सडक बन्द जाँचिएको छैन।"
+      ],
+      "fact_ids": [
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:7a790f7cc061f983b5ad",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:66010713f3db356d0f8d",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:d3fb2c8ed71ca3f3cb56",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:b3b31e9052942ed4dad9"
+      ]
+    },
+    {
+      "heading": "स्रोत र प्रमाण",
+      "lines": [
+        "OSM स्न्यापशट ऐतिहासिक OSM को मिति: 2026-07-27T08:59:58Z., घटनाअघि राडार अवलोकन घटनाअघि राडार अवलोकन मिति: 2026-08-16T12:21:41.058298Z., र घटनापछि राडार अवलोकन घटनापछि राडार अवलोकन मिति: 2026-08-28T12:21:41.762029Z. उपलब्ध छन्।",
+        "घटनाअघि राडार तस्बिर पहिचान: S1D_IW_GRDH_1SDV_20260816T122141_20260816T122206_004151_007980_B091_COG; घटनापछि राडार तस्बिर पहिचान: S1D_IW_GRDH_1SDV_20260828T122141_20260828T122206_004326_007FA4_C73B_COG; परिवर्तन पहिचान विधि: Rule-based radar and optical change detection.",
+        "प्रमाण: चयन गरिएको विश्लेषणको result.json, extent.geojson र पूर्वाधार/सडक सम्पर्क अभिलेख।"
+      ],
+      "fact_ids": [
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:c5683c97ac2c991182a1",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:d4127655b1956674c687",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:6a1e7790bba820593562",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:3508974562a4af2e623a",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:b9ebca08cf171326611b",
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:6fbe66fcc941423df09a"
+      ]
+    },
+    {
+      "heading": "सीमाहरू",
+      "lines": [
+        "यो शैक्षिक प्रोटोटाइप हो; उपग्रह अनुमानलाई स्वतन्त्र फिल्ड प्रमाणिकरण आवश्यक छ अभिलेखित नमुनाको सीमा: Educational prototype. Satellite estimates require independent field verification..।",
+        "उपग्रहको पुनरागमन, भूभागको छाया, बादल र वनस्पतिले नतिजा सीमित गर्छन्; यसले केही मिनेटअघि चेतावनी दिन सक्दैन।",
+        "अपूर्ण OSM सडक, गन्तव्य सञ्चालन र विश्लेषण क्षेत्रबाहिरका मार्ग जाँचिएका छैनन्।",
+        "अवलोकन नभएको क्षेत्र अज्ञात छ। परिवर्तन नदेखिनु क्षति नभएको प्रमाण होइन।",
+        "जनसङ्ख्या, मृत्यु, घाइते वा बेपत्ताको अनुमान उपलब्ध छैन। स्थल निरीक्षण र नेपाली भाषा समीक्षा आवश्यक छ।"
+      ],
+      "fact_ids": [
+        "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:283d6310900b5dade4ac"
+      ]
+    }
+  ],
+  "facts": [
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:b9ebca08cf171326611b",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "radar_before_acquired",
+      "path": "provenance.radar_scenes.0.acquired",
+      "subject_type": "observation",
+      "subject_id": "radar:before",
+      "subject_name": "S1D_IW_GRDH_1SDV_20260816T122141_20260816T122206_004151_007980_B091_COG",
+      "value": "2026-08-16T12:21:41.058298Z",
+      "unit": "date",
+      "status": "available",
+      "label_en": "Before radar acquisition",
+      "label_ne": "घटनाअघि राडार अवलोकन मिति",
+      "source_ids": [
+        "S1D_IW_GRDH_1SDV_20260816T122141_20260816T122206_004151_007980_B091_COG"
+      ],
+      "method": "Saved analysis metadata",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "recorded_metadata",
+      "uncertainty": null,
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:6fbe66fcc941423df09a",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "radar_after_acquired",
+      "path": "provenance.radar_scenes.1.acquired",
+      "subject_type": "observation",
+      "subject_id": "radar:after",
+      "subject_name": "S1D_IW_GRDH_1SDV_20260828T122141_20260828T122206_004326_007FA4_C73B_COG",
+      "value": "2026-08-28T12:21:41.762029Z",
+      "unit": "date",
+      "status": "available",
+      "label_en": "After radar acquisition",
+      "label_ne": "घटनापछि राडार अवलोकन मिति",
+      "source_ids": [
+        "S1D_IW_GRDH_1SDV_20260828T122141_20260828T122206_004326_007FA4_C73B_COG"
+      ],
+      "method": "Saved analysis metadata",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "recorded_metadata",
+      "uncertainty": null,
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:0ede4fd067469d91c62a",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "optical_scene_ids",
+      "path": "provenance.optical_scenes",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": [],
+      "unit": null,
+      "status": "available",
+      "label_en": "Processed optical product IDs",
+      "label_ne": "प्रशोधित अप्टिकल तस्बिर पहिचान",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved analysis metadata",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "recorded_metadata",
+      "uncertainty": null,
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:d0bd0b505ba4cd140316",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "optical_acquisition_dates",
+      "path": "provenance.optical_observations",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": null,
+      "unit": "date",
+      "status": "missing",
+      "label_en": "Processed optical acquisition dates",
+      "label_ne": "प्रशोधित अप्टिकल अवलोकन मिति",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved analysis metadata",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "unavailable",
+      "uncertainty": null,
+      "missing_reason": "The selected analysis does not contain this measurement or metadata."
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:b681492b71d54fdd92a7",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "water_km2",
+      "path": "stats.water_km2",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 0.0,
+      "unit": "km²",
+      "status": "available",
+      "label_en": "Potential new inundation",
+      "label_ne": "सम्भावित नयाँ डुबान",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved raster class area and observation masks",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "measurement",
+      "uncertainty": "The value covers only class-eligible observations; unavailable classes and the rest of the analysis area remain unknown.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:6d62fc5d3cbc465d91d4",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "debris_km2",
+      "path": "stats.debris_km2",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": null,
+      "unit": "km²",
+      "status": "missing",
+      "label_en": "Possible surface/debris change",
+      "label_ne": "सम्भावित माटो/ढुंगा वा भूआवरण परिवर्तन",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved raster class area and observation masks",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "unavailable",
+      "uncertainty": "Satellite change/exposure and simulated connectivity require independent field verification.",
+      "missing_reason": "No suitable paired optical scenes are available for debris assessment."
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:789b8988011f2fa9901e",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "permanent_water_km2",
+      "path": "stats.permanent_water_km2",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 0.701,
+      "unit": "km²",
+      "status": "available",
+      "label_en": "Pre-existing water",
+      "label_ne": "पहिलेदेखिको पानी",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved raster class area and observation masks",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "measurement",
+      "uncertainty": "Satellite change/exposure and simulated connectivity require independent field verification.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:63221f8c38d5869c1cd2",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "valid_coverage_pct",
+      "path": "stats.valid_coverage_pct",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 13.6,
+      "unit": "%",
+      "status": "available",
+      "label_en": "Eligible observation coverage",
+      "label_ne": "विश्लेषणका लागि योग्य अवलोकन क्षेत्र",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved raster class area and observation masks",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "measurement",
+      "uncertainty": "Satellite change/exposure and simulated connectivity require independent field verification.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:2ed3882922834957cdb0",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "optical_clear_pct",
+      "path": "stats.optical_clear_pct",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 0.0,
+      "unit": "%",
+      "status": "available",
+      "label_en": "Paired clear optical coverage",
+      "label_ne": "दुवै मितिको बादलरहित अप्टिकल क्षेत्र",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved raster class area and observation masks",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "measurement",
+      "uncertainty": "Satellite change/exposure and simulated connectivity require independent field verification.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:0ea70b88b0a9c10b9bb8",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "water_eligible_coverage_pct",
+      "path": "stats.water_eligible_coverage_pct",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 13.639364832487576,
+      "unit": "%",
+      "status": "available",
+      "label_en": "Water-class eligible coverage",
+      "label_ne": "डुबान वर्गका लागि योग्य अवलोकन क्षेत्र",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved raster class area and observation masks",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "measurement",
+      "uncertainty": "Satellite change/exposure and simulated connectivity require independent field verification.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:18e63aaebb3cca8ca5e3",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "debris_eligible_coverage_pct",
+      "path": "stats.debris_eligible_coverage_pct",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 0.0,
+      "unit": "%",
+      "status": "available",
+      "label_en": "Surface-change-class eligible coverage",
+      "label_ne": "भूआवरण परिवर्तन वर्गका लागि योग्य अवलोकन क्षेत्र",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved raster class area and observation masks",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "measurement",
+      "uncertainty": "Satellite change/exposure and simulated connectivity require independent field verification.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:51c11bbbd09592dadc0d",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "radar_valid_coverage_pct",
+      "path": "stats.radar_valid_coverage_pct",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 97.6,
+      "unit": "%",
+      "status": "available",
+      "label_en": "Usable paired radar coverage before water-target screening",
+      "label_ne": "डुबान वर्गको छनोटअघि प्रयोगयोग्य राडार अवलोकन क्षेत्र",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved raster class area and observation masks",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "measurement",
+      "uncertainty": "Satellite change/exposure and simulated connectivity require independent field verification.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:92e4e8516fc874b93271",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "buildings_exposed",
+      "path": "stats.buildings_exposed",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 0,
+      "unit": "count",
+      "status": "available",
+      "label_en": "Potentially exposed buildings",
+      "label_ne": "सम्भावित प्रभावित भवन",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved metric OSM/hazard intersections",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "potential_exposure",
+      "uncertainty": "The value covers only class-eligible observations; unavailable classes and the rest of the analysis area remain unknown.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:68a0bf452ff61838ca2d",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "roads_exposed",
+      "path": "stats.roads_exposed",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 0,
+      "unit": "count",
+      "status": "available",
+      "label_en": "Potentially exposed road features",
+      "label_ne": "सम्भावित प्रभावित सडक अभिलेख",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved metric OSM/hazard intersections",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "potential_exposure",
+      "uncertainty": "The value covers only class-eligible observations; unavailable classes and the rest of the analysis area remain unknown.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:bc164ff4721c6d9d5903",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "bridges_exposed",
+      "path": "stats.bridges_exposed",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 0,
+      "unit": "count",
+      "status": "available",
+      "label_en": "Potentially exposed bridges",
+      "label_ne": "सम्भावित प्रभावित पुल",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved metric OSM/hazard intersections",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "potential_exposure",
+      "uncertainty": "The value covers only class-eligible observations; unavailable classes and the rest of the analysis area remain unknown.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:79d0c883de664c999a5f",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "road_exposed_km",
+      "path": "stats.road_exposed_km",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 0.0,
+      "unit": "km",
+      "status": "available",
+      "label_en": "Road length intersecting mapped changes",
+      "label_ne": "नक्साको परिवर्तन क्षेत्रमा पर्ने सडक लम्बाइ",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved metric OSM/hazard intersections",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "potential_exposure",
+      "uncertainty": "The value covers only class-eligible observations; unavailable classes and the rest of the analysis area remain unknown.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:7a790f7cc061f983b5ad",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "settlements_cut_off",
+      "path": "stats.settlements_cut_off",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 0,
+      "unit": "count",
+      "status": "available",
+      "label_en": "Settlements with modeled loss of access",
+      "label_ne": "मोडेल अनुसार सडक सम्पर्क गुमाएका बस्ती",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved pre-event and assumed-disrupted directed road graph",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "modeled_connectivity",
+      "uncertainty": "Satellite change/exposure and simulated connectivity require independent field verification.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:66010713f3db356d0f8d",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "settlements_unassessed",
+      "path": "stats.settlements_unassessed",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 56,
+      "unit": "count",
+      "status": "available",
+      "label_en": "Unassessed settlements",
+      "label_ne": "मूल्याङ्कन हुन नसकेका बस्ती",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved pre-event and assumed-disrupted directed road graph",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "modeled_connectivity",
+      "uncertainty": "Satellite change/exposure and simulated connectivity require independent field verification.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:d3fb2c8ed71ca3f3cb56",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "settlements_access_uncertain",
+      "path": "stats.settlements_access_uncertain",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 47,
+      "unit": "count",
+      "status": "available",
+      "label_en": "Settlements with uncertain access",
+      "label_ne": "सडक सम्पर्क अनिश्चित भएका बस्ती",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved pre-event and assumed-disrupted directed road graph",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "modeled_connectivity",
+      "uncertainty": "Satellite change/exposure and simulated connectivity require independent field verification.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:b3b31e9052942ed4dad9",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "settlements_baseline_disconnected",
+      "path": "stats.settlements_baseline_disconnected",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": 6,
+      "unit": "count",
+      "status": "available",
+      "label_en": "Already disconnected settlements",
+      "label_ne": "पहिलेदेखि सम्पर्क नभएका बस्ती",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved pre-event and assumed-disrupted directed road graph",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "modeled_connectivity",
+      "uncertainty": "Satellite change/exposure and simulated connectivity require independent field verification.",
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:c5683c97ac2c991182a1",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "radar_before_id",
+      "path": "provenance.radar_scenes.0.id",
+      "subject_type": "observation",
+      "subject_id": "radar:before",
+      "subject_name": "S1D_IW_GRDH_1SDV_20260816T122141_20260816T122206_004151_007980_B091_COG",
+      "value": "S1D_IW_GRDH_1SDV_20260816T122141_20260816T122206_004151_007980_B091_COG",
+      "unit": null,
+      "status": "available",
+      "label_en": "Before radar product id",
+      "label_ne": "घटनाअघि राडार तस्बिर पहिचान",
+      "source_ids": [
+        "S1D_IW_GRDH_1SDV_20260816T122141_20260816T122206_004151_007980_B091_COG"
+      ],
+      "method": "Saved analysis metadata",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "recorded_metadata",
+      "uncertainty": null,
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:d4127655b1956674c687",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "radar_after_id",
+      "path": "provenance.radar_scenes.1.id",
+      "subject_type": "observation",
+      "subject_id": "radar:after",
+      "subject_name": "S1D_IW_GRDH_1SDV_20260828T122141_20260828T122206_004326_007FA4_C73B_COG",
+      "value": "S1D_IW_GRDH_1SDV_20260828T122141_20260828T122206_004326_007FA4_C73B_COG",
+      "unit": null,
+      "status": "available",
+      "label_en": "After radar product id",
+      "label_ne": "घटनापछि राडार तस्बिर पहिचान",
+      "source_ids": [
+        "S1D_IW_GRDH_1SDV_20260828T122141_20260828T122206_004326_007FA4_C73B_COG"
+      ],
+      "method": "Saved analysis metadata",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "recorded_metadata",
+      "uncertainty": null,
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:6a1e7790bba820593562",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "osm_snapshot",
+      "path": "provenance.osm_snapshot",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": "2026-07-27T08:59:58Z",
+      "unit": "date",
+      "status": "available",
+      "label_en": "Historical OSM snapshot",
+      "label_ne": "ऐतिहासिक OSM को मिति",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved analysis metadata",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "recorded_metadata",
+      "uncertainty": null,
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:3508974562a4af2e623a",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "mapping_method",
+      "path": "provenance.mapping.algorithm",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": "Rule-based radar and optical change detection",
+      "unit": null,
+      "status": "available",
+      "label_en": "Detection method",
+      "label_ne": "परिवर्तन पहिचान विधि",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved analysis metadata",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "recorded_metadata",
+      "uncertainty": null,
+      "missing_reason": null
+    },
+    {
+      "fact_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c:283d6310900b5dade4ac",
+      "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "field_name": "limitations",
+      "path": "limitations.0",
+      "subject_type": "analysis",
+      "subject_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+      "subject_name": "Trishuli river corridor",
+      "value": "Educational prototype. Satellite estimates require independent field verification.",
+      "unit": null,
+      "status": "available",
+      "label_en": "Recorded prototype limitation",
+      "label_ne": "अभिलेखित नमुनाको सीमा",
+      "source_ids": [
+        "result.json"
+      ],
+      "method": "Saved analysis metadata",
+      "timestamp": "2026-10-14T18:52:44.532008+00:00",
+      "interpretation": "limitation",
+      "uncertainty": null,
+      "missing_reason": null
+    }
+  ],
+  "attributions": [
+    "Contains modified Copernicus Sentinel data 2026.",
+    "Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.",
+    "© OpenStreetMap contributors.",
+    "European Union, Copernicus Emergency Management Service data"
+  ],
+  "generation": {
+    "mode": "llm",
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "reason": null,
+    "validation": "validated_claims",
+    "elapsed_ms": 2716,
+    "provider_requests": 1,
+    "prompt_tokens": 2848,
+    "completion_tokens": 1024,
+    "rate_limit_retries": 0,
+    "retry_after_seconds": null,
+    "provider_http_status": null
+  },
+  "missing_fields": [
+    "optical_acquisition_dates",
+    "debris_km2"
+  ]
+}

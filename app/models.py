@@ -2,6 +2,8 @@ from datetime import date, datetime, timezone
 from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
+from app.presets import TRISHULI
+from app.settings import MAPPING
 
 
 ATTRIBUTIONS = [
@@ -13,11 +15,11 @@ ATTRIBUTIONS = [
 LIMITATIONS = [
     "Educational prototype. Satellite estimates require independent field verification.",
     "Satellite revisits take days; this system cannot warn of a sudden glacier collapse minutes ahead.",
-    "Radar shadow, layover, vegetation and urban double-bounce affect inference. Annotation/orbit and DEM screening covers local geometry and a 1.92 km horizon; distant occlusion and subpixel terrain remain uncertain. Water targets use a separate slope eligibility mask.",
+    "Radar shadow, layover, vegetation and urban double-bounce affect inference. Annotation/orbit and DEM screening covers local geometry over a finite horizon; distant occlusion and subpixel terrain remain uncertain. The recorded source warnings describe the screening distance. Water targets use a separate slope eligibility mask.",
     "Optical cloud, snow and cloud-shadow pixels are excluded. Debris is a low-confidence change candidate, not a confirmed debris-flow classification.",
     "Intersecting buildings, roads and bridges are potentially exposed, not verified damaged. Counts cover unique mapped OSM elements, may miss rural assets and may count one physical bridge more than once. Mapped hospitals are not verified operational.",
     "Road isolation is an assumed scenario: continuous candidate overlap of at least half a raster cell removes unbridged road segments; bridge closure candidates require debris overlap. Water beneath bridges and surface changes above tunnels give uncertain access, not confirmed failure.",
-    "Mapped oneway and unconditional vehicle restrictions are used; turn restrictions and original OSM node identity are unavailable. Snaps are limited to 100 m; off-road connectors are unverified. Unobserved routes and AOI edges can hide alternative access or missing connections.",
+    f"Mapped oneway and unconditional vehicle restrictions are used; turn restrictions and original OSM node identity are unavailable. Snaps are limited to {MAPPING.road_snap_distance_m:g} m; off-road connectors are unverified. Unobserved routes and AOI edges can hide alternative access or missing connections.",
     "Cached real analyses retain their original area, acquisition dates and historical OSM snapshot. They do not establish current conditions or results for a different area/date; missing observations are not zero impact.",
     "Population, deaths, missing people, injuries and rescue priorities cannot be inferred from these inputs.",
     "Downhill DEM tracing is a terrain screening tool, not a hydraulic flood or travel-time simulation.",
@@ -25,17 +27,18 @@ LIMITATIONS = [
 
 
 class AnalysisRequest(BaseModel):
-    name: str = Field(default="Trishuli river corridor", min_length=1, max_length=120)
-    bbox: list[float] = Field(default_factory=lambda: [85.19, 27.90, 85.41, 28.30], min_length=4, max_length=4)
-    flood_date: date = date(2026, 8, 26)
+    name: str = Field(default=TRISHULI["name"], min_length=1, max_length=120)
+    bbox: list[float] = Field(default_factory=lambda: list(TRISHULI["bbox"]), min_length=4, max_length=4)
+    flood_date: date = date.fromisoformat(TRISHULI["flood_date"])
+    case_id: Literal["trishuli", "custom"] | None = None
     mode: Literal["demo", "live"] = "live"
     satellite_provider: Literal["public", "copernicus"] = "public"
-    resolution_m: int = Field(default=30, ge=10, le=100)
-    search_days: int = Field(default=24, ge=12, le=60)
-    water_threshold_db: float = Field(default=-17, ge=-30, le=-5)
-    change_threshold_db: float = Field(default=3, ge=1, le=12)
-    max_slope_deg: float = Field(default=20, ge=5, le=45)
-    min_component_pixels: int = Field(default=9, ge=1, le=1000)
+    resolution_m: int = Field(default=MAPPING.resolution_m, ge=10, le=100)
+    search_days: int = Field(default=MAPPING.search_days, ge=12, le=60)
+    water_threshold_db: float = Field(default=MAPPING.water_threshold_db, ge=-30, le=-5)
+    change_threshold_db: float = Field(default=MAPPING.change_threshold_db, ge=1, le=12)
+    max_slope_deg: float = Field(default=MAPPING.max_slope_deg, ge=5, le=45)
+    min_component_pixels: int = Field(default=MAPPING.min_component_pixels, ge=1, le=1000)
 
     @model_validator(mode="before")
     @classmethod
@@ -44,6 +47,10 @@ class AnalysisRequest(BaseModel):
         # Reject removed modes instead of silently changing their method.
         if isinstance(values, dict) and values.get("water_model", "threshold") != "threshold":
             raise ValueError("This project uses the situation-report copilot route with rule-based mapping. Flood-segmentation models are not supported.")
+        if isinstance(values,dict) and 'name' not in values and (
+                values.get('case_id')=='custom' or values.get('bbox',TRISHULI['bbox'])!=TRISHULI['bbox']
+                or str(values.get('flood_date',TRISHULI['flood_date']))!=TRISHULI['flood_date']):
+            values={**values,'name':'Custom flood analysis'}
         return values
 
     @model_validator(mode="after")

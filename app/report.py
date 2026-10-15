@@ -3,10 +3,11 @@ from datetime import datetime, timezone
 from html import escape
 from pathlib import Path
 from uuid import uuid4
+import re
 
-from app.copilot_types import SituationReport, ReportSection, GenerationInfo
+from app.copilot_types import SituationReport, ReportSection, GenerationInfo, AnswerDraft
 from app.evidence import EvidenceContext, FLOOD_FIELDS, INFRA_FIELDS, ACCESS_FIELDS
-from app.grounding import format_value, EXPLANATIONS
+from app.grounding import format_value, EXPLANATIONS, validate_draft, render_draft
 from app.models import ATTRIBUTIONS
 
 FONTS = Path(__file__).resolve().parent / 'static' / 'fonts'
@@ -25,23 +26,53 @@ def build_report_data(run, language='en', response=None):
     context=EvidenceContext(run)
     run=context.run
     context.call('event_summary',{})
+    context.call('sources_limitations',{})
     i=language=='ne'
     for key in ('analysis_name','event_date'):
         if context.global_fields[key].status!='available':
             raise ReportDataError('Cannot create a situation report: analysis area or event date is unavailable.')
     if response and (response.get('run_id')!=context.run_id or response.get('language')!=language):
         raise ReportDataError('Report response belongs to a different analysis or language.')
+    authored = {}
+    if response and response.get('draft'):
+        try:
+            draft = AnswerDraft.model_validate(response['draft'])
+            for section in draft.sections:
+                for claim in section.claims:
+                    if claim.subject_type not in ('analysis', 'observation'):
+                        context.call('feature_evidence', {'layer': claim.subject_type, 'feature_id': claim.subject_id})
+            validate_draft(draft, context, language)
+            for section in draft.sections:
+                if section.narrative:
+                    authored.setdefault(section.topic, []).append(section)
+        except (ValueError, TypeError, KeyError) as error:
+            raise ReportDataError('Report narrative does not match the saved analysis facts.') from error
     selected=[];sections=[]
-    def add(heading, keys, extra=None):
+    def add(heading, keys, extra=None, topic=None):
         facts=[context.global_fields[key] for key in keys]
         selected.extend(facts)
-        lines=[f"{fact.label_ne if i else fact.label_en}: {format_value(fact,language)}" for fact in facts]
-        lines.extend(extra or [])
-        sections.append(ReportSection(heading=heading[i],lines=lines,fact_ids=[fact.fact_id for fact in facts]))
+        lines=[]; used=set(); narrated=[]
+        for section in authored.get(topic, []):
+            part=AnswerDraft(run_id=context.run_id, language=language, kind='answer', sections=[section])
+            # Report sections already carry mandatory uncertainty below. Avoid
+            # repeating the area name and the same disclaimers for every value.
+            rendered, part_facts=render_draft(part,context,compact=True)
+            if run['mode']=='demo':rendered=rendered.split('\n\n',1)[1]
+            # The frozen report retains fact IDs in its typed section/evidence;
+            # long UUID citations inline would make the one-page PDF unreadable.
+            rendered=re.sub(r'\s*\[[0-9a-f-]{36}:[0-9a-f]{20}\]', '', rendered)
+            lines.extend(rendered.splitlines())
+            used.update(f.field_name for f in part_facts)
+            narrated.extend(part_facts)
+        selected.extend(narrated)
+        remaining=[f"{fact.label_ne if i else fact.label_en}: {format_value(fact,language)}" for fact in facts if fact.field_name not in used]
+        if remaining:lines.append('; '.join(remaining)+'.')
+        lines.extend(text for text in extra or [] if text not in lines)
+        sections.append(ReportSection(heading=heading[i],lines=lines,fact_ids=list(dict.fromkeys(f.fact_id for f in [*facts,*narrated]))))
     add(('Satellite observations','उपग्रह अवलोकन'),('radar_before_acquired','radar_after_acquired','optical_scene_ids','optical_acquisition_dates'))
     add(('Flood and surface-change findings','डुबान र भूआवरण परिवर्तन'),FLOOD_FIELDS,
-        [EXPLANATIONS['surface_change_uncertain'][i],EXPLANATIONS['coverage_limits'][i]])
-    add(('Potential infrastructure exposure','पूर्वाधारमा सम्भावित प्रभाव'),INFRA_FIELDS,[EXPLANATIONS['potential_damage'][i]])
+        [EXPLANATIONS['surface_change_uncertain'][i],EXPLANATIONS['coverage_limits'][i]], topic='flood')
+    add(('Potential infrastructure exposure','पूर्वाधारमा सम्भावित प्रभाव'),INFRA_FIELDS,[EXPLANATIONS['potential_damage'][i]], topic='infrastructure')
     settlement_facts=[]
     for (layer,identifier),feature in context.index.items():
         if layer=='settlements' and feature['properties'].get('status')=='cut_off':
@@ -51,14 +82,14 @@ def build_report_data(run, language='en', response=None):
     names=', '.join(f"{f.value} [{f.subject_id}]" for f in settlement_facts if f.status=='available')
     extra=[EXPLANATIONS['modeled_closure'][i]]
     if names:extra.append(('उदाहरण बस्ती: ' if i else 'Example settlements: ')+names+('. पूर्ण सूची नक्सा निर्यातमा छ।' if i else '. Complete list remains in map exports.'))
-    add(('Modeled settlement connectivity','मोडेल अनुसार बस्तीको सडक सम्पर्क'),ACCESS_FIELDS,extra)
+    add(('Modeled settlement connectivity','मोडेल अनुसार बस्तीको सडक सम्पर्क'),ACCESS_FIELDS,extra, topic='connectivity')
     add(('Sources and evidence','स्रोत र प्रमाण'),('radar_before_id','radar_after_id','osm_snapshot','mapping_method'),
-        [('प्रमाण: चयन गरिएको विश्लेषणको result.json, extent.geojson र पूर्वाधार/सडक सम्पर्क अभिलेख।' if i else 'Evidence: result.json, extent.geojson and the selected analysis’s infrastructure/connectivity layers.')])
+        [('प्रमाण: चयन गरिएको विश्लेषणको result.json, extent.geojson र पूर्वाधार/सडक सम्पर्क अभिलेख।' if i else 'Evidence: result.json, extent.geojson and the selected analysis’s infrastructure/connectivity layers.')], topic='sources')
     # Always include these authored limitations, even when the LLM requests a shorter briefing.
     codes=('satellite_limits','routing_limits','coverage_limits')
     limits=[EXPLANATIONS[code][i] for code in codes]
     limits.append('जनसङ्ख्या, मृत्यु, घाइते वा बेपत्ताको अनुमान उपलब्ध छैन। स्थल निरीक्षण र नेपाली भाषा समीक्षा आवश्यक छ।' if i else 'Population and casualty estimates are unavailable. Field verification and native-speaker Nepali review remain necessary.')
-    sections.append(ReportSection(heading='सीमाहरू' if i else 'Important limitations',lines=limits,fact_ids=[]))
+    add(('Important limitations','सीमाहरू'),(),limits,topic='limitations')
     unique=list({fact.fact_id:fact for fact in selected}.values())
     missing=[fact.field_name for fact in unique if fact.status!='available']
     recorded_credits=run.get('attributions')

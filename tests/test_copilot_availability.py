@@ -129,6 +129,7 @@ def test_every_rendered_fact_has_clickable_identity_and_no_trained_classifier(ev
 def test_wrong_destination_scope_from_llm_is_rejected(evidence_run, monkeypatch):
     monkeypatch.setenv("LLM_ENABLED", "true")
     monkeypatch.setenv("LLM_API_KEY", "unit-test-placeholder")
+    monkeypatch.setenv("LLM_APPLICATION_RETRIEVAL", "false")
     context = EvidenceContext(evidence_run)
     fact = context.call("settlement_connectivity", {"status": "cut_off", "offset": 0, "limit": 1}).facts[0]
     draft = {"run_id": evidence_run["id"], "language": "en", "kind": "answer", "sections": [

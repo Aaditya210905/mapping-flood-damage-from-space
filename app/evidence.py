@@ -8,7 +8,7 @@ from uuid import UUID
 from app.availability import normalize_analysis_availability
 
 from app.copilot_types import (EvidenceFact, ToolResult, EmptyArgs, InfrastructureArgs,
-                               ConnectivityArgs, FeatureArgs)
+                               ConnectivityArgs, FeatureArgs, InventoryArgs)
 
 
 # Labels and units belong to Python, never to model-generated prose.
@@ -28,11 +28,17 @@ METRICS = {
     "settlements_baseline_disconnected": ("Already disconnected settlements", "पहिलेदेखि सम्पर्क नभएका बस्ती", "count", "modeled_connectivity"),
     "water_eligible_coverage_pct": ("Water-class eligible coverage", "डुबान वर्गका लागि योग्य अवलोकन क्षेत्र", "%", "measurement"),
     "debris_eligible_coverage_pct": ("Surface-change-class eligible coverage", "भूआवरण परिवर्तन वर्गका लागि योग्य अवलोकन क्षेत्र", "%", "measurement"),
+    "radar_valid_coverage_pct": ("Usable paired radar coverage before water-target screening", "डुबान वर्गको छनोटअघि प्रयोगयोग्य राडार अवलोकन क्षेत्र", "%", "measurement"),
+    "buildings_total": ("Mapped building elements", "नक्सामा रहेका भवन अभिलेख", "count", "recorded_metadata"),
+    "roads_total": ("Mapped motorable road elements", "नक्सामा रहेका मोटर सडक अभिलेख", "count", "recorded_metadata"),
+    "bridges_total": ("Mapped bridge elements", "नक्सामा रहेका पुल अभिलेख", "count", "recorded_metadata"),
+    "settlements_total": ("Mapped settlements", "नक्सामा रहेका बस्ती", "count", "recorded_metadata"),
+    "destinations_total": ("Mapped hospital and town destinations", "नक्सामा रहेका अस्पताल र नगर गन्तव्य", "count", "recorded_metadata"),
 }
-FLOOD_FIELDS = tuple(METRICS)[:5] + ("water_eligible_coverage_pct", "debris_eligible_coverage_pct")
+FLOOD_FIELDS = ("water_km2", "debris_km2", "permanent_water_km2", "valid_coverage_pct", "optical_clear_pct", "water_eligible_coverage_pct", "debris_eligible_coverage_pct", "radar_valid_coverage_pct")
 INFRA_FIELDS = ("buildings_exposed", "roads_exposed", "bridges_exposed", "road_exposed_km")
 INFRA_CONTEXT_FIELDS = ("water_eligible_coverage_pct", "debris_eligible_coverage_pct")
-ACCESS_FIELDS = tuple(METRICS)[9:13]
+ACCESS_FIELDS = ("settlements_cut_off", "settlements_unassessed", "settlements_access_uncertain", "settlements_baseline_disconnected")
 CONNECTIVITY_QUERY_FIELDS = ("filter_road_id", "matching_settlements_count", "route_membership_unavailable_count", "destination_type", "destination_assessment_unavailable_count")
 FEATURE_FIELDS = {
     "name": ("Name", "नाम", None, "recorded_metadata"),
@@ -276,11 +282,12 @@ class EvidenceContext:
                 missing_reason="The selected run has no saved destination-specific graph evidence; combined town/hospital access cannot answer this question." if typed and not props else None))
         return facts
 
-    def _result(self, tool, facts, *, feature_ids=None, next_offset=None, missing=None):
+    def _result(self, tool, facts, *, feature_ids=None, next_offset=None, total_count=None, missing=None):
         self.returned_fact_ids.update(f.fact_id for f in facts)
         return ToolResult(run_id=self.run_id, tool=tool,
                           status="not_found" if missing and not facts else "partial" if missing or any(f.status != "available" for f in facts) else "ok",
-                          facts=facts, feature_ids=feature_ids or [], next_offset=next_offset, missing=missing or [],
+                          facts=facts, feature_ids=feature_ids or [], next_offset=next_offset,
+                          total_count=total_count, returned_count=len(feature_ids or []), missing=missing or [],
                           limitations=["Potential exposure is not confirmed damage. Connectivity assumes intersecting road segments are impassable; field closures are unverified."])
 
     def event_summary(self, args):
@@ -300,6 +307,7 @@ class EvidenceContext:
         for identifier, _ in selection:
             facts += self.feature_facts(args.asset_type, identifier)
         return self._result("infrastructure_impacts", facts, feature_ids=[x[0] for x in selection],
+            total_count=len(rows),
             next_offset=args.offset + args.limit if args.offset + args.limit < len(rows) else None,
             missing=[f"Saved {args.asset_type} layer unavailable"] if args.asset_type in self.layer_missing else [])
 
@@ -374,11 +382,41 @@ class EvidenceContext:
         for identifier, _ in selection:
             facts += self.feature_facts("settlements", identifier, args.destination_type)
         return self._result("settlement_connectivity", facts, feature_ids=[x[0] for x in selection],
+            total_count=None if "settlements" in self.layer_missing else len(rows),
             next_offset=args.offset + args.limit if args.offset + args.limit < len(rows) else None,
             missing=["Saved settlements layer unavailable"] if "settlements" in self.layer_missing else [])
 
     def sources_limitations(self, args):
-        return self._result("sources_limitations", [f for key, f in self.global_fields.items() if key not in METRICS])
+        facts = [f for key, f in self.global_fields.items() if key not in METRICS]
+        limits = self.run.get('limitations')
+        if isinstance(limits, list) and limits and isinstance(limits[0], str):
+            facts.append(self._add('limitations.0', 'limitations', limits[0],
+                                  ('Recorded prototype limitation', 'अभिलेखित नमुनाको सीमा'), interpretation='limitation'))
+        return self._result("sources_limitations", facts)
+
+    def mapped_inventory(self, args):
+        rows = [(identifier, item) for (layer, identifier), item in self.index.items() if layer == args.layer
+                and (args.layer != "destinations" or args.destination_type == "all"
+                     or item["properties"].get("destination_type") == args.destination_type
+                     or (args.destination_type == "hospital" and item["properties"].get("amenity") == "hospital")
+                     or (args.destination_type == "town" and item["properties"].get("place") in ("town", "city")))]
+        scope = hashlib.sha256(json.dumps([args.layer, args.destination_type]).encode()).hexdigest()[:20]
+        missing = args.layer in self.layer_missing
+        kind = args.destination_type if args.layer == "destinations" and args.destination_type != "all" else args.layer
+        labels = {"hospital": ("Mapped hospital elements", "नक्सामा रहेका अस्पताल अभिलेख"),
+                  "town": ("Mapped town elements", "नक्सामा रहेका नगर अभिलेख")}
+        fact = self._add(f"queries.mapped_inventory.{scope}.count", "inventory_count", None if missing else len(rows),
+                         labels.get(kind, (f"Mapped {kind} elements", f"नक्सामा रहेका {kind} अभिलेख")),
+                         unit="count", interpretation="recorded_metadata", subject_name=kind,
+                         source_ids=[args.layer + ".geojson"], method="Count unique saved mapped element IDs; completeness and facility operation are unverified")
+        selection = rows[args.offset:args.offset + args.limit]
+        facts = [fact]
+        for identifier, _ in selection:
+            facts.extend(f for f in self.feature_facts(args.layer, identifier) if f.field_name == "name")
+        return self._result("mapped_inventory", facts, feature_ids=[identifier for identifier, _ in selection],
+                            total_count=None if missing else len(rows),
+                            next_offset=args.offset + args.limit if args.offset + args.limit < len(rows) else None,
+                            missing=["Saved inventory layer unavailable"] if missing else [])
 
     def feature_evidence(self, args):
         facts = self.feature_facts(args.layer, args.feature_id, args.destination_type)
@@ -401,6 +439,7 @@ TOOL_REGISTRY = {
     "settlement_connectivity": (ConnectivityArgs, "Retrieve modeled connectivity, destinations and saved route evidence. Select destination_type=hospital or town for that specific target, all for the combined network. Optionally filter by an exact road_id from this run; matches use recorded baseline/disrupted routes, not physical proximity. Filtered counts precede pagination; missing routes remain unknown. No field closures are confirmed. Paginated."),
     "sources_limitations": (EmptyArgs, "Retrieve actual recorded products, acquisition dates, historical OSM, processing and limitations."),
     "feature_evidence": (FeatureArgs, "Retrieve saved evidence for one exact feature ID and layer in this run; never accept filesystem paths."),
+    "mapped_inventory": (InventoryArgs, "Count/list unique saved mapped elements. For hospital inventory use layer=destinations and destination_type=hospital. Counts describe historical OSM inventory, not exposed assets or verified operating facilities. Paginated."),
 }
 
 

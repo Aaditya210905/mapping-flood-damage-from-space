@@ -7,13 +7,16 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.models import AnalysisRequest
 from app.providers import search_catalog, select_pair
+from app.presets import TRISHULI
+from app.settings import MAPPING
 
 parser = argparse.ArgumentParser(description="Find a compatible Sentinel-1 pair without processing credentials")
-parser.add_argument("--bbox", default="85.19,27.90,85.41,28.30")
-parser.add_argument("--date", default="2026-08-26")
+parser.add_argument("--bbox", default=','.join(map(str, TRISHULI['bbox'])))
+parser.add_argument("--date", default=TRISHULI['flood_date'])
+parser.add_argument("--search-days", type=int, default=MAPPING.search_days)
 parser.add_argument("--output")
 args = parser.parse_args()
-params = AnalysisRequest(bbox=list(map(float,args.bbox.split(","))), flood_date=args.date, mode="live")
+params = AnalysisRequest(bbox=list(map(float,args.bbox.split(","))), flood_date=args.date, mode="live", search_days=args.search_days)
 start = (params.flood_date - timedelta(days=params.search_days)).isoformat() + "T00:00:00Z"
 end = (params.flood_date + timedelta(days=params.search_days)).isoformat() + "T23:59:59Z"
 items = search_catalog(params.bbox,start,end)

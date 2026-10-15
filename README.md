@@ -6,7 +6,7 @@ The chosen Track B AI component is the **situation-report copilot**. Mapping use
 
 ## Current demo
 
-**[Watch the current three-minute demo](output/video/flooline-script-demo.mp4)** — captioned screen recording using cached real CDSE inputs and historical OSM, with English/Nepali Groq answers, map citations, access uncertainty, a report and evaluation limitations. It has no voiceover and does not show a new live acquisition. [Recording manifest](output/video/flooline-script-demo.json).
+**[Watch the repaired three-minute demo](output/video/flooline-repaired-demo.mp4)** — captioned screen recording using cached real CDSE inputs and historical OSM, with English/Nepali Groq answers, map citations, access uncertainty, a Groq-assisted report and evaluation limitations. It has no voiceover and does not show a new acquisition. [Recording manifest](output/video/flooline-repaired-demo.json). The earlier user recording remains preserved separately.
 
 ## Run
 
@@ -44,7 +44,9 @@ Historical OSM is selected strictly before the event. The Nepal case uses 27 Jul
 
 Ask questions about flood extent, infrastructure exposure, road access, acquisition dates or limitations, and request a short briefing in English or Nepali. Every reported area, count and settlement name comes from the saved analysis; responses include evidence paths and the run ID. Unsupported casualty and population questions return no estimate.
 
-The optional generative integration uses **Groq’s official SDK**, defaulting to hosted `openai/gpt-oss-120b`. Groq selects approved read-only tools and structured claims; Python validates run, subject, field, interpretation and requested scope, then inserts authoritative values into authored English/Nepali text. The labeled fallback uses deterministic bilingual topic rules and contextual evidence retrieval. The old TF-IDF/logistic-regression classifier and its training step have been removed; this application trains no model. Named features, compound questions and follow-ups such as “What about the villages on that road?” use saved identifiers and route evidence; ambiguous references request clarification. No language-model weights or satellite training datasets are downloaded. Native-speaker Nepali review remains necessary.
+The optional generative integration uses **Groq’s official SDK**, defaulting to hosted `openai/gpt-oss-120b`. Recognised questions retrieve saved evidence locally and normally need one generation request. Groq writes concise narrative around validated fact placeholders; Python binds run, subject, field and interpretation, inserts authoritative values and preserves citations/uncertainty. The labeled fallback uses deterministic bilingual routing. Hospital inventory, radar coverage and eligibility have separate evidence; mixed questions retain supported answers while declining unsupported estimates. Matching lists are paginated locally and displayed with totals/export links. Cached feature-name lookup avoids scanning every name with a regular expression. This application trains no model. Named features and follow-ups use saved identifiers and route evidence; ambiguous references request clarification. No model weights or satellite training datasets are downloaded. Native-speaker Nepali review remains necessary. See [audit repairs](docs/AUDIT_REPAIRS.md).
+
+Processing defaults are in `app/mapping.toml`; the Nepal preset is in `app/presets.py`. Selected configuration is recorded per run. The dashboard and CLI share defaults, and custom areas do not inherit Nepal labels or a global date cutoff. See the [hardcoding audit](docs/HARDCODING_AUDIT.md) and [PDF requirement checklist](docs/TRACK_B_CHECKLIST.md).
 
 Copy `.env.example` to a new private `.env`, set `LLM_ENABLED=true` and `GROQ_API_KEY`, then restart `./run.sh`. Without credentials, or on provider/validation failure, the application stays usable. Each response identifies which engine actually produced it. Configuration and limitations: [Copilot documentation](docs/COPILOT.md).
 
@@ -103,14 +105,14 @@ uv run python scripts/verify_copilot.py --require-llm
 uv run python scripts/verify_copilot.py --run-id RUN_ID --allow-demo
 ```
 
-The current six-page Copilot submission report is [technical-report.pdf](docs/technical-report.pdf), with editable [source](docs/technical-report.md). Prepared materials and commands are listed in [Copilot submission setup](docs/COPILOT_SUBMISSION.md). English/Nepali PDF, offline HTML and JSON previews are under `output/pdf/copilot-preview`. These reports are explicitly synthetic. The [current three-minute demo](output/video/flooline-script-demo.mp4) records the repaired interface using cached real inputs; [capture notes](docs/demo-script.md) describe its scope and reproduction. Current repairs and executed checks are recorded in [repair verification](docs/REPAIR_VERIFICATION.md).
+The current six-page Copilot report is [technical-report.pdf](docs/technical-report.pdf), with editable [source](docs/technical-report.md). Prepared materials are listed in [Copilot submission setup](docs/COPILOT_SUBMISSION.md). Real Groq English/Nepali one-page PDF, offline HTML, JSON and a checksum manifest are under `output/pdf/copilot-real/`. Independent extent/asset comparisons and a fresh-acquisition summary are under `output/case-study/`. The [current three-minute demo](output/video/flooline-repaired-demo.mp4) records the repaired interface using cached real inputs; [capture notes](docs/demo-script.md) describe its scope. Current checks and remaining external work are in the [PDF checklist](docs/TRACK_B_CHECKLIST.md).
 
 Older case studies, model cards, situation reports and videos in `docs/` remain **historical outputs from the removed segmentation model**. Their scores/counts do not validate the current rule-based pipeline. The previous technical report is preserved in `docs/archive/segmentation-technical-report.*`. A real CDSE current-pipeline analysis is available locally; its observed coverage is partial and does not establish field accuracy. Use the current repair verification rather than archived segmentation scores. Recording uses Playwright, isolated Chromium and ffmpeg.
 
 ```bash
 # Real saved analysis; no tests or new acquisitions are run by the exporter
 uv run --env-file .env python scripts/export_copilot_reports.py data/runs/REAL_RUN_UUID --output output/pdf/copilot-real --use-llm
-uv run python scripts/record_demo.py --run-id REAL_RUN_UUID --require-llm --output output/video/flooline-script-demo.mp4
+uv run python scripts/record_demo.py --run-id REAL_RUN_UUID --require-llm --output output/video/flooline-repaired-demo.mp4
 # Synthetic software walkthrough requires explicit permission
 uv run python scripts/record_demo.py --run-id DEMO_RUN_UUID --preview --output output/video/copilot-preview.mp4
 uv run python scripts/build_report.py

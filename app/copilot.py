@@ -21,9 +21,9 @@ COPILOT_INFO = {
 # approved tools the configured generative model can select for other questions.
 TOPIC_PATTERNS = {
     "summary": r"\b(?:summar\w*|briefing|overview|situation report)\b|सारांश|प्रतिवेदन|स्थिति विवरण|बाढीको अवस्था",
-    "extent": r"\b(?:flood(?:ed|ing)?|inundat\w*|water|debris|surface.change|change mask|coverage|observed|observable|observation coverage)\b|डुबान|डुबेको|पानी|भग्नावशेष|अवलोकन क्षेत्र",
+    "extent": r"\b(?:flood(?:ed|ing)?|inundat\w*|water|debris|surface.change|change mask|coverage|observed|observable|eligible|eligibility|assessable|observation coverage|threshold|backscatter|slope|resolution|pixel size)\b|डुबान|डुबेको|पानी|भग्नावशेष|अवलोकन क्षेत्र|योग्य.*क्षेत्र",
     "damage": r"\b(?:infrastructure|buildings?|structures?|homes?|bridges?|roads?|assets?|damage[ds]?)\b|पूर्वाधार|भवन|सडक|पुल|क्षति",
-    "access": r"\b(?:settlements?|villages?|isolat\w*|cut.off|disconnect\w*|connectivity|road access|hospital|healthcare|routes?)\b|बस्ती|गाउँ|सम्पर्क|अस्पताल",
+    "access": r"\b(?:settlements?|villages?|isolat\w*|cut.off|disconnect\w*|connectivity|road access|hospitals?|healthcare|routes?)\b|बस्ती|गाउँ|सम्पर्क|अस्पताल",
     "sources": r"\b(?:sources?|provenance|acquisitions?|snapshot|orbit|tracks?|satellite scenes?|data.*(?:use|from)|observations.*same|dates?.*(?:radar|satellite|maps?))\b|स्रोत|तथ्याङ्क प्रयोग|कक्षा|तस्बिर.*(?:कहिले|मिति)|नक्सा.*मिति|ओएसएम.*मिति",
     "limitations": r"\b(?:limitations?|reliab\w*|uncertain\w*|accura\w*|trust|confirmed?|destroyed|predict\w*|clouds?|shadow|layover)\b|सीमा|भरपर्दो|अनिश्चित|पुष्टि|पूर्वानुमान",
 }

@@ -1,0 +1,7357 @@
+{
+  "run_id": "0717d3b1-ac72-48d2-a8bb-8ecb93e9663c",
+  "activation": "EMSR927",
+  "role": "evaluation only",
+  "status": "unavailable",
+  "method": "Initial products only. Reference assets inside AOI; >=80% footprint area or length-weighted samples jointly eligible for water AND debris. Missing class observations cannot establish negative exposure. Pre-event OSM matching: 50m point distance / >=50% road length within 30m. Uncertain grades excluded from binary agreement.",
+  "scores": {
+    "buildings": {
+      "reference_assets_inside_aoi": 864,
+      "insufficient_observation": 864,
+      "compared_assets": 0,
+      "status": "unavailable",
+      "reason": "No positive, jointly observed, matched reference/prediction asset comparisons.",
+      "precision": null,
+      "recall": null,
+      "f1": null
+    },
+    "roads": {
+      "reference_assets_inside_aoi": 44,
+      "insufficient_observation": 44,
+      "missing_reference_geometry": 9,
+      "compared_assets": 0,
+      "status": "unavailable",
+      "reason": "No positive, jointly observed, matched reference/prediction asset comparisons.",
+      "precision": null,
+      "recall": null,
+      "f1": null
+    },
+    "bridges": {
+      "reference_assets_inside_aoi": 6,
+      "insufficient_observation": 6,
+      "compared_assets": 0,
+      "status": "unavailable",
+      "reason": "No positive, jointly observed, matched reference/prediction asset comparisons.",
+      "precision": null,
+      "recall": null,
+      "f1": null
+    }
+  },
+  "assets": [
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "No visible damage",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "No visible damage",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "No visible damage",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "No visible damage",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "No visible damage",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "No visible damage",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "No visible damage",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "No visible damage",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "No visible damage",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "bridges",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "bridges",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "bridges",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "bridges",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "bridges",
+      "aoi": 1,
+      "product_id": 2851,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "buildings",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Possibly damaged",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "roads",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    },
+    {
+      "category": "bridges",
+      "aoi": 2,
+      "product_id": 2852,
+      "official_grade": "Destroyed",
+      "observed_fraction": 0.0,
+      "status": "insufficient_observation"
+    }
+  ],
+  "attribution": "European Union, Copernicus Emergency Management Service data",
+  "limitations": "Exposure-versus-grading agreement is indirect: intersection does not establish structural damage, impassability or actual settlement cutoff. Matching and observation selection affect coverage; excluded assets are reported explicitly.",
+  "prediction_unchanged": true
+}

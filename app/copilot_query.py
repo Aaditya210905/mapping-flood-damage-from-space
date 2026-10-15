@@ -4,6 +4,7 @@ import re
 import unicodedata
 
 from app.copilot import classify_question, question_topics, unsupported_question
+from app.feature_lookup import lookup
 
 
 TOPICS = {"extent": "flood", "damage": "infrastructure", "access": "connectivity",
@@ -23,28 +24,7 @@ def normalized(text):
 
 
 def mentions(context, text, layers=None):
-    """Match complete names/IDs; a name shared by features stays ambiguous."""
-    text = normalized(text)
-    hits = []
-    for (layer, identifier), feature in context.index.items():
-        if layers and layer not in layers:
-            continue
-        names = (identifier, feature["properties"].get("name"))
-        for name in names:
-            if not isinstance(name, str) or not name.strip():
-                continue
-            if name != identifier and normalized(name) in {'road', 'bridge', 'building', 'village', 'settlement', 'hospital', 'town'}:
-                continue
-            for match in re.finditer(r"(?<![\w/-])" + re.escape(normalized(name)) + r"(?![\w/-]|\.\w)", text):
-                hits.append((match.start(), match.end(), (layer, identifier)))
-    matches = []
-    for start, end, subject in hits:
-        if any(other_start <= start and other_end >= end and (other_start < start or other_end > end)
-               for other_start, other_end, _ in hits):
-            continue
-        if subject not in matches:
-            matches.append(subject)
-    return matches
+    return lookup(context, text, layers)
 
 
 @dataclass
@@ -56,25 +36,37 @@ class QueryPlan:
     references: list[tuple[str, str]] = field(default_factory=list)
     assets: list[str] = field(default_factory=list)
     road_id: str | None = None
-    status: str = "cut_off"
+    status: str = "all"
     clarification: bool = False
     followup: bool = False
     requested_fields: list[str] = field(default_factory=list)
     destination_type: str = "all"
+    inventory_layer: str | None = None
+    listing: bool = False
+    unsupported_parts: list[str] = field(default_factory=list)
 
     @property
     def scoped(self):
-        return bool(self.references or self.road_id or self.followup or self.status != "cut_off" or self.destination_type != "all")
+        return bool(self.references or self.road_id or self.followup or self.status != "all" or self.destination_type != "all")
 
     def provider_context(self):
         return {"features": [{"layer": layer, "feature_id": identifier} for layer, identifier in self.references],
                 "road_id": self.road_id, "settlement_status": self.status,
-                "requested_fields": self.requested_fields, "destination_type": self.destination_type}
+                "requested_fields": self.requested_fields, "destination_type": self.destination_type,
+                "response_kind": "report" if self.intent == "summary" else "answer",
+                "topics": self.topics, "inventory_layer": self.inventory_layer,
+                "unsupported_parts": self.unsupported_parts}
 
 
 def plan_question(context, question, history):
+    rejected = []
     if unsupported_question(question):
-        return QueryPlan('unsupported', None, [], question)
+        clauses = re.split(r"\s*(?:;|\?|\band\b|\balso\b|\bas well as\b|साथै)\s*", question, flags=re.I)
+        supported = [part for part in clauses if part.strip() and not unsupported_question(part) and question_topics(part)]
+        rejected = [part for part in clauses if part.strip() and unsupported_question(part)]
+        if not supported:
+            return QueryPlan('unsupported', None, [], question, unsupported_parts=rejected or [question])
+        question = " and ".join(supported)
     if re.search(r"^(?:translate|in (?:nepali|english)|नेपालीमा|अंग्रेजीमा)", question.strip(), re.I):
         for position in range(len(history) - 1, -1, -1):
             if history[position]['role'] == 'user':
@@ -84,6 +76,8 @@ def plan_question(context, question, history):
     intent, confidence = classify_question(question)
     matched_topics = question_topics(question)
     plan = QueryPlan(intent, confidence, [TOPICS[t] for t in matched_topics if t != "summary"], question)
+    plan.unsupported_parts = rejected
+    plan.listing = bool(re.search(r"\b(?:which|list|show|name)\b|कुन|सूची", question, re.I)) and plan.intent != "summary"
     if unsupported_question(question):
         return plan
     plan.references = mentions(context, question)
@@ -145,7 +139,7 @@ def plan_question(context, question, history):
             plan.clarification = True
     elif plan.references:
         plan.topics = ["feature"]
-    if re.search(r"\b(?:uncertain|unobserved)\b|अनिश्चित", question, re.I):
+    if re.search(r"\b(?:uncertain|unobserved|no confirmed access|unconfirmed access)\b|अनिश्चित", question, re.I):
         plan.status = "uncertain_access"
     elif re.search(r"\b(?:unassessed|not assessed)\b|मूल्याङ्कन हुन नसके", question, re.I):
         plan.status = "unassessed"
@@ -162,6 +156,16 @@ def plan_question(context, question, history):
         plan.destination_type = "town"
     if plan.destination_type != "all" and "connectivity" in plan.topics:
         plan.assets = []
+    inventory = re.search(r"\b(?:mapped|inventory|total|how many|number of|count)\b|कति.*(?:नक्सा|अस्पताल)|नक्सामा", question, re.I)
+    impacts = re.search(r"\b(?:exposed|exposure|damaged?|affected|hit|impacts?|overlap|reach|access|connect\w*|route|cut.off|isolat\w*)\b|प्रभाव|क्षति|पहुँच|सम्पर्क", question, re.I)
+    if inventory and not impacts and not plan.references:
+        if plan.destination_type != "all":
+            plan.inventory_layer = "destinations"
+        elif wanted_layers:
+            plan.inventory_layer = wanted_layers[0]
+        if plan.inventory_layer:
+            plan.topics = ["inventory"]
+            plan.intent = "inventory"
     if not plan.references and not plan.road_id and re.search(
             r"\b(?:is|about|status of|for|from)\s+[A-Z][\w .'-]*?\s+(?:village|settlement|road|bridge|building)\b|"
             r"\b(?:road|bridge|settlement|building)\s+(?:[rsb]-\d+|(?:way|node)/\d+)\b", question):
@@ -169,11 +173,39 @@ def plan_question(context, question, history):
 
     # Required facts provide a relevance check as well as grounded values.
     field_patterns = {
-        "valid_coverage_pct": r"coverage|observed|observable|अवलोकन क्षेत्र",
-        "optical_clear_pct": r"optical.*(?:clear|coverage)|cloud.free|बादलरहित",
-        "water_km2": r"inundat|new water|flooded|डुबान|डुबेको",
+        "water_km2": r"inundat|new.water|flooded|water.*(?:area|extent|large|much)|डुबान|डुबेको",
         "debris_km2": r"debris|surface.change|भग्नावशेष",
+        "water_threshold_db": r"water.*threshold|backscatter.*threshold",
+        "change_threshold_db": r"(?:change|drop).*threshold",
+        "max_slope_deg": r"slope.*(?:limit|threshold)|maximum slope",
+        "resolution_m": r"resolution|pixel size|grid size",
     }
     if "flood" in plan.topics:
         plan.requested_fields = [name for name, pattern in field_patterns.items() if re.search(pattern, plan.question, re.I)]
+        coverage_marker=r"coverage|observed|observable|eligible|eligibility|assessable|cloud.free|अवलोकन क्षेत्र|बादलरहित|योग्य.*क्षेत्र"
+        kinds={
+            'radar_valid_coverage_pct':r'radar|sentinel.1|\bS1\b|राडार',
+            'optical_clear_pct':r'optical|cloud.free|sentinel.2|बादलरहित',
+            'water_eligible_coverage_pct':r'water|डुबान|पानी',
+            'debris_eligible_coverage_pct':r'debris|भग्नावशेष',
+        }
+        pending=[]
+        for clause in re.split(r"[;?!]|\band\b|\balso\b|साथै| र ",plan.question,flags=re.I):
+            named=[name for name,pattern in kinds.items() if re.search(pattern,clause,re.I)]
+            if not re.search(coverage_marker,clause,re.I):
+                if not any(re.search(pattern,clause,re.I) for pattern in field_patterns.values()):pending.extend(named)
+                continue
+            selected=pending+named
+            pending=[]
+            if not selected and re.search(r'eligible|eligibility|assessable|योग्य',clause,re.I):
+                # A compound water-area question can qualify eligibility in
+                # its following clause without repeating the word water.
+                selected=[name for name in ('water_eligible_coverage_pct','debris_eligible_coverage_pct') if re.search(kinds[name],plan.question,re.I)]
+            plan.requested_fields.extend(selected or ['valid_coverage_pct'])
+        plan.requested_fields=list(dict.fromkeys(plan.requested_fields))
+        if ('debris_eligible_coverage_pct' in plan.requested_fields
+                and not re.search(r'debris.*(?:area|extent)|(?:area|extent|how much).*debris|भग्नावशेष.*क्षेत्र',plan.question,re.I)):
+            plan.requested_fields=[field for field in plan.requested_fields if field!='debris_km2']
+        if not plan.requested_fields:
+            plan.requested_fields = ["water_km2"] if re.search(r"extent|flood|बाढी", plan.question, re.I) else []
     return plan

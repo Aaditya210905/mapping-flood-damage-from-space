@@ -10,9 +10,11 @@ Track B Option 2 is the selected AI component. The existing satellite change det
 
 The provider is **Groq**, using its native Python SDK and Chat Completions API. The default is `openai/gpt-oss-120b`, hosted by Groq; no OpenAI account or xAI/Grok integration is used. Official references: [Python SDK](https://github.com/groq/groq-python), [local tools](https://console.groq.com/docs/tool-use/local-tool-calling), [structured outputs](https://console.groq.com/docs/structured-outputs).
 
-Groq does not combine strict structured outputs with local tool use, so retrieval and the final JSON-schema response are separate requests. The loop permits two retrieval rounds, six approved calls in total, one final response and one validation repair. All requests share a wall-clock budget; SDK automatic retries are disabled. Tool-selection free text is discarded. No built-in browser, code-execution, arbitrary filesystem, SQL, shell or model-write tools are supplied.
+Recognised scopes retrieve evidence in Python and normally need **one structured generation request**. Unresolved questions retain the bounded model-selected tool loop, followed by structured generation. Groq does not combine strict structured outputs with local tool use. Retrieval rounds, tool-call/page budgets and completion limits are configurable. All provider requests share a deadline. SDK automatic retries remain disabled; the application retries a short advertised `retry-after` once when it fits the configured wait/deadline. Longer delays are reported with the fallback. No arbitrary execution, filesystem or model-write tools are supplied.
 
-Retrieval and answer composition use separate prompts. Resolved feature/road/measurement requests expose the relevant tools and skip a second retrieval round once their evidence is present. General questions retain all six tools, including when the fallback topic rules cannot route them. Evidence payloads share identifiers through `fact_defaults` and `subjects`; authoritative facts and validation retain full identities. The backend permits five records per page; LLM tools expose two per page to reduce prompt size. Provider quotas can still cause fallback. HTTP 413 is labeled `request_too_large` rather than generic unavailability.
+Name/ID matching uses a bounded cached alias trie, invalidated by changed identifiers/names. Radar coverage, optical coverage and water/debris eligibility are separate evidence fields. Mapped hospital inventory uses its own query, rather than settlement access. Mixed supported/unsupported questions retain the supported part and decline the unsupported part separately. Relevance validation requires each supported topic, scope and requested field.
+
+Provider payloads omit repeated identities and duplicate facts. Request-local short aliases replace long fact IDs during generation; Python restores permanent run-bound identifiers in claims, narrative placeholders and citations before validation. Generated explanation codes must be empty; Python supplies mandatory topic uncertainty. This avoids repeatedly spending tokens on identifiers and prevents invented explanation enums. Full lists are paginated locally outside the model token/claim budget. `lists` contains all matching rows up to the configurable cap, totals, explicit truncation and a full-layer export. Provider quotas can still cause fallback; HTTP 413 is labeled `request_too_large`.
 
 ## Installation and configuration
 
@@ -25,9 +27,15 @@ Run `uv sync --frozen --python 3.12`, then `./run.sh`. Open http://127.0.0.1:800
 | `LLM_API_KEY` | Alternative key name, takes precedence |
 | `LLM_MODEL` | `openai/gpt-oss-120b`; use a Groq model supporting strict structured output and local tools |
 | `LLM_BASE_URL` | `https://api.groq.com`; SDK root without `/openai/v1` |
-| `LLM_TIMEOUT_SECONDS` | `10`, allowed 1–30 seconds per request |
-| `LLM_BUDGET_SECONDS` | `30`, allowed 3–60 seconds for the whole request |
+| `LLM_TIMEOUT_SECONDS` | `25`, allowed 1–30 seconds per request |
+| `LLM_BUDGET_SECONDS` | `60`, allowed 3–60 seconds for the whole request |
 | `LLM_MAX_COMPLETION_TOKENS` | `4096`, allowed 512–8192; account quotas still apply |
+| `LLM_REASONING_EFFORT` | Unset in code; `.env.example` uses `low` for the default gpt-oss model. Omit/change it when another Groq model has different support |
+| `LLM_APPLICATION_RETRIEVAL` | `true`; retrieve recognised scopes locally |
+| `LLM_RETRIEVAL_ROUNDS`, `LLM_MAX_TOOL_CALLS` | `2`, `6`; bounded fallback tool selection |
+| `LLM_RETRIEVAL_PAGE_SIZE` | `5`, allowed 1–5 |
+| `LLM_MAX_RATE_LIMIT_RETRIES`, `LLM_MAX_RETRY_WAIT_SECONDS` | `1`, `3`; respect short provider retry delays within the deadline |
+| `COPILOT_MAX_LIST_RECORDS` | `1000`, allowed 1–5000; larger lists carry explicit truncation/export |
 | `CDSE_CLIENT_ID`, `CDSE_CLIENT_SECRET` | Optional Copernicus Sentinel Hub OAuth |
 | `OHSOME_API_KEY` | Optional historical ohsome v2 fallback |
 | `FLOOD_LENS_DATA` | Existing run directory; defaults to `data/runs` |
@@ -46,6 +54,7 @@ PDF rendering needs Pango. This workstation already has it. Debian/Ubuntu packag
 | `settlement_connectivity` | Modeled status, distinct before/after destinations, same-target detours and route road IDs; optional `destination_type=hospital|town|all` refuses unavailable legacy subtype evidence; searchable and paginated; optional exact `road_id` filters saved route dependencies |
 | `sources_limitations` | Recorded products/dates, DEM tile IDs when recorded, historical OSM, CRS, methods, warnings and limitations |
 | `feature_evidence` | One exact feature ID/layer in the selected run; unknown IDs return `not_found` |
+| `mapped_inventory` | Count/list unique saved mapped elements, including hospital-only or town-only destination inventory; facility operation remains unverified |
 
 Pydantic validates all inputs/results. Models cannot supply another run ID, executable code or a filesystem path argument. Tools never change results or recalculate geometry. Product IDs replace signed asset URLs. Corrupt/cross-run optional evaluation sidecars are excluded with a warning; evaluation measurements do not become Copilot inputs.
 
@@ -55,19 +64,19 @@ Road-filtered connectivity returns `filter_road_id`, `matching_settlements_count
 
 `EvidenceFact` contains a stable run/path-based ID, run, field, subject ID/name, value, canonical unit, source IDs, method, timestamp, uncertainty and status. Missing/invalid values remain `None` with a reason. Absence never becomes zero. New analyses preserve processed optical acquisition dates; older runs and synthetic optical fixtures may lack them and remain unavailable.
 
-The LLM can emit only a claim's fact ID, run, subject type/ID, field, interpretation and allowlisted formatting operation. It cannot supply numerical values, dates, names, units, percentages or free factual prose. Python checks that the fact was returned by an approved tool, belongs to the selected run, matches its subject/field/interpretation and fits the section topic. Counts, dates, names and IDs cannot be rounded. Eligible measured units allow bounded rounding; `exact` uses canonical unit-specific display precision while raw values remain in typed facts. No arithmetic or conversion tools are exposed.
+The provider selects exact returned fact IDs and allowlisted formatting operations. Python constructs complete internal `Claim` identities and validates them. Each generated narrative sentence contains `{fact:EXACT_FACT_ID}` placeholders and the same `fact_ids`. Placeholders expand complete labeled values, subjects and citations from the saved evidence; literal numbers, known feature names, markup and unsupported outcome claims are rejected. Every selected claim must appear in its narrative. Counts, dates, names and IDs cannot be rounded. Eligible measured units allow bounded rounding; raw values remain in typed facts. No arithmetic or conversion tools are exposed.
 
-The validator rejects invented evidence, cross-run or wrong-location claims, unsupported interpretations/rounding, malformed schemas and extra prose asserting destruction or verified closures. One repair is attempted, then a safe deterministic answer replaces invalid output. Casualty/population questions receive no estimate. Provider errors are sanitized; raw keys, messages and traces never reach the frontend.
+The validator rejects invented evidence, cross-run or wrong-location claims, unsupported interpretations/rounding, malformed schemas and extra prose asserting destruction or verified closures. One repair covers provider-rejected structured JSON, incomplete output or local grounding failures, within the same deadline. A second failure uses the deterministic answer. Casualty/population questions receive no estimate. Provider errors are sanitized; raw keys, messages and traces never reach the frontend. Backend schema diagnostics record value-free error locations only.
 
-English and Nepali use the same facts. The model interprets multilingual questions, chooses tools/claims and selects authored explanation codes. Python renders labels, units and those codes in the explicitly selected language. Names, identifiers, measurements and uncertainty stay bound to evidence. Previous conversation is untrusted context; current facts must be retrieved again.
+English and Nepali use the same facts. The model can write concise connective prose around validated placeholders instead of repeating fixed headings/sentences. Python still renders authoritative labels/values and required uncertainty in the selected language. Previous conversation is untrusted context; current facts must be retrieved again.
 
-**Unrestricted generated prose and free translation are not released.** Narrative is controlled bilingual text. Fact selection/relevance can still be wrong or incomplete; input metadata/geospatial results can themselves be wrong. This validator does not establish field truth or make hallucinations impossible. Native-speaker review has not occurred. Potential exposure is not confirmed damage; modeled disconnection is not a verified closure; mapped facilities are not proven operational. The deterministic topic router has narrower language coverage than the configured LLM; the existing question chips provide supported fallback queries.
+Generated wording is constrained to cited facts and connective prose; validation does not prove the meaning of every generated phrase or field accuracy. Input metadata/geospatial results can themselves be wrong. Native-speaker review has not occurred. Potential exposure is not confirmed damage; modeled disconnection is not a verified closure; mapped facilities are not proven operational. The deterministic fallback retains narrower language coverage than the configured LLM.
 
 ## Reports and API
 
-`build_report_data()` creates a typed `SituationReport` from the selected snapshot. Python inserts dates, measurements, asset/access counts and product IDs. Sections and uncertainty use authored bilingual text. An LLM-assisted report request also creates a validated conversational briefing; printable report fields keep their fixed schema. Missing measurements produce a visibly incomplete report. Missing area/event date produces a controlled error. PDFs must fit one readable A4 page, otherwise printable HTML remains available without clipping.
+`build_report_data()` creates a typed `SituationReport` from the selected snapshot. It revalidates and consumes generated narrative sections, rather than copying only generation metadata. Required measurements, dates, attribution and uncertainty remain present even if the narrative selects fewer claims. Long fact-ID citations remain in the typed report instead of filling the printable page. Missing measurements produce a visibly incomplete report. Missing area/event date produces a controlled error. PDFs must fit one readable A4 page, otherwise printable HTML remains available without clipping.
 
-Existing question/language requests and response fields (`answer`, `intent`, `intent_confidence`, `evidence`, `method`) remain compatible. Added fields include `run_id`, `language`, `facts`, `generation`, `missing_fact_ids`, `attributions` and `report_links`.
+Existing request/response fields remain compatible. `draft` carries the fully bound validated sections; `lists` carries complete matching rows/totals/truncation/export links; `unsupported_parts` identifies separately declined clauses. Generation metadata includes request/token usage, rate-limit retries and advertised retry delay.
 
 - `POST /api/analyses/{run_id}/copilot`: chat; optional bounded same-run `history`.
 - `GET /api/analyses/{run_id}/feature-evidence?layer=settlements&feature_id=...`: typed evidence.
@@ -87,13 +96,15 @@ node --check app/static/app.js
 bash -n run.sh
 uv run python scripts/check_dashboard.py --base-url http://127.0.0.1:8000
 uv run python scripts/verify_copilot.py --require-llm
+uv run python scripts/verify_copilot.py --require-llm --request-gap-seconds 45
+uv run python scripts/verify_copilot.py --run-id RUN_ID --require-llm --checks reports --request-gap-seconds 45 --export-reports output/pdf/copilot-real
 uv run python scripts/verify_copilot.py --run-id RUN_ID --allow-demo
 ```
 
 Tests use labeled synthetic fixtures and mocked Groq responses/transports, without paid API calls or external network access. Real-run verification rejects synthetic data by default and requires actual LLM responses when `--require-llm` is supplied. Browser checks deliberately create synthetic inputs. None proves Nepal field accuracy.
 
-Fallback reasons include `disabled`, `missing_credentials`, `invalid_configuration`, `timeout`, `rate_limited`, `request_too_large`, `credentials_rejected`, `provider_unavailable`, `invalid_tool_call`, `validation_failed` and `ambiguous_reference`. Clarification responses use `intent=clarification` with no facts. Restart after changing `.env`. Use the default model if a custom model rejects strict schemas. For missing evidence regenerate a real analysis; never fill fields with example statistics. For PDF dependency/page-fit errors use HTML. Provider latency/rate limits, network access, terrain-processing cost, historical OSM availability, field validation and native-language review remain external constraints.
+Fallback reasons include `disabled`, `missing_credentials`, `invalid_configuration`, `timeout`, `rate_limited`, `request_too_large`, `credentials_rejected`, `provider_unavailable`, `request_rejected`, `structured_output_failed`, `invalid_tool_call`, `validation_failed` and `ambiguous_reference`. Clarification responses use `intent=clarification` with no facts. Restart after changing `.env`. Use a supported model/reasoning setting if a custom model rejects strict schemas. Missing evidence remains missing. Provider latency/rate limits, network access, terrain-processing cost, historical OSM availability, field validation and native-language review remain external constraints.
 
 ## Repair verification
 
-See [current repair verification](REPAIR_VERIFICATION.md). The local classifier was removed. Every rendered factual line now carries a run-bound fact ID, and the dashboard turns it into a map inspection link. Per-class availability is normalized for older results without changing the original files; absent eligible observations never become a zero area. Reports remain partial whenever scientific coverage is partial. Generation metadata includes elapsed time and provider request/token usage when supplied by Groq. Those records describe response generation, not physical mapping accuracy.
+See [audit repairs](AUDIT_REPAIRS.md) for the latest checks and [previous repair verification](REPAIR_VERIFICATION.md) for the earlier run. Every factual statement/list row carries run-bound evidence. Availability uses positive eligible pixel counts rather than rounded display percentages. `app/mapping.toml` holds versioned processing defaults; `app/presets.py` supplies shared case dates/bounds and the geographic Nepal OSM cutoff. These settings never supply event measurements. Scientific coverage remains partial when source observations are partial.

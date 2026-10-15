@@ -6,7 +6,7 @@ Language = Literal["en", "ne"]
 Layer = Literal["buildings", "roads", "bridges", "settlements", "destinations"]
 SubjectType = Literal["analysis", "observation", "buildings", "roads", "bridges", "settlements", "destinations"]
 Interpretation = Literal["measurement", "potential_exposure", "modeled_connectivity", "recorded_metadata", "limitation", "unavailable"]
-Topic = Literal["summary", "flood", "infrastructure", "connectivity", "sources", "limitations", "feature"]
+Topic = Literal["summary", "flood", "infrastructure", "inventory", "connectivity", "sources", "limitations", "feature"]
 ExplanationCode = Literal["potential_damage", "modeled_closure", "coverage_limits", "surface_change_uncertain", "satellite_limits", "routing_limits", "missing_data", "destination_limits"]
 
 
@@ -42,6 +42,8 @@ class ToolResult(StrictModel):
     facts: list[EvidenceFact]
     feature_ids: list[str] = Field(default_factory=list)
     next_offset: int | None = None
+    total_count: int | None = None
+    returned_count: int = 0
     missing: list[str] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
 
@@ -73,6 +75,19 @@ class FeatureArgs(StrictModel):
     destination_type: Literal["all", "hospital", "town"] = "all"
 
 
+class InventoryArgs(StrictModel):
+    layer: Layer
+    destination_type: Literal["all", "hospital", "town"] = "all"
+    offset: int = Field(default=0, ge=0, le=100000)
+    limit: int = Field(default=5, ge=1, le=5)
+
+
+class NarrativeSentence(StrictModel):
+    # Placeholders expand complete labeled facts, not model-authored values.
+    text: str = Field(min_length=1, max_length=1200)
+    fact_ids: list[str] = Field(min_length=1, max_length=16)
+
+
 class Claim(StrictModel):
     fact_id: str
     run_id: str
@@ -87,6 +102,7 @@ class AnswerSection(StrictModel):
     topic: Topic
     claims: list[Claim] = Field(max_length=80)
     explanations: list[ExplanationCode] = Field(max_length=8)
+    narrative: list[NarrativeSentence] = Field(default_factory=list, max_length=16)
 
 
 class AnswerDraft(StrictModel):
@@ -94,6 +110,27 @@ class AnswerDraft(StrictModel):
     language: Language
     kind: Literal["answer", "report", "unsupported", "clarification"]
     sections: list[AnswerSection] = Field(max_length=8)
+
+
+class ProviderClaim(StrictModel):
+    fact_id: str
+    operation: Literal["exact", "round_1", "round_2", "round_3"]
+
+
+class ProviderSection(StrictModel):
+    topic: Topic
+    claims: list[ProviderClaim] = Field(max_length=80)
+    # Mandatory uncertainty is applied by Python, rather than generated codes.
+    explanations: list[ExplanationCode] = Field(max_length=0)
+    narrative: list[NarrativeSentence] = Field(default_factory=list, max_length=16)
+
+
+class ProviderDraft(StrictModel):
+    """The model selects references; Python binds full identities internally."""
+    run_id: str
+    language: Language
+    kind: Literal["answer", "report", "unsupported", "clarification"]
+    sections: list[ProviderSection] = Field(max_length=8)
 
 
 class GenerationInfo(StrictModel):
@@ -106,6 +143,9 @@ class GenerationInfo(StrictModel):
     provider_requests: int | None = None
     prompt_tokens: int | None = None
     completion_tokens: int | None = None
+    rate_limit_retries: int | None = None
+    retry_after_seconds: float | None = None
+    provider_http_status: int | None = None
 
 
 class ReportSection(StrictModel):

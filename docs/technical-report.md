@@ -1,105 +1,97 @@
 # FloodLens AI: Situation-Report Copilot
 
-## 1. Project objective and selected AI component
+## 1. Track B objective and implemented system
 
-FloodLens AI is an educational flood-response prototype for Multimodal AI Hackathon 2026, Track B. The selected AI component is Option 2: Situation-Report Copilot. It answers questions about a selected map analysis and produces short English and Nepali briefings. Every measurement and critical factual field comes from stored Python analysis results.
+FloodLens is an educational prototype that maps candidate flood impacts, overlays pre-event infrastructure, tests road access and produces English and Nepali situation reports. The selected AI component is Track B Option 2: the situation-report copilot. The PDF offers this as an alternative to segmentation-model training. The current application uses no Kuro Siwo or Sen1Floods11 training data and downloads no model weights.
 
-The existing mapping services compare compatible pre-event and post-event Sentinel-1 radar observations, use clear Sentinel-2 observations when available, and process terrain using Copernicus DEM. They intersect historical OpenStreetMap buildings, roads and bridges with mapped change candidates and assess settlement connectivity in baseline and assumed-disrupted road networks.
+FastAPI serves a Leaflet dashboard and a Python geospatial pipeline. Compatible before/after Sentinel-1 VV/VH observations support water-change detection. Clear paired Sentinel-2 reflectance and scene classifications support water and low-confidence debris or land-cover-change candidates. Copernicus DEM supports terrain processing, slope screening and the optional downhill trace. Historical OpenStreetMap supplies buildings, roads, bridges, settlements and mapped hospital/town destinations.
 
-This Copilot does not train a flood-segmentation model. Kuro Siwo and Sen1Floods11 are not used by the current application. The language model is a hosted Groq service; no model weights or satellite training datasets are downloaded. Historical reports about the removed segmentation approach are archived separately and do not substantiate the current system.
+New-water rules require a non-water baseline, low post-event backscatter, sufficient change, eligible terrain and a minimum connected component. Clear pre-event optical water is excluded from new radar-water candidates. Water and debris retain separate observation masks. Positive observed pixels remain assessable even when their displayed coverage rounds to zero. Missing observations never become zero impact.
 
-The dashboard is implemented with the existing FastAPI backend and Leaflet interface. Analyses persist as UUID-identified result files containing measured statistics, map layers, source metadata, uncertainty and attribution. The Copilot reads this existing storage without replacing the geospatial engine or introducing a new database.
+Infrastructure exposure means intersection with mapped candidates, not confirmed destruction. A directed road graph compares baseline and assumed-disrupted access to mapped destinations. Before/after targets, route identifiers, uncertain connectors and unavailable destination-specific assessments remain explicit. The bonus DEM trace lists nearby settlements along a descending terrain path; it is not a hydraulic simulation.
 
-Verification status: a real CDSE Sentinel-1 acquisition and historical OSM analysis has completed locally. The configured Groq provider has answered real-run questions. Current repairs are tested against acquired real inputs and controlled regression fixtures. Observation coverage remains partial: unavailable optical support prevents debris assessment, and a zero mapped water area does not establish no flooding throughout the AOI. The repaired cached case has 13.6% water-eligible coverage, no eligible debris observations, 56 unassessed settlements and 47 with uncertain access. EMSR927 supplied landslide polygons, but no eligible debris pixels overlap; accuracy is N/A. Independent field and native Nepali review remain pending; archived videos do not validate this version.
-
-<!-- page -->
-
-## 2. Read-only tools and request architecture
-
-The frontend sends the question, selected language, selected analysis UUID and at most six same-run messages. FastAPI uses a source-invalidated bounded result cache; a compact metadata index and on-demand route geometry reduce repeated large reads. An EvidenceContext exposes only approved facts from that snapshot. Responses from another run or language are rejected before display.
-
-Event summary returns the area, requested event date, processing status, measured statistics, observation dates and limitations. Flood and surface change returns recorded candidate areas, units, detection method and processing thresholds.
-
-Infrastructure impacts returns saved buildings, roads or bridges, their actual identifiers, potential exposure status and relevant overlap or length measurements. Pagination and saved name/identifier search support focused questions without exposing arbitrary queries.
-
-Settlement connectivity returns the modeled status, pre-event destination, baseline and disrupted-network distances, and supporting route road identifiers. Feature evidence retrieves an exact identifier and layer in the selected run. Unknown identifiers produce an explicit missing result.
-
-Sources and limitations returns recorded satellite products and acquisition dates, historical OSM metadata, DEM identifiers when recorded, projection, processing methods, warnings and limitations. Signed asset URLs, private provider configuration and evaluation measurements are excluded.
-
-Groq's native Python SDK supplies tool selection and structured claim generation. The default hosted model is openai/gpt-oss-120b. Tool retrieval and strict JSON-schema output use separate provider requests. Two retrieval rounds, a total of six tool calls, one final structured draft and one repair are bounded by a shared request budget.
-
-There are no model tools for filesystem access, SQL, Python, shell execution, browsing, geospatial calculation or modifying results. Reference-only EMS products cannot become Copilot input features. Deterministic bilingual topic rules and typed authored rendering remain available when Groq is disabled, unavailable or produces invalid claims. The former trained intent classifier is removed; no model training occurs in this application.
+Completed analyses retain original imagery dates, parameters, provenance, map layers, warnings and attribution in UUID-identified folders. The interface distinguishes fresh acquisitions, cached real replay and synthetic demonstrations. Published damage maps remain evaluation-only and never supply prediction features, thresholds or copilot measurements.
 
 <!-- page -->
 
-## 3. Numerical grounding and factual interpretation
+## 2. Copilot architecture and response repairs
 
-Each important field becomes a typed EvidenceFact. It records a fact identifier, analysis identifier, field, subject type and identifier, subject name, value, canonical unit, source identifiers, computation method, timestamp, availability and uncertainty. Fact identifiers are tied to the selected run and saved field path.
+The browser submits the selected analysis UUID, explicit language, question and at most six same-run conversation turns. A read-only EvidenceContext exposes seven approved tools: event_summary, flood_surface_change, infrastructure_impacts, settlement_connectivity, feature_evidence, sources_limitations and mapped_inventory. No filesystem, shell, arbitrary code, browsing or model-write tool is exposed.
 
-The model's claim schema contains references and approved formatting operations, never a numerical value or unrestricted factual sentence. Python verifies that the referenced fact was returned by an approved tool, belongs to the selected analysis and matches the claimed subject, field and interpretation. Topic validation prevents unrelated measurements from being placed under infrastructure, source or connectivity claims.
+Recognised questions resolve scope and retrieve evidence in Python, normally requiring one Groq structured-generation request. Unresolved questions retain bounded model-selected retrieval. All provider requests share a deadline. SDK automatic retries are disabled; short advertised rate-limit delays may be retried within configured limits. One fresh repair is allowed for rejected JSON or grounding failures, followed by a labeled deterministic bilingual fallback if needed.
 
-Python resolves authoritative values and applies fixed display precision or permitted rounding. Counts, dates and identifiers cannot be rounded. Arbitrary arithmetic, percentages derived from absent fields, unit conversions, invented acquisition dates, casualty estimates and population statistics are not supported model operations.
+The default provider is Groq's native Python SDK with hosted openai/gpt-oss-120b. The supplied private configuration uses low reasoning effort. Request-local short references reduce repeated citation identifiers in model input/output; Python restores permanent run-bound identifiers before validation, rendering or export. This reduces report size. Mandatory uncertainty codes are supplied by Python, removing the observed model-invented explanation-code failure.
 
-Separate water/debris eligibility determines scientific availability. Missing and invalid values remain unavailable, rather than becoming zero. Every factual chat line includes a fact-ID citation that opens its map evidence. Unknown observations do not establish absence of flooding or damage. Reports with unavailable measurements are visibly marked incomplete; a missing analysis area or event date stops report generation with a controlled error.
+Generated English/Nepali connective wording is consumed by chat and printable reports. Previously the application called the provider but rendered fixed prose. The repaired report builder revalidates generated sections, preserves required measurements and compacts repeated labels and warnings so a one-page export remains readable.
 
-Mapped intersections indicate potential infrastructure exposure, not confirmed structural destruction. Footprint coverage is area-weighted. Road closure scenarios require continuous half-cell overlap; water beneath bridges does not prove failure. Hospital and town targets are separate, 100 m snap connectors stay unverified, and area-boundary alternatives can leave access uncertain. Surface-change candidates may include non-disaster land-cover changes and are not confirmed debris flows. Settlement disconnection is a network scenario under assumed impassability, not a verified road closure or proof of physical inaccessibility.
+Routing distinguishes radar coverage from class eligibility, hospital inventory from hospital access, and threshold questions from general extent. Relevance validation requires every supported topic, requested field and feature scope. Mixed casualty/map questions retain supported map answers and separately decline unsupported estimates.
 
-Schema or semantic failures trigger one repair attempt, then an evidence-backed deterministic fallback. Raw provider errors, credentials and internal traces never reach the frontend. Compound questions can retrieve more than one tool while preserving each fact's association with its run and subject.
-
-The validator constrains unsupported output forms; it cannot guarantee that stored metadata, map measurements or model-selected relevance are correct. Field verification, independent mapping evaluation and language review remain necessary.
+Matching lists are paginated locally outside the model token budget. The UI shows totals, explicit record-cap truncation, full-layer exports and map links. A bounded source-invalidated alias trie replaces per-feature regular-expression scans. All 109 current-case settlements can be listed instead of silently returning only a few.
 
 <!-- page -->
 
-## 4. English, Nepali and one-page situation reports
+## 3. Numerical grounding and shared configuration
 
-The explicit language selector controls the answer language. English and Nepali use the same evidence store, identifiers and canonical measurements. Groq interprets multilingual requests, selects relevant facts and chooses authored explanatory codes. Python renders bilingual labels, units and uncertainty from those references.
+Each EvidenceFact records a stable identifier, run, field/path, subject identifier, canonical value/unit, source IDs, computation method, timestamp, availability and uncertainty. The provider selects returned references and approved formatting operations. Python binds complete identities. An unknown reference or an unrelated feature cannot become evidence.
 
-Names, product identifiers and location identifiers are preserved. Unavailable measurements remain unavailable after language changes. Potential exposure cannot become confirmed damage in translation, and modeled loss of access cannot become a verified real-world road closure.
+Generated sentences contain validated fact placeholders. Python inserts full labeled values and citations; the model cannot supply literal measurements, dates, counts or place names as factual prose. Declared references must match placeholders and selected claims. Counts, dates and identifiers cannot be rounded. Permitted measured units support bounded rounding; raw values remain in JSON. Unsupported casualty, population and rescue-priority estimates receive no invented value.
 
-The Copilot intentionally releases controlled bilingual narrative rather than unrestricted generated factual prose. This makes numerical and semantic validation precise, but limits stylistic flexibility and open-domain conversation. Native-speaker review of Nepali terminology is pending; the accompanying glossary provides the phrases used for that review.
+Validation covers schema, run/subject/field association, topic relevance, interpretation and returned-evidence membership. It rejects markup and prohibited literal outcomes. It cannot prove every connective phrase, input correctness, physical mapping accuracy or translation quality. Authored uncertainty remains mandatory regardless of generated wording.
 
-A typed SituationReport contains its title, generation time, analysis/run identifier, area, requested event date, actual recorded acquisitions, flood and surface-change findings, potential asset exposure, modeled settlement connectivity, sources, uncertainty and required attribution.
+Versioned app/mapping.toml supplies processing defaults, including radar/optical thresholds and road snap/overlap settings. Selected configuration and per-run parameters are recorded in provenance. app/presets.py holds the Nepal bounds/date and OSM cutoff. Unrelated areas sharing that date do not inherit the cutoff. Dashboard and CLI consume shared defaults; slider limits come from the request schema. Custom requests no longer inherit the Nepal area name.
 
-Report generation reads the same authoritative snapshot as the conversation. Python inserts numerical values deterministically. Generated report snapshots are stored separately from original results and return HTML, PDF and JSON download links. A conversational briefing may use Groq, while the printable report retains its fixed evidence-backed sections.
+Road disruption is a sensitivity scenario. Candidate overlap removes eligible unbridged segments; water below bridges does not prove deck failure. Hospital/town access is computed separately. Snaps, exterior routes and facility operation remain unverified. Incomplete OSM topology can leave settlements uncertain or unassessed; these states remain distinct from modeled new loss of access.
 
-PDF rendering uses WeasyPrint and Pango with bundled Noto Sans Devanagari fonts. Both language layouts target one readable A4 page. A report that cannot fit safely returns a controlled error with printable HTML available. Offline exported HTML embeds the fonts and remains readable without the running server.
-
-The existing dashboard exposes loading indicators, actual response engine or deterministic fallback status, expandable evidence, selected-run ownership and report downloads. Synthetic examples retain prominent notices on every answer and report. Missing dates in synthetic or older saved analyses are never reconstructed from product names.
+Fixed legal credits, bilingual labels, supported languages, schemas, algorithm definitions and explicitly synthetic fixtures are intentional authored content. They do not supply event measurements. The hardcoding audit identifies the repaired paths and explains this distinction.
 
 <!-- page -->
 
-## 5. Setup, reproducibility and submission workflow
+## 4. Bilingual reports and executed verification
 
-Install the locked Python 3.12 environment with uv sync --frozen --python 3.12 and start ./run.sh. The local interface opens at http://127.0.0.1:8000. The startup script loads the private .env file. It is excluded from Git and should be readable only by its owner.
+English and Nepali share facts, canonical values and permanent citations. Names and product identifiers retain source spelling. The explicit selector controls language. Missing fields stay unavailable across translation. Potential exposure cannot become confirmed destruction, and modeled access loss cannot become verified physical closure.
 
-Set LLM_ENABLED=true and add GROQ_API_KEY locally to enable the hosted provider. Optional configuration controls model name, SDK base URL, per-request timeout and overall request budget. Defaults use the native SDK root https://api.groq.com, a ten-second request timeout and a thirty-second Copilot budget. Empty or rejected credentials leave the fallback available.
+A typed SituationReport carries report/run identifiers, generation time, area/event, actual observation metadata, flood findings, exposure, access, sources, missing fields, generation metadata and attribution. Separate report snapshots provide HTML, PDF and JSON without changing the analysis. Offline HTML embeds bundled Noto Devanagari fonts. WeasyPrint/Pango renders readable A4 reports; oversized content returns a controlled error with HTML available.
 
-A real situation report requires a real result produced by the existing mapping pipeline. Choose an area and past event date, acquire the allowed observations and historical map inputs, then select the completed run. The public satellite path needs no satellite account; the optional Copernicus Sentinel Hub path uses local OAuth configuration. Network and historical OSM availability remain external prerequisites.
+Real Groq generation succeeded for English, Nepali and compound questions. After the output-contract repair, both language reports completed in one provider request and rendered one page. The recorded report-generation checks took approximately 2.7 and 3.6 seconds. These are account/workstation observations, not guaranteed latency. Quotas or provider failures can still trigger the labeled fallback.
 
-Use scripts/export_copilot_reports.py with the selected run folder to export English and Nepali PDF, HTML and JSON reports, plus a source-checksum manifest. The exporter rejects synthetic runs unless --allow-demo is explicitly supplied. The optional --use-llm flag adds the configured provider's conversational briefing.
+The full regression suite passes 258 tests. It covers optical baseline-water exclusion, tiny positive coverage, VV/VH selection, scoped OSM policy, relevance, hospital inventory, complete lists, alias binding, forged narrative rejection, bounded provider repair, rate limits, report snapshot validation, class-aware evaluation and bilingual PDF output. Unit tests use clearly synthetic fixtures and mocked HTTP/SDK responses. Live records and current checks are in docs/AUDIT_REPAIRS.md.
 
-The current captioned three-minute walkthrough is output/video/copilot-demo.mp4. It records cached real CDSE inputs, English/Nepali questions, a compound request, linked evidence, uncertain access, casualty refusal, report generation, limitations and attribution. Its companion JSON records actual response engines and an output checksum. This is an edited saved-run walkthrough without voiceover, not a new acquisition or a live-runtime benchmark. Capture commands and judge Q&A are in docs/demo-script.md.
+Browser checks on the real saved run passed at 360, 768 and 1280 pixels without overflow or page errors. They exercised settlement/hospital details, Nepali citations, repaired questions, complete lists and map inspection. Browser chat used local deterministic replay to avoid duplicate provider calls; actual Groq generation was verified separately. A new captioned three-minute video records genuine Groq chat/report responses and the repaired interface.
 
-Submission needs the repository and README, this six-page report, one-page situation reports, a current three-minute video and independent reference comparison. Current source checks and test results are recorded in docs/REPAIR_VERIFICATION.md. Historical segmentation artifacts are excluded from current accuracy claims. A cached real run is labeled as cached; it cannot satisfy a new judge-selected AOI/date during an acquisition outage.
+Native-speaker Nepali terminology approval remains pending. The glossary identifies review priorities. Software consistency, fonts and visual checks do not establish external language approval or field accuracy.
 
 <!-- page -->
 
-## 6. Limitations, responsibility and attribution
+## 5. Trishuli case study and EMSR927 comparison
 
-Satellite revisits occur over days. This system cannot warn of a sudden glacier collapse minutes ahead and may miss transient inundation. Terrain shadow, layover, vegetation, urban radar scattering, clouds and imperfect terrain correction affect mapped change. Eligibility masks leave unobserved areas unknown.
+Current cached replay 0717d3b1-ac72-48d2-a8bb-8ecb93e9663c derives from acquired CDSE run 74c35c59-a417-4d63-aa1c-b30356311cc9. It retains the 26 August 2026 event and bounds 85.19-85.41 east, 27.90-28.30 north. Sentinel-1D observations are from 16 and 28 August with compatible geometry. Historical OSM is valid at 27 July 2026, 08:59:58 UTC. Source/result hashes are retained; replay uses acquired inputs rather than old predictions.
 
-Historical OSM may omit roads, buildings, bridges, settlements or facilities. Counts describe mapped OSM elements, not a complete physical inventory. Modeled disruption uses an explicit candidate-overlap threshold and uncertainty scenarios. Facility operating status, all turn restrictions, full node identity and alternative routes beyond the area remain uncertain. Neither an intersection nor a modeled route loss establishes physical damage or a verified closure.
+Radar coverage is 97.6%, while water-eligible coverage is 13.639%. Mapped new water is 0.000 square kilometres within eligible observations; pre-existing water is 0.701 square kilometres. Paired optical support leaves debris unavailable. These are limited-observation findings, not evidence that flooding or damage was absent throughout the corridor.
 
-The Copilot cannot establish deaths, injuries, missing people, affected population or operational rescue priorities from these map inputs. Its validator checks evidence association and allowed interpretations; it cannot guarantee physical truth, complete answer relevance or translation quality. Independent native Nepali review remains pending.
+Inventory contains 49,468 building elements, 817 roads, 118 bridge elements, 109 settlements and nine mapped hospital destinations. These are OSM elements, not a complete physical inventory or verified operating facilities. Access results record 56 unassessed settlements, 47 uncertain and six without a baseline mapped connection. They do not establish physical new cutoffs or current rescue access.
 
-The service has bounded tile size and concurrency. Provider latency, rate limits, credential validity, historical OSM and matching-scene availability can prevent a new AOI/date run. Job progress survives restarts; interrupted jobs need resubmission. A missing same-orbit pair is reported explicitly. Real cached CDSE replay validates source/grid/date contracts and hashes, uses no old predictions, and retains original acquisition dates.
+The independent EMSR927 comparator uses initial products, reviewed coverage and matching class eligibility. The supplied reference class is Landslide. Inside the grid are 7,316 reviewed pixels and 2,752 reference-positive reviewed pixels, but no eligible debris pixels to compare. IoU, precision, recall and F1 are N/A. No matching water-reference class is present; this cannot validate water mapping.
 
-EMSR927 and other published damage maps are independent evaluation material only. They never supply input features, training labels, thresholds or Copilot measurements. Evaluation requires matched reference classes and per-class observed coverage. An unavailable or both-empty comparison reports N/A, not a perfect score. This work does not claim verified Himalayan accuracy. Existing historical case-study scores describe a removed implementation.
+Official asset grading was checked separately. Inside the AOI are 864 reference building points, 44 road geometries and six bridge points; nine additional road references lack geometry. None has sufficient joint water/debris observation coverage for binary exposure comparison. Asset agreement scores are N/A. The repaired evaluator uses footprint/length coverage and preserves prediction hashes; unavailable debris cannot support a negative-exposure score.
+
+A separate fresh small-area run, 25236045-4d1e-4fd5-baac-26918b4224e7, completed from CDSE imagery, public Copernicus DEM and pre-event OSM after the repairs. Bounds were 85.28,28.00,85.32,28.04 at 30 metres. It generated maps, access results and reports without replaying predictions. Coverage remains partial: 12.942% water eligibility, unavailable debris, and all 11 settlements unassessed with no destination inside this small tile. This verifies this selected raw-input path, not every possible judge area/date.
+
+<!-- page -->
+
+## 6. Reproduction, limitations and attribution
+
+Install the locked Python 3.12 environment with uv sync --frozen --python 3.12, then start ./run.sh and open http://127.0.0.1:8000. A fresh checkout has no acquired runs. Choose an area and past event date for actual acquisition, or explicitly select synthetic mode. Acquisition errors never substitute synthetic data.
+
+Private .env configuration supplies optional Groq/CDSE credentials; .env.example contains placeholders. Provider defaults are 25 seconds per request and 60 seconds overall. The supplied Groq configuration uses low reasoning effort. Public satellite access needs no Sentinel account; historical OSM, network availability and provider quotas remain prerequisites. README and docs/COPILOT.md give commands.
+
+scripts/export_copilot_reports.py exports bilingual PDF/HTML/JSON with source/output checksums. Its verified-API option reuses checked snapshots without more provider calls and rejects changed source facts. scripts/build_report.py builds this six-page report. scripts/record_demo.py uses an isolated browser context and preserves actual data/engine labels. The exactly three-minute captioned MP4 has a checksum manifest. The previous user video is preserved separately.
+
+Satellite revisit gaps prevent minute-ahead warning of glacier collapse and can miss transient inundation. Shadow, layover, vegetation, clouds and imperfect terrain processing limit observations. OSM omissions, turn restrictions, original node identity, facility operation and exterior routes remain uncertain. Intersections do not prove structural damage. Tile size/concurrency and compatible-scene availability bound the prototype. New judge-selected runs still depend on external sources. Independent mapping accuracy, field checks and native Nepali review remain outstanding.
+
+The required credits follow. No training dataset is used by this copilot route; archived segmentation experiments retain their own citations and do not validate this implementation. EMS products are evaluation-only. No victim imagery is used.
 
 Contains modified Copernicus Sentinel data 2026.
 
 Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.
 
-© OpenStreetMap contributors. OpenStreetMap retains ODbL obligations. Credit official evaluation products, when used, as European Union, Copernicus Emergency Management Service data. No satellite training dataset is used by this Copilot route. Bundled Noto fonts retain their OFL license; Leaflet retains its BSD-2-Clause license. Authored project code is MIT.
-
-This is an educational prototype, not an operational warning or damage-confirmation service. No victim imagery is used in its reports or demonstrations.
+© OpenStreetMap contributors. OpenStreetMap retains ODbL obligations. Evaluation reference credit: European Union, Copernicus Emergency Management Service data. Noto fonts use OFL; Leaflet uses BSD-2-Clause; authored project code uses MIT. This is an educational prototype requiring independent validation.

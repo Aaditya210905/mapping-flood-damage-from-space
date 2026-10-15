@@ -5,14 +5,16 @@ from io import BytesIO
 import math
 
 import numpy as np
+import shapely
 from PIL import Image
 from pyproj import CRS, Transformer
 from rasterio.features import shapes
 from rasterio.transform import from_origin
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from scipy import ndimage
-from shapely.geometry import LineString, Point, mapping, shape
+from shapely.geometry import LineString, Point, box, mapping, shape
 from shapely import transform as transform_geometry
+from app.settings import MAPPING
 
 
 @lru_cache(maxsize=128)
@@ -60,6 +62,46 @@ class Grid:
 
     def center(self, row, col):
         return self.geographic(Point(self.transform.c + (col + .5) * self.resolution, self.transform.f - (row + .5) * self.resolution))
+
+
+def observation_fraction(geom, mask, grid):
+    """Observed footprint area / length-weighted line samples / point sample."""
+    if mask is None:return 1.
+    if np.shape(mask)!=(grid.height,grid.width):raise ValueError('Observation mask must match the grid')
+    if geom.geom_type in ('Polygon','MultiPolygon'):
+        if not geom.area:return 0.
+        xmin,ymin,xmax,ymax=geom.bounds
+        c0=max(0,math.floor((xmin-grid.transform.c)/grid.resolution))
+        c1=min(grid.width,math.ceil((xmax-grid.transform.c)/grid.resolution))
+        r0=max(0,math.floor((grid.transform.f-ymax)/grid.resolution))
+        r1=min(grid.height,math.ceil((grid.transform.f-ymin)/grid.resolution))
+        if r0>=r1 or c0>=c1:return 0.
+        window=mask[r0:r1,c0:c1]
+        if not window.any():return 0.
+        if window.all():area=geom.intersection(box(*grid.bounds)).area
+        else:
+            rows,cols=np.nonzero(window)
+            left=grid.transform.c+(cols+c0)*grid.resolution
+            top=grid.transform.f-(rows+r0)*grid.resolution
+            cells=shapely.box(left,top-grid.resolution,left+grid.resolution,top)
+            area=float(np.sum(shapely.area(shapely.intersection(cells,geom))))
+        return min(1.,max(0.,area/geom.area))
+    if geom.geom_type in ('LineString','MultiLineString'):
+        lines=list(geom.geoms) if geom.geom_type=='MultiLineString' else [geom]
+        observed,length=0.,0.
+        for line in lines:
+            count=max(1,math.ceil(line.length/(grid.resolution/2)))
+            for index in range(count):
+                point=line.interpolate((index+.5)*line.length/count)
+                row=math.floor((grid.transform.f-point.y)/grid.resolution)
+                col=math.floor((point.x-grid.transform.c)/grid.resolution)
+                if 0<=row<grid.height and 0<=col<grid.width and mask[row,col]:observed+=line.length/count
+            length+=line.length
+        return min(1.,observed/length) if length else 0.
+    point=geom.representative_point()
+    row=math.floor((grid.transform.f-point.y)/grid.resolution)
+    col=math.floor((point.x-grid.transform.c)/grid.resolution)
+    return float(0<=row<grid.height and 0<=col<grid.width and mask[row,col])
 
 
 def clean_mask(mask, minimum):
@@ -142,26 +184,30 @@ def detect_changes(before, after, grid, params, dem=None, optical_before=None, o
         # A cloud-free dataMask with zero reflectance is not a usable change
         # observation if its spectral indices are undefined.
         optical_valid &= np.isfinite(pre_ndvi) & np.isfinite(post_ndvi) & np.isfinite(pre_water) & np.isfinite(post_water)
-        optical_water = optical_valid & low_slope & ~permanent & (post_water > .2) & (pre_water <= .2)
+        optical_permanent = optical_valid & low_slope & (pre_water > MAPPING.optical_water_threshold)
+        permanent |= optical_permanent
+        # A clear pre-event optical water observation contradicts "new water",
+        # including a radar-only candidate produced before optical processing.
+        water &= ~permanent
+        optical_water = optical_valid & low_slope & ~permanent & (post_water > MAPPING.optical_water_threshold) & (pre_water <= MAPPING.optical_water_threshold)
         # Vegetation loss + radar change is only a debris candidate; wet soil/harvest can look similar.
         if params.mode == "demo":
             debris = optical_valid & valid & ~permanent & ~water & ~optical_water
-            debris &= (pre_ndvi > .3) & ((pre_ndvi - post_ndvi) > .25) & (np.abs(drop) > params.change_threshold_db)
+            debris &= (pre_ndvi > MAPPING.vegetation_baseline_threshold) & ((pre_ndvi - post_ndvi) > MAPPING.vegetation_loss_threshold) & (np.abs(drop) > params.change_threshold_db)
         else:
             # Optical evidence remains observed on steep slopes and in radar
             # shadow. Require both vegetation loss and increased bare surface;
             # never use corrupted radar as confirmation there.
             pre_bare = index(optical_before[3]+optical_before[1], optical_before[2]+optical_before[0])
             post_bare = index(optical_after[3]+optical_after[1], optical_after[2]+optical_after[0])
-            debris = optical_valid & (pre_water <= .2) & (post_water <= .2) & ~water & ~optical_water
-            debris &= (pre_ndvi > .3) & ((pre_ndvi-post_ndvi) > .25) & ((post_bare-pre_bare) > .1)
+            debris = optical_valid & (pre_water <= MAPPING.optical_water_threshold) & (post_water <= MAPPING.optical_water_threshold) & ~water & ~optical_water
+            debris &= (pre_ndvi > MAPPING.vegetation_baseline_threshold) & ((pre_ndvi-post_ndvi) > MAPPING.vegetation_loss_threshold) & ((post_bare-pre_bare) > MAPPING.bare_surface_increase_threshold)
             # Require radar change where radar is interpretable. Optical-only
             # targets use stricter spectral changes and remain low confidence.
             radar_interpretable = radar_valid & np.isfinite(drop)
             corroborated = radar_interpretable & (np.abs(drop) > params.change_threshold_db)
-            optical_only = ~radar_interpretable & ((pre_ndvi-post_ndvi) > .4) & ((post_bare-pre_bare) > .2)
+            optical_only = ~radar_interpretable & ((pre_ndvi-post_ndvi) > MAPPING.optical_only_vegetation_loss_threshold) & ((post_bare-pre_bare) > MAPPING.optical_only_bare_increase_threshold)
             debris &= corroborated | optical_only
-        permanent |= optical_valid & low_slope & (pre_water > .2)
         water |= optical_water
     water_eligible = valid | (optical_valid & low_slope)
     debris_eligible = optical_valid & (valid if params.mode == "demo" else np.ones(valid.shape,dtype=bool))

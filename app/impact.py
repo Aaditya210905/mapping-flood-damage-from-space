@@ -8,6 +8,8 @@ import shapely
 from shapely.geometry import LineString, Point, box, mapping, shape
 from shapely.ops import unary_union
 from shapely.strtree import STRtree
+from app.settings import MAPPING
+from app.geo import observation_fraction
 
 
 DRIVABLE = {"motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "living_street", "service", "road"}
@@ -17,7 +19,7 @@ def feature_id(feature, index):
     return str(feature.get("id") or feature.get("properties", {}).get("@osmId") or f"feature-{index}")
 
 
-def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
+def analyze_impacts(osm, extent, grid, snap_distance=MAPPING.road_snap_distance_m, assessment_mask=None,
                     assessment_masks=None, closure_min_length_m=None):
     """Assess mapped elements, not actual damage or operational road availability.
 
@@ -26,7 +28,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
     makes its availability unknown, rather than proving deck failure. No
     off-road connector, exterior route, or missing OSM junction is invented.
     """
-    minimum_overlap = grid.resolution / 2 if closure_min_length_m is None else float(closure_min_length_m)
+    minimum_overlap = grid.resolution * MAPPING.road_overlap_cell_fraction if closure_min_length_m is None else float(closure_min_length_m)
     if not math.isfinite(snap_distance) or not math.isfinite(minimum_overlap) or snap_distance < 0 or minimum_overlap <= 0:
         raise ValueError("Snap distance must be nonnegative and closure overlap must be positive.")
     masks = {name: np.asarray(mask, dtype=bool) for name, mask in (assessment_masks or {}).items()}
@@ -42,49 +44,8 @@ def analyze_impacts(osm, extent, grid, snap_distance=100, assessment_mask=None,
     else:
         overall_mask = assessment_mask
     grid_extent = box(*grid.bounds)
-
     def observed_fraction(geom, mask=overall_mask):
-        if mask is None:
-            return 1.
-        if geom.geom_type in ("Polygon", "MultiPolygon"):
-            if not geom.area:
-                return 0.
-            # Area weighting includes subpixel footprints and holes; a single
-            # representative point cannot establish whole-building coverage.
-            xmin, ymin, xmax, ymax = geom.bounds
-            c0 = max(0, math.floor((xmin-grid.transform.c)/grid.resolution))
-            c1 = min(grid.width, math.ceil((xmax-grid.transform.c)/grid.resolution))
-            r0 = max(0, math.floor((grid.transform.f-ymax)/grid.resolution))
-            r1 = min(grid.height, math.ceil((grid.transform.f-ymin)/grid.resolution))
-            window = mask[r0:r1, c0:c1]
-            if not window.size or not window.any():
-                return 0.
-            if window.all():
-                area = geom.intersection(grid_extent).area
-            else:
-                rows, cols = np.nonzero(window)
-                left = grid.transform.c + (cols+c0)*grid.resolution
-                top = grid.transform.f - (rows+r0)*grid.resolution
-                cells = shapely.box(left, top-grid.resolution, left+grid.resolution, top)
-                area = float(np.sum(shapely.area(shapely.intersection(cells, geom))))
-            return min(1., max(0., area/geom.area))
-        if geom.geom_type in ("LineString", "MultiLineString"):
-            lines = list(geom.geoms) if geom.geom_type == "MultiLineString" else [geom]
-            observed, length = 0., 0.
-            for line in lines:
-                count = max(1, math.ceil(line.length/(grid.resolution/2)))
-                for index in range(count):
-                    point = line.interpolate((index+.5)*line.length/count)
-                    row = math.floor((grid.transform.f-point.y)/grid.resolution)
-                    col = math.floor((point.x-grid.transform.c)/grid.resolution)
-                    if 0 <= row < grid.height and 0 <= col < grid.width and mask[row, col]:
-                        observed += line.length/count
-                length += line.length
-            return min(1., observed/length) if length else 0.
-        point = geom.representative_point()
-        row = math.floor((grid.transform.f-point.y)/grid.resolution)
-        col = math.floor((point.x-grid.transform.c)/grid.resolution)
-        return float(0 <= row < grid.height and 0 <= col < grid.width and mask[row, col])
+        return observation_fraction(geom,mask,grid)
 
     hazard_parts = {}
     for feature in extent["features"]:
