@@ -2,6 +2,8 @@
 
 Verified locally on 15 October 2026. These repairs remove implicit event inputs and use configured credentials for fresh observations. They do not establish mapping accuracy for every geography.
 
+The subsequent [six remaining hardcoding repairs](REMAINING_HARDCODING_REPAIRS.md) add configurable driving classes, fine coordinate/resolution support, explicit reference selection and matching/provider policy. They recovered five omitted roads from the same real Bangladesh inputs without new satellite requests. The latest suite passes 311 tests; earlier fresh-acquisition evidence below remains a dated snapshot.
+
 ## What changed
 
 - The API requires explicit bounds/date or an explicitly selected configured preset. CLI commands behave the same way. The fresh dashboard starts with empty custom inputs; an optional area name may be left blank.

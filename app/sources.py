@@ -1,7 +1,7 @@
 """Analysis inputs and independent references for the copilot route."""
 from app.storage import ROOT
 
-REFERENCE_FOLDER = ROOT / "data" / "reference_only" / "EMSR927"
+REFERENCE_ROOT = ROOT / "data" / "reference_only"
 MAPPING_METHOD = {
     "algorithm": "Rule-based radar and optical change detection",
     "type": "rule_based",

@@ -20,6 +20,7 @@ from app.models import AnalysisRequest, Scene, validate_pair
 from app.pipeline import ANALYSIS_SOURCE_POLICY, run_analysis
 from app.storage import sha256
 from app.presets import osm_cutoff
+from app.settings import ACQUISITION
 
 
 CDSE_PROVIDER = "Copernicus Data Space Sentinel Hub Processing API"
@@ -62,7 +63,7 @@ def load_cached_cdse_inputs(source_folder):
     dem_source = acquisition.get("dem") or {}
     if not ((dem_source.get("provider") == "Copernicus Data Space Sentinel Hub" and dem_source.get("product") == "COPERNICUS_30") or
             (dem_source.get("provider") == "Public Copernicus DEM GLO-30 mirror" and dem_source.get("tiles") and
-             all(str(url).startswith("https://copernicus-dem-30m.s3.amazonaws.com/") for url in dem_source["tiles"]))):
+             all(str(url).startswith(ACQUISITION.public_dem_base_url+'/') for url in dem_source["tiles"]))):
         raise ValueError("Cached elevation does not identify an approved Copernicus GLO-30 source.")
     if run.get("bbox") != params.bbox or str(run.get("flood_date")) != str(params.flood_date):
         raise ValueError("Cached AOI or event date disagrees with its saved acquisition parameters.")
@@ -137,7 +138,7 @@ def load_cached_cdse_inputs(source_folder):
     metadata = osm.get("metadata") or {}
     if metadata.get("snapshot") and _instant(metadata["snapshot"]) != snapshot_instant:
         raise ValueError("Cached OSM metadata disagrees with the saved historical timestamp.")
-    if metadata.get("sourceApi") not in {"https://api.ohsome.org/v1", "https://api.heigit.org/ohsome-api/v2-rc"}:
+    if metadata.get("sourceApi") not in {ACQUISITION.osm_url,ACQUISITION.osm_v2_url}:
         raise ValueError("Cached OSM does not identify a historical ohsome source.")
     for feature in osm["features"]:
         properties = feature.get("properties") or {}

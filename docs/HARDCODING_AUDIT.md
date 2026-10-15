@@ -1,6 +1,6 @@
 # Hardcoding audit and repairs
 
-The repaired application derives event measurements from the selected run. Mapping/acquisition rules and optional presets are explicit configuration. Custom bounds/date are required unless a preset is explicitly selected. Legal credit strings and bilingual labels remain authored content. See [current live verification](GENERALIZATION.md).
+The repaired application derives event measurements from the selected run. Mapping/acquisition rules, independent evaluation policy and optional presets are explicit configuration. Custom bounds/date are required unless a preset is explicitly selected. Legal credit strings and bilingual labels remain authored content. See [the six additional repairs and verification](REMAINING_HARDCODING_REPAIRS.md) and [earlier live verification](GENERALIZATION.md).
 
 | Fault | Repaired location and behavior |
 | --- | --- |
@@ -33,12 +33,19 @@ The repaired application derives event measurements from the selected run. Mappi
 | Provider failures flattened/slow report generation timed out | Specific sanitized reasons/status, one bounded repair, advertised short rate-limit retries, 25-second request and 60-second total deadline; optional reasoning effort is configured |
 | Asset agreement used union observation coverage | Evaluation now requires joint water/debris eligibility and the exact raster grid; polygon coverage is area-weighted and line samples length-weighted |
 | Real export manifest always described synthetic reports | Manifest reflects actual source mode; verified snapshots can be exported without new provider calls and reject changed facts |
+| Fixed road classes omitted valid ramps | `app/mapping.toml` defines `drivable_highways`, including five link-road types. Vehicle restrictions still apply; the selected list is saved in each new analysis |
+| Form rejected fine coordinates and omitted valid resolutions | Coordinates use arbitrary decimal steps; resolution is numeric with bounds/step from the API schema. Configured change thresholds also retain arbitrary supported decimals |
+| Reference fetch selected EMSR927 and its output implicitly | Activation is required, the default directory derives from it, and existing metadata is checked before any writes. Asset comparison requires an explicit reference directory |
+| Public provider limits and endpoints remained inline | Public STAC/signing/DEM/geoid URLs, timeouts, retries, page bounds and GDAL limits are in `app/acquisition.toml`; historical OSM read limits are configured too |
+| Matching distances/overlap remained inline | Validated `app/evaluation.toml` plus CLI overrides; effective policy, prediction hashes and reference hashes are stored in the comparison |
+| Synthetic notice named Nepal for unrelated inputs | Dashboard notice is event-neutral and retains the synthetic label |
 
 Fixed content retained intentionally:
 
 - `app/presets.json` contains the PDF's optional named case and documented historical cutoff. It supplies inputs only after explicit selection. `FLOOD_LENS_PRESETS_FILE` can replace the catalog, including with an empty JSON object.
 - `app/mapping.toml` contains versioned rule defaults. Per-request parameters can override exposed settings; configuration changes require restart and new analysis/reprocessing. Existing runs keep their recorded parameters.
 - `app/acquisition.toml` contains service endpoints and bounded acquisition/ranking/retry policy. `FLOOD_LENS_MAPPING_CONFIG` and `FLOOD_LENS_ACQUISITION_CONFIG` select local replacement files. Keys stay in the private environment.
+- `app/evaluation.toml` contains independent comparison tolerances; `FLOOD_LENS_EVALUATION_CONFIG` selects a replacement. These values never enter hazard inference.
 - Schemas, supported language/status enums, safety/resource bounds, physical units and algorithm definitions are code contracts. Evaluation matching tolerances are declared in the output method, not hidden case results.
 - Bilingual labels, uncertainty/refusal phrases and legal WorldDEM/OSM wording are authored content. Sentinel observation years are computed; the 2026 credit remains correct for the dated Nepal case.
 - `app/demo.py` and test fixtures intentionally use deterministic synthetic inputs. Every such analysis stays labeled synthetic and never replaces failed real acquisition.

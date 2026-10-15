@@ -48,21 +48,31 @@ def access_token(url,*,invalidate=None):
             raise ValueError('CDSE authentication is unavailable; no credentials or raw provider error are exposed') from None
 
 
-def retry_delay(response,attempt,*,milliseconds=False):
+def retry_delay(response,attempt,*,milliseconds=False,max_wait_seconds=None):
     value=response.headers.get('retry-after')
     if value is not None:
         try:
             delay=float(value)/(1000 if milliseconds else 1)
             if math.isfinite(delay) and delay>=0:return delay
         except (ValueError,TypeError):pass
-    return min(2**attempt,ACQUISITION.max_retry_wait_seconds)
+    bound=ACQUISITION.max_retry_wait_seconds if max_wait_seconds is None else max_wait_seconds
+    return min(2**attempt,bound)
 
 
-def request_with_retry(client,method,url,*,milliseconds=False,**kwargs):
-    for attempt in range(ACQUISITION.http_retries+1):
-        # Do not retry ambiguous transport timeouts for billable processing.
-        response=client.request(method,url,**kwargs)
-        if response.status_code not in (429,500,502,503,504) or attempt==ACQUISITION.http_retries:return response
-        delay=retry_delay(response,attempt,milliseconds=milliseconds)
-        if delay>ACQUISITION.max_retry_wait_seconds:return response
+def request_with_retry(client,method,url,*,milliseconds=False,retries=None,max_wait_seconds=None,
+                       retry_transport_errors=False,**kwargs):
+    retries=ACQUISITION.http_retries if retries is None else retries
+    max_wait_seconds=ACQUISITION.max_retry_wait_seconds if max_wait_seconds is None else max_wait_seconds
+    for attempt in range(retries+1):
+        # Billable processing keeps transport retries disabled. Read-only
+        # catalogs, signatures and historical geometry opt in explicitly.
+        try:
+            response=client.request(method,url,**kwargs)
+        except (httpx.TimeoutException,httpx.NetworkError):
+            if not retry_transport_errors or attempt==retries:raise
+            time.sleep(min(2**attempt,max_wait_seconds))
+            continue
+        if response.status_code not in (429,500,502,503,504) or attempt==retries:return response
+        delay=retry_delay(response,attempt,milliseconds=milliseconds,max_wait_seconds=max_wait_seconds)
+        if delay>max_wait_seconds:return response
         time.sleep(delay)

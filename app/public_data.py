@@ -10,6 +10,7 @@ import json
 import math
 import time
 from pathlib import Path
+from urllib.parse import urljoin,urlsplit
 from xml.etree import ElementTree
 from xml.sax.saxutils import escape
 
@@ -23,41 +24,64 @@ from scipy.interpolate import interp1d
 
 from app.storage import ROOT, save_json, sha256
 from app.providers import osm_snapshot, select_pair, interval_snapshot
+from app.presets import osm_cutoff
 from app.scene_selection import optical_pair, cloud_cover
 from app.settings import ACQUISITION, MAPPING
+from app.cdse_runtime import request_with_retry
 
-STAC = "https://planetarycomputer.microsoft.com/api/stac/v1/search"
-SIGN = "https://planetarycomputer.microsoft.com/api/sas/v1/sign"
-REMOTE_ENV = {"GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR", "GDAL_HTTP_TIMEOUT": 90, "GDAL_CACHEMAX": 64 * 1024 * 1024}
+STAC = ACQUISITION.public_stac_url
+SIGN = ACQUISITION.public_sign_url
+REMOTE_ENV = {"GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR", "GDAL_HTTP_TIMEOUT": ACQUISITION.public_gdal_timeout_seconds,
+              "GDAL_CACHEMAX": ACQUISITION.public_gdal_cache_mb * 1024 * 1024}
+
+
+def public_request(client,method,url,**kwargs):
+    response=request_with_retry(client,method,url,retries=ACQUISITION.public_http_retries,
+        max_wait_seconds=ACQUISITION.public_max_retry_wait_seconds,retry_transport_errors=True,**kwargs)
+    response.raise_for_status()
+    return response
+
+
+def public_cache_key(params):
+    cutoff=osm_cutoff(params)
+    identity={'cache_version':'public-acquisition-v2','bbox':params.bbox,'resolution':params.resolution_m,
+        'event':str(params.flood_date),'search_days':params.search_days,'osm_cutoff':cutoff.isoformat() if cutoff else None,
+        'catalog':ACQUISITION.public_stac_url,'signer':ACQUISITION.public_sign_url,
+        'dem':ACQUISITION.public_dem_base_url,'geoid':ACQUISITION.public_geoid_url,
+        'osm':[ACQUISITION.osm_url,ACQUISITION.osm_v2_url],'terrain_ray_steps':ACQUISITION.terrain_ray_steps}
+    return hashlib.sha256(json.dumps(identity,sort_keys=True).encode()).hexdigest()[:20]
 
 
 def catalog(params, collection):
     event = params.flood_date
-    payload = {"collections": [collection], "bbox": params.bbox, "limit": 100,
+    payload = {"collections": [collection], "bbox": params.bbox, "limit": ACQUISITION.public_catalog_page_size,
                "datetime": f"{event-timedelta(days=params.search_days)}T00:00:00Z/{event+timedelta(days=params.search_days)}T23:59:59Z"}
-    items = []
-    with httpx.Client(timeout=90, follow_redirects=True) as client:
-        url = STAC
-        for _ in range(20):
-            response = client.post(url, json=payload); response.raise_for_status()
-            body = response.json(); items.extend(body.get("features", []))
+    items = [];seen=set()
+    with httpx.Client(timeout=ACQUISITION.public_catalog_timeout_seconds, follow_redirects=True) as client:
+        method,url='POST',ACQUISITION.public_stac_url
+        origin=urlsplit(url)
+        for _ in range(ACQUISITION.public_catalog_max_pages):
+            response = public_request(client,method,url,**({'json':payload} if method=='POST' else {}))
+            body = response.json()
+            for item in body.get('features',[]):
+                if item['id'] not in seen:items.append(item);seen.add(item['id'])
             link = next((link for link in body.get("links", []) if link["rel"] == "next"), None)
             if not link:
                 return items
-            url = link["href"]
-            payload = link.get("body", payload)
+            url = urljoin(str(response.url),link.get('href') or ACQUISITION.public_stac_url)
+            parsed=urlsplit(url)
+            if (parsed.scheme,parsed.netloc)!=(origin.scheme,origin.netloc):
+                raise ValueError('Public catalog continuation changed service origin')
+            method=link.get('method','POST' if link.get('body') else 'GET').upper()
+            if method not in ('GET','POST') or not (link.get('href') or link.get('body')):
+                raise ValueError('Public catalog continuation is invalid')
+            if method=='POST':payload={**payload,**link.get('body',{})}
     raise ValueError("Public catalog query exceeded its page limit. Reduce area or date range.")
 
 
 def signed_url(url):
-    with httpx.Client(timeout=45) as client:
-        for attempt in range(4):
-            response = client.get(SIGN, params={"href": url})
-            if response.status_code in (429, 500, 502, 503, 504) and attempt < 3:
-                time.sleep(2**attempt)
-                continue
-            response.raise_for_status()
-            return response.json()["href"]
+    with httpx.Client(timeout=ACQUISITION.public_sign_timeout_seconds) as client:
+        return public_request(client,'GET',ACQUISITION.public_sign_url,params={'href':url}).json()['href']
 
 
 def read_grid(url, grid, resampling=Resampling.nearest):
@@ -113,7 +137,7 @@ def dem_tiles(grid):
     for lat in range(math.floor(south), math.floor(north) + 1):
         for lon in range(math.floor(west), math.floor(east) + 1):
             tile = f"Copernicus_DSM_COG_10_{'N' if lat >= 0 else 'S'}{abs(lat):02}_00_{'E' if lon >= 0 else 'W'}{abs(lon):03}_00_DEM"
-            url = f"https://copernicus-dem-30m.s3.amazonaws.com/{tile}/{tile}.tif"
+            url = f"{ACQUISITION.public_dem_base_url}/{tile}/{tile}.tif"
             array = read_grid(url, grid, Resampling.bilinear)
             good = np.isfinite(array)
             output[good] = array[good]; urls.append(url)
@@ -179,11 +203,11 @@ def raw_rtc(item, dem_path, padded, grid, cache, polarization="vv"):
     base = measurement.rsplit("/measurement/", 1)[0]
     signed = signed_url(measurement)
     token = signed.split("?", 1)[1]
-    with httpx.Client(timeout=90, follow_redirects=True) as client:
+    with httpx.Client(timeout=ACQUISITION.public_download_timeout_seconds, follow_redirects=True) as client:
         for name in ("manifest.safe", f"annotation/iw-{polarization}.xml", f"annotation/calibration/calibration-iw-{polarization}.xml", f"annotation/calibration/noise-iw-{polarization}.xml"):
             path = folder / name
             if not path.exists():
-                response = client.get(f"{base}/{name}?{token}"); response.raise_for_status()
+                response = public_request(client,'GET',f"{base}/{name}?{token}")
                 path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(response.content)
     # Explicit /vsicurl/ prevents GDAL's VRT driver downloading the full GRD file.
     with rasterio.Env(**REMOTE_ENV), rasterio.open(signed) as source:
@@ -217,7 +241,8 @@ def raw_rtc(item, dem_path, padded, grid, cache, polarization="vv"):
 
 def acquire_public(params, grid, folder, progress):
     from app.geo import Grid
-    cache = ROOT / "data/cache/public" / hashlib.sha256(json.dumps([params.bbox, params.resolution_m, str(params.flood_date), "denoised-rtc-v1"]).encode()).hexdigest()[:20]
+    cache_key=public_cache_key(params)
+    cache = ROOT / "data/cache/public" / cache_key
     cache.mkdir(parents=True, exist_ok=True)
     progress("Fetching actual pre-event OSM geometry", 8)
     osm_path = cache / "osm.geojson"
@@ -245,7 +270,7 @@ def acquire_public(params, grid, folder, progress):
     if not dem_path.exists():
         elevation, dem_urls = dem_tiles(padded)
         # EGM2008 geoid is a coordinate-datum conversion, not a prediction layer.
-        geoid_url = "https://cdn.proj.org/us_nga_egm08_25.tif"
+        geoid_url = ACQUISITION.public_geoid_url
         geoid = read_grid(geoid_url, padded, Resampling.bilinear)
         if not np.isfinite(geoid).all():
             raise ValueError("EGM2008 vertical-datum conversion is unavailable.")
@@ -290,8 +315,8 @@ def acquire_public(params, grid, folder, progress):
                 write_grid(Path(folder) / f"s2-{'before' if index == 0 else 'after'}.tif", array, grid)
             optical_before, optical_after = optical_arrays; optical_scenes = [i["id"] for tiles in pair for i in tiles]
             optical_observations = [{"id": item["id"], "acquired": item["properties"]["datetime"]} for tiles in pair for item in tiles]
-            if any(abs((datetime.fromisoformat(tiles[0]["properties"]["datetime"].replace("Z", "+00:00")).date()-params.flood_date).days) > 12 for tiles in pair):
-                warnings.append("A Sentinel-2 observation is more than 12 days from the event. Optical change can include other intervening changes; cloud masks apply pixel by pixel.")
+            if any(abs((datetime.fromisoformat(record['acquired'].replace('Z','+00:00')).date()-params.flood_date).days)>ACQUISITION.optical_warning_age_days for record in optical_observations):
+                warnings.append(f"A Sentinel-2 observation is more than {ACQUISITION.optical_warning_age_days} days from the event. Optical change can include other intervening changes; cloud masks apply pixel by pixel.")
         else:
             warnings.append("No suitable clear-sky Sentinel-2 pair covers the full area; debris estimation is unavailable.")
     except (httpx.HTTPError, ValueError, KeyError, rasterio.errors.RasterioError) as error:
@@ -302,6 +327,7 @@ def acquire_public(params, grid, folder, progress):
             "acquisition": {"provider": "Original ESA Sentinel GRD via the Microsoft public mirror; locally processed",
                 "radar_assets": [i["assets"]["vv"]["href"] for i in selected], "catalog": STAC,
                 "radar_assets_vh": [i["assets"]["vh"]["href"] for i in selected],
+                "cache_policy":"public-acquisition-v2","cache_key":cache_key,
                 "terrain_screening": {"method":"Orbit/annotation local incidence, self-shadow and layover; Copernicus-DEM ray occlusion", "horizon_m":pad*grid.resolution,"approximate":True},
                 "dem": json.loads((cache / "dem-sources.json").read_text()),
                 "processing": "DN squared, annotation range/azimuth thermal denoising, beta0 calibration, sarsen gamma_bilinear RTC with Copernicus GLO-30 and EGM2008-to-ellipsoid height conversion",

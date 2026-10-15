@@ -35,17 +35,10 @@ OSM_FILTER = "building=* or highway=* or bridge=* or man_made=bridge or place in
 
 def historical_request(client, method, url, **kwargs):
     """Retry transient transport/service failures without changing data policy."""
-    for attempt in range(3):
-        try:
-            response = client.request(method,url,**kwargs)
-            if response.status_code in (429,500,502,503,504) and attempt < 2:
-                time.sleep(attempt+1)
-                continue
-            response.raise_for_status()
-            return response
-        except (httpx.TimeoutException,httpx.NetworkError):
-            if attempt == 2:raise
-            time.sleep(attempt+1)
+    response=request_with_retry(client,method,url,retries=ACQUISITION.osm_http_retries,
+        max_wait_seconds=ACQUISITION.osm_max_retry_wait_seconds,retry_transport_errors=True,**kwargs)
+    response.raise_for_status()
+    return response
 
 
 def search_catalog(bbox, start, end, collection="sentinel-1-grd"):
@@ -189,7 +182,7 @@ def historical_v2(client, params, event, snapshot_hint=None):
 def osm_snapshot(params):
     event = datetime.combine(params.flood_date, datetime.min.time(), tzinfo=timezone.utc)
     snapshot = None
-    with httpx.Client(timeout=httpx.Timeout(240,connect=20), follow_redirects=True) as client:
+    with httpx.Client(timeout=httpx.Timeout(ACQUISITION.osm_timeout_seconds,connect=ACQUISITION.osm_connect_timeout_seconds), follow_redirects=True) as client:
         try:
             metadata = historical_request(client,"GET",f"{OSM_URL}/metadata")
             metadata.raise_for_status()

@@ -50,6 +50,10 @@ def main():
             assert all(page.locator('#'+field).input_value()=='' for field in ('west','south','east','north'))
             assert page.locator('#satellite-provider').input_value() == page.evaluate('state.sources.acquisition_configuration.default_provider')
             checks['checks'].append('Fresh inputs require an explicit area/date; provider default follows shared acquisition configuration')
+        resolution_schema=page.evaluate('state.sources.parameter_schema.properties.resolution_m')
+        assert page.locator('#resolution').get_attribute('type')=='number'
+        assert float(page.locator('#resolution').get_attribute('min'))==resolution_schema['minimum']
+        assert float(page.locator('#resolution').get_attribute('max'))==resolution_schema['maximum']
         assert page.locator("#water-model").count() == 0
         assert page.evaluate("state.sources.copilot.component") == "situation_report_copilot"
         assert "situation-report copilot" in page.locator("#ai-component-status").inner_text()
@@ -100,6 +104,7 @@ def main():
         assert page.locator("#map-empty").is_hidden()
         assert page.locator("#map-badge").inner_text() == "DEMO DATA"
         assert "Synthetic demonstration" in page.locator("#notice").inner_text()
+        assert "real Nepal flood" not in page.locator('#notice').inner_text()
         assert "Synthetic fixture" in page.locator("#dataset-status").inner_text()
         assert page.locator("#stat-water").inner_text() == page.evaluate("state.run.stats.water_km2.toFixed(2)")
         assert page.evaluate('state.run.name') == 'Custom flood analysis'
@@ -197,6 +202,23 @@ def main():
         assert page.locator("#ask-button").is_enabled()
         page.locator("#west").fill(original_west)
         checks["checks"].append("Invalid bounds show an error, preserve the previous labeled result and release controls")
+        # Exercise a formerly missing valid resolution and finer custom bounds
+        # through the real API/pipeline, using only explicitly synthetic data.
+        page.locator('#region').select_option('custom')
+        for field,value in {'west':'10.1234','south':'10.1234','east':'10.1434','north':'10.1434',
+                            'event-date':'2024-08-21','area-name':'Custom precision browser fixture'}.items():
+            page.locator('#'+field).fill(value)
+        page.locator('#mode').select_option('demo')
+        page.locator('#resolution').fill('20')
+        page.locator('#change').evaluate("node => {node.value='3.2';node.dispatchEvent(new Event('input',{bubbles:true}));}")
+        assert page.locator('#analysis-form').evaluate('node => node.checkValidity()')
+        page.locator('#run-button').click()
+        page.wait_for_function("state.run?.parameters.resolution_m === 20 && !state.busy",timeout=90000)
+        assert page.evaluate('state.run.bbox')==[10.1234,10.1234,10.1434,10.1434]
+        assert page.evaluate('state.run.parameters.change_threshold_db')==3.2
+        assert page.evaluate('state.run.mode')=='demo'
+        checks['custom_precision_run_id']=page.evaluate('state.run.id')
+        checks['checks'].append('20m resolution, four-decimal coordinates and a 3.2dB threshold reach the pipeline unchanged; synthetic fixture only')
         browser.close()
     assert not checks["page_errors"], checks["page_errors"]
     (args.output / "browser-checks.json").write_text(json.dumps(checks, indent=2))

@@ -49,7 +49,7 @@ Ask questions about flood extent, infrastructure exposure, road access, acquisit
 
 The optional generative integration uses **Groq’s official SDK**, defaulting to hosted `openai/gpt-oss-120b`. Recognised questions retrieve saved evidence locally and normally need one generation request. Groq writes concise narrative around validated fact placeholders; Python binds run, subject, field and interpretation, inserts authoritative values and preserves citations/uncertainty. The labeled fallback uses deterministic bilingual routing. Hospital inventory, radar coverage and eligibility have separate evidence; mixed questions retain supported answers while declining unsupported estimates. Matching lists are paginated locally and displayed with totals/export links. Cached feature-name lookup avoids scanning every name with a regular expression. This application trains no model. Named features and follow-ups use saved identifiers and route evidence; ambiguous references request clarification. No model weights or satellite training datasets are downloaded. Native-speaker Nepali review remains necessary. See [audit repairs](docs/AUDIT_REPAIRS.md).
 
-Mapping rules are in `app/mapping.toml`, acquisition/ranking/retry policy in `app/acquisition.toml`, and optional case presets in `app/presets.json`. Local configuration-file overrides are supported. Selected configuration is recorded per run. Inputs never silently default to Nepal. See the [generalization repairs and live checks](docs/GENERALIZATION.md), [hardcoding audit](docs/HARDCODING_AUDIT.md) and [PDF requirement checklist](docs/TRACK_B_CHECKLIST.md).
+Mapping rules and the driving profile are in `app/mapping.toml`, acquisition/provider/retry policy in `app/acquisition.toml`, independent asset matching in `app/evaluation.toml`, and optional case presets in `app/presets.json`. Local configuration-file overrides are supported. Selected configuration is recorded per run or evaluation. Inputs never silently default to Nepal. See the [remaining hardcoding repairs](docs/REMAINING_HARDCODING_REPAIRS.md), [generalization checks](docs/GENERALIZATION.md), [hardcoding audit](docs/HARDCODING_AUDIT.md) and [PDF requirement checklist](docs/TRACK_B_CHECKLIST.md).
 
 Identical questions reuse a validated Groq draft for up to five minutes only when run, evidence, scope, language, conversation and provider configuration match. Changed evidence is re-retrieved and revalidated. Concurrent duplicate questions share generation; provider concurrency, retry deadlines and rate-limit cooldowns are bounded. `generation.cache_hit` and request/token counts show actual usage.
 
@@ -86,16 +86,18 @@ This reads only retained acquired S1/S2, Copernicus DEM and historical OSM input
 Official EMSR927 products remain a separate evaluation-only path under **`data/reference_only/EMSR927/`**. They are never passed to acquisition or the prediction pipeline.
 
 ```bash
-uv run python scripts/fetch_reference.py
+uv run python scripts/fetch_reference.py --activation EMSR927
 uv run python scripts/evaluate.py data/runs/RUN_ID \
   data/reference_only/EMSR927/reference-extent.geojson \
   --coverage data/reference_only/EMSR927/reviewed-coverage.geojson --activation EMSR927 \
   --output data/runs/RUN_ID/evaluation.json
-uv run python scripts/evaluate_assets.py data/runs/RUN_ID
+uv run python scripts/evaluate_assets.py data/runs/RUN_ID --reference data/reference_only/EMSR927
 uv run python scripts/summarize_data.py data/runs/RUN_ID
 ```
 
 The evaluator requires matching water/debris reference classes and each class's eligible mask. Unknown legends require explicit review (`--reference-class water|debris|combined`). Both-empty comparisons and unobservable classes report N/A, never a perfect score. It reports the fraction of reference-positive area that was actually evaluated. A landslide overlap score is not flood-water accuracy. Evaluation does not alter prediction files. Synthetic evaluation is an explicitly labeled sanity check only.
+
+Reference activation is explicit: another code downloads to its own `data/reference_only/ACTIVATION` directory. A directory identified as a different activation is rejected before writing. Asset matching accepts `--road-match-buffer-m`, `--road-match-min-overlap`, `--asset-match-distance-m` and `--observation-threshold`; omitted values come from `app/evaluation.toml`. Every comparison records the effective policy and source hashes. `FLOOD_LENS_EVALUATION_CONFIG` selects a replacement evaluation TOML.
 
 ## Checks and historical outputs
 

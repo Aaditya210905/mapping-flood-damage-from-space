@@ -188,3 +188,19 @@ def test_reprocessing_accepts_the_supported_historical_v2_source(cdse_cache):
     path.write_text(json.dumps(osm))
     _, inputs = load_cached_cdse_inputs(source)
     assert inputs['osm']['metadata']['sourceApi'] == 'https://api.heigit.org/ohsome-api/v2-rc'
+
+
+def test_replay_accepts_explicitly_configured_source_endpoints(cdse_cache,monkeypatch):
+    from app import reprocess
+    source,saved,_,_=cdse_cache
+    policy=reprocess.ACQUISITION.model_copy(update={'public_dem_base_url':'https://dem.example/glo30',
+        'osm_url':'https://history.example/v1'})
+    monkeypatch.setattr(reprocess,'ACQUISITION',policy)
+    saved['provenance']['acquisition']['dem']={'provider':'Public Copernicus DEM GLO-30 mirror',
+        'tiles':['https://dem.example/glo30/mock-tile.tif']}
+    (source/'result.json').write_text(json.dumps(saved))
+    osm_path=source/'osm-snapshot.geojson'
+    osm=json.loads(osm_path.read_text());osm['metadata']['sourceApi']=policy.osm_url
+    osm_path.write_text(json.dumps(osm))
+    _,inputs=load_cached_cdse_inputs(source)
+    assert inputs['osm']['metadata']['sourceApi']==policy.osm_url

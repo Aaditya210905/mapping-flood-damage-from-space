@@ -575,9 +575,9 @@ async function initialize() {
     }
     if (configuration) {
       const changeBounds = state.sources.parameter_schema?.properties?.change_threshold_db;
-      if (changeBounds) { $("change").min = changeBounds.minimum; $("change").max = changeBounds.maximum; }
+      if (changeBounds) { $("change").min = changeBounds.minimum; $("change").max = changeBounds.maximum; $("change").step = changeBounds.multipleOf || "any"; }
       const resolutionBounds = state.sources.parameter_schema?.properties?.resolution_m;
-      if (resolutionBounds) { $("resolution").min = resolutionBounds.minimum; $("resolution").max = resolutionBounds.maximum; }
+      if (resolutionBounds) { $("resolution").min = resolutionBounds.minimum; $("resolution").max = resolutionBounds.maximum; $("resolution").step = resolutionBounds.multipleOf || (resolutionBounds.type === "integer" ? 1 : "any"); }
       $("resolution").value = configuration.resolution_m;
       $("change").value = configuration.change_threshold_db;
       $("change-value").textContent = `${configuration.change_threshold_db} dB`;
