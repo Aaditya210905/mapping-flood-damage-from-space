@@ -285,7 +285,7 @@ function renderRun(run) {
   $("evidence-mode").textContent = run.mode === "demo" ? "Synthetic inputs" : "Actual observations";
   $("evidence-mode").classList.toggle("demo", run.mode === "demo");
   $("notice").className = `notice ${run.mode}`;
-  const notice = run.mode === "demo" ? "<strong>Synthetic demonstration</strong> · All map features and results are generated test data. They do not describe the real Nepal flood." : "<strong>Satellite estimates</strong> · Values describe mapped observations only. Missing coverage and unknown access cannot establish absence of flooding or damage.";
+  const notice = run.mode === "demo" ? "<strong>Synthetic demonstration</strong> · All map features and results are generated test data. They do not describe real event observations." : "<strong>Satellite estimates</strong> · Values describe mapped observations only. Missing coverage and unknown access cannot establish absence of flooding or damage.";
   $("notice").innerHTML = `<span class="notice-icon" aria-hidden="true">i</span><span>${notice}</span>`;
   const availability = run.class_availability || {};
   $("observability").hidden = false;
@@ -576,6 +576,8 @@ async function initialize() {
     if (configuration) {
       const changeBounds = state.sources.parameter_schema?.properties?.change_threshold_db;
       if (changeBounds) { $("change").min = changeBounds.minimum; $("change").max = changeBounds.maximum; }
+      const resolutionBounds = state.sources.parameter_schema?.properties?.resolution_m;
+      if (resolutionBounds) { $("resolution").min = resolutionBounds.minimum; $("resolution").max = resolutionBounds.maximum; }
       $("resolution").value = configuration.resolution_m;
       $("change").value = configuration.change_threshold_db;
       $("change-value").textContent = `${configuration.change_threshold_db} dB`;

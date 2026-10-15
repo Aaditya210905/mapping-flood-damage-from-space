@@ -93,7 +93,7 @@ def main():
         else:
             page.locator("#mode").select_option("demo")
             page.locator("#advanced").evaluate("node => node.open = true")
-            page.locator("#resolution").select_option("100")
+            page.locator("#resolution").fill("100")
             page.locator("#run-button").click()
         page.wait_for_function("state.run?.mode === 'demo' && !state.busy", timeout=90000)
         assert page.locator("#form-error").is_hidden()

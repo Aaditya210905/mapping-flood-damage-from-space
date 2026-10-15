@@ -1,6 +1,7 @@
 """Shared, versioned mapping configuration; no credentials or case outputs."""
 from pathlib import Path
 import os
+import re
 import tomllib
 from typing import Literal
 from urllib.parse import urlsplit
@@ -26,6 +27,14 @@ class MappingSettings(BaseModel):
     optical_only_bare_increase_threshold: float = Field(gt=0, le=2)
     road_overlap_cell_fraction: float = Field(gt=0, le=1)
     road_snap_distance_m: float = Field(ge=0, le=1000)
+    drivable_highways:list[str]=Field(min_length=1,max_length=100)
+
+    @field_validator('drivable_highways')
+    @classmethod
+    def highway_classes(cls,value):
+        if len(value)!=len(set(value)) or any(not re.fullmatch(r'[a-z][a-z0-9_]*',tag) for tag in value):
+            raise ValueError('Driving profile requires unique OSM highway class names')
+        return value
 
     @field_validator('optical_excluded_scl_classes')
     @classmethod
@@ -44,6 +53,26 @@ class AcquisitionSettings(BaseModel):
     cdse_token_url:str
     osm_url:str
     osm_v2_url:str
+    public_stac_url:str
+    public_sign_url:str
+    public_dem_base_url:str
+    public_geoid_url:str
+    ems_activation_url:str
+    public_catalog_page_size:int=Field(ge=1,le=1000)
+    public_catalog_max_pages:int=Field(ge=1,le=100)
+    public_catalog_timeout_seconds:float=Field(gt=0,le=300)
+    public_sign_timeout_seconds:float=Field(gt=0,le=300)
+    public_download_timeout_seconds:float=Field(gt=0,le=600)
+    public_http_retries:int=Field(ge=0,le=5)
+    public_max_retry_wait_seconds:float=Field(ge=0,le=60)
+    public_gdal_timeout_seconds:int=Field(ge=1,le=600)
+    public_gdal_cache_mb:int=Field(ge=1,le=1024)
+    osm_timeout_seconds:float=Field(gt=0,le=600)
+    osm_connect_timeout_seconds:float=Field(gt=0,le=120)
+    osm_http_retries:int=Field(ge=0,le=5)
+    osm_max_retry_wait_seconds:float=Field(ge=0,le=60)
+    reference_timeout_seconds:float=Field(gt=0,le=600)
+    optical_warning_age_days:int=Field(ge=1,le=120)
     catalog_page_size:int=Field(ge=1,le=1000)
     catalog_max_pages:int=Field(ge=1,le=100)
     catalog_timeout_seconds:float=Field(gt=0,le=300)
@@ -63,7 +92,8 @@ class AcquisitionSettings(BaseModel):
     terrain_ray_steps:int=Field(ge=1,le=512)
     trace_settlement_buffer_m:float=Field(gt=0,le=10000)
 
-    @field_validator('cdse_stac_url','cdse_process_url','cdse_token_url','osm_url','osm_v2_url')
+    @field_validator('cdse_stac_url','cdse_process_url','cdse_token_url','osm_url','osm_v2_url',
+                     'public_stac_url','public_sign_url','public_dem_base_url','public_geoid_url','ems_activation_url')
     @classmethod
     def endpoint(cls,value):
         parsed=urlsplit(value)
@@ -73,12 +103,22 @@ class AcquisitionSettings(BaseModel):
         return value.rstrip('/')
 
 
+class EvaluationSettings(BaseModel):
+    model_config=ConfigDict(extra='forbid',frozen=True)
+    version:str
+    observation_threshold:float=Field(gt=0,le=1)
+    road_match_buffer_m:float=Field(gt=0,le=1000)
+    road_match_min_overlap:float=Field(gt=0,le=1)
+    asset_match_distance_m:float=Field(ge=0,le=1000)
+
+
 def configured_file(variable,name):
     return Path(os.getenv(variable) or Path(__file__).with_name(name))
 
 
 MAPPING = MappingSettings.model_validate(tomllib.loads(configured_file('FLOOD_LENS_MAPPING_CONFIG','mapping.toml').read_text()))
 ACQUISITION = AcquisitionSettings.model_validate(tomllib.loads(configured_file('FLOOD_LENS_ACQUISITION_CONFIG','acquisition.toml').read_text()))
+EVALUATION = EvaluationSettings.model_validate(tomllib.loads(configured_file('FLOOD_LENS_EVALUATION_CONFIG','evaluation.toml').read_text()))
 
 
 def satellite_provider(requested):

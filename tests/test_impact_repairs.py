@@ -31,6 +31,28 @@ def road_case(grid, *, bridge=False, village_offset=0, start=400100):
     return osm
 
 
+@pytest.mark.parametrize('highway',['motorway_link','trunk_link','primary_link','secondary_link','tertiary_link'])
+def test_link_roads_preserve_a_mapped_route_to_a_hospital(grid,highway):
+    osm=road_case(grid)
+    osm['features'][0]['properties']['highway']=highway
+    layers,stats=analyze_impacts(osm,collection(grid,[]),grid)
+    assert stats['roads_total']==1
+    assert layers['settlements']['features'][0]['properties']['connectivity_by_destination_type']['hospital']['status']=='connected'
+
+
+def test_driving_profile_is_configurable_and_keeps_vehicle_restrictions(grid,monkeypatch):
+    from app import impact
+    monkeypatch.setattr(impact,'MAPPING',impact.MAPPING.model_copy(update={'drivable_highways':['service']}))
+    osm=road_case(grid)
+    assert analyze_impacts(osm,collection(grid,[]),grid)[1]['roads_total']==0
+    osm['features'][0]['properties']['highway']='service'
+    assert analyze_impacts(osm,collection(grid,[]),grid)[1]['roads_total']==1
+    osm['features'][0]['properties']['motor_vehicle']='no'
+    layers,stats=analyze_impacts(osm,collection(grid,[]),grid)
+    assert stats['roads_total']==0
+    assert layers['settlements']['features'][0]['properties']['status']=='unassessed'
+
+
 def test_building_assessment_uses_whole_footprint_not_one_point(grid):
     mask = np.zeros((50, 50), dtype=bool)
     mask[:, :10] = True

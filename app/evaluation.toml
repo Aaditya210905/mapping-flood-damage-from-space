@@ -1,0 +1,6 @@
+# Independent comparison policy; never used to produce hazard predictions.
+version = "asset-evaluation-v2"
+observation_threshold = 0.8
+road_match_buffer_m = 30.0
+road_match_min_overlap = 0.5
+asset_match_distance_m = 50.0

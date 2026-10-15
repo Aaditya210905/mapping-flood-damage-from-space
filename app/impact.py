@@ -12,9 +12,6 @@ from app.settings import MAPPING
 from app.geo import observation_fraction
 
 
-DRIVABLE = {"motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "living_street", "service", "road"}
-
-
 def feature_id(feature, index):
     return str(feature.get("id") or feature.get("properties", {}).get("@osmId") or f"feature-{index}")
 
@@ -29,6 +26,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=MAPPING.road_snap_distance_
     off-road connector, exterior route, or missing OSM junction is invented.
     """
     minimum_overlap = grid.resolution * MAPPING.road_overlap_cell_fraction if closure_min_length_m is None else float(closure_min_length_m)
+    drivable=frozenset(MAPPING.drivable_highways)
     if not math.isfinite(snap_distance) or not math.isfinite(minimum_overlap) or snap_distance < 0 or minimum_overlap <= 0:
         raise ValueError("Snap distance must be nonnegative and closure overlap must be positive.")
     masks = {name: np.asarray(mask, dtype=bool) for name, mask in (assessment_masks or {}).items()}
@@ -85,7 +83,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=MAPPING.road_snap_distance_
         if props.get("building") not in (None, "no"):
             props["overlap_fraction"] = round(intersection.area/geom.area, 3) if geom.area else 0
             buildings.append(feature)
-        if props.get("highway") in DRIVABLE and all(props.get(k) not in ("no", "private") for k in ("access", "vehicle", "motor_vehicle")) and geom.geom_type in ("LineString", "MultiLineString"):
+        if props.get("highway") in drivable and all(props.get(k) not in ("no", "private") for k in ("access", "vehicle", "motor_vehicle")) and geom.geom_type in ("LineString", "MultiLineString"):
             props["length_m"] = round(geom.length, 2)
             props["exposed_length_m"] = round(intersection.length, 2)
             props["overlap_fraction"] = round(intersection.length/geom.length, 3) if geom.length else 0

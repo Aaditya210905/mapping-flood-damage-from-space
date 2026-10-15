@@ -59,13 +59,13 @@
             <details id="advanced" open>
               <summary>Area bounds & resolution <span aria-hidden="true">+</span></summary>
               <div class="bounds-inputs">
-                <label for="west">West<input id="west" type="number" step="0.001" required></label>
-                <label for="south">South<input id="south" type="number" step="0.001" required></label>
-                <label for="east">East<input id="east" type="number" step="0.001" required></label>
-                <label for="north">North<input id="north" type="number" step="0.001" required></label>
+                <label for="west">West<input id="west" type="number" step="any" required></label>
+                <label for="south">South<input id="south" type="number" step="any" required></label>
+                <label for="east">East<input id="east" type="number" step="any" required></label>
+                <label for="north">North<input id="north" type="number" step="any" required></label>
               </div>
               <label for="area-name">Area name</label><input id="area-name" maxlength="120">
-              <label for="resolution">Pixel resolution</label><select id="resolution"><option value="30">30 metres</option><option value="10">10 metres</option><option value="60">60 metres</option><option value="100">100 metres</option></select>
+              <label for="resolution">Pixel resolution (metres)</label><input id="resolution" type="number" step="1" required>
               <label for="change">Radar change threshold <output id="change-value"></output></label>
               <input id="change" type="range" step="0.5">
               <p class="field-note">WGS84 bounds. Maximum one degree and 2,500 pixels per side.</p>
