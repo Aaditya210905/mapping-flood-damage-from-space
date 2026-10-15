@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import httpx
+from app.settings import ACQUISITION
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -32,7 +33,7 @@ def download(url, path, limit=64 * 1024 * 1024):
         return
     temporary = path.with_suffix(path.suffix + ".part")
     try:
-        with httpx.Client(timeout=120, follow_redirects=True) as client, client.stream("GET", url) as response:
+        with httpx.Client(timeout=ACQUISITION.reference_download_timeout_seconds, follow_redirects=True) as client, client.stream("GET", url) as response:
             response.raise_for_status()
             written = 0
             with temporary.open("wb") as stream:

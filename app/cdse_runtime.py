@@ -8,7 +8,7 @@ import threading
 import time
 
 import httpx
-from app.settings import ACQUISITION
+from app.settings import ACQUISITION, RUNTIME
 
 _tokens=OrderedDict()
 _lock=threading.Lock()
@@ -31,7 +31,7 @@ def access_token(url,*,invalidate=None):
             return cached[0]
         _tokens.pop(key,None)
         try:
-            with httpx.Client(timeout=30) as client:
+            with httpx.Client(timeout=ACQUISITION.token_timeout_seconds) as client:
                 response=client.post(url,data={'grant_type':'client_credentials','client_id':client_id,'client_secret':secret})
             if response.status_code!=200:raise ValueError('CDSE authentication failed; check OAuth credentials and service availability')
             body=response.json()
@@ -41,7 +41,7 @@ def access_token(url,*,invalidate=None):
             if math.isfinite(ttl) and ttl>0:
                 expiry=time.monotonic()+ttl-min(ACQUISITION.token_expiry_margin_seconds,ttl/2)
                 _tokens[key]=(token,expiry)
-                while len(_tokens)>8:_tokens.popitem(last=False)
+                while len(_tokens)>RUNTIME.token_cache_entries:_tokens.popitem(last=False)
             return token
         except (httpx.HTTPError,KeyError,TypeError,ValueError) as error:
             if isinstance(error,ValueError) and str(error).startswith('CDSE '):raise

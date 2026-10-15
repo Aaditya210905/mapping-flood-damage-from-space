@@ -1,5 +1,5 @@
 # Acquisition policy. No event measurements or credentials belong here.
-version = "acquisition-v3"
+version = "acquisition-v4"
 default_provider = "auto"
 cdse_stac_url = "https://stac.dataspace.copernicus.eu/v1/search"
 cdse_process_url = "https://sh.dataspace.copernicus.eu/process/v1"
@@ -33,6 +33,8 @@ process_timeout_seconds = 240
 http_retries = 2
 max_retry_wait_seconds = 10
 token_expiry_margin_seconds = 30
+token_timeout_seconds = 30
+reference_download_timeout_seconds = 120
 minimum_scene_coverage = 0.98
 radar_repeat_days = 12
 radar_pre_gap_weight = 0.3

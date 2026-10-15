@@ -16,7 +16,7 @@ def feature_id(feature, index):
     return str(feature.get("id") or feature.get("properties", {}).get("@osmId") or f"feature-{index}")
 
 
-def analyze_impacts(osm, extent, grid, snap_distance=MAPPING.road_snap_distance_m, assessment_mask=None,
+def analyze_impacts(osm, extent, grid, snap_distance=None, assessment_mask=None,
                     assessment_masks=None, closure_min_length_m=None):
     """Assess mapped elements, not actual damage or operational road availability.
 
@@ -25,6 +25,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=MAPPING.road_snap_distance_
     makes its availability unknown, rather than proving deck failure. No
     off-road connector, exterior route, or missing OSM junction is invented.
     """
+    snap_distance = MAPPING.road_snap_distance_m if snap_distance is None else snap_distance
     minimum_overlap = grid.resolution * MAPPING.road_overlap_cell_fraction if closure_min_length_m is None else float(closure_min_length_m)
     drivable=frozenset(MAPPING.drivable_highways)
     if not math.isfinite(snap_distance) or not math.isfinite(minimum_overlap) or snap_distance < 0 or minimum_overlap <= 0:
@@ -92,10 +93,12 @@ def analyze_impacts(osm, extent, grid, snap_distance=MAPPING.road_snap_distance_
         if props.get("bridge") not in (None, "no") or props.get("man_made") == "bridge":
             props["bridge_assessment"] = "potential exposure only; water beneath a bridge does not establish deck failure or closure"
             bridges.append(feature)
-        if props.get("place") in ("village", "hamlet", "isolated_dwelling"):
+        if props.get("place") in MAPPING.settlement_places:
             settlements.append(feature)
-        if props.get("place") in ("town", "city") or props.get("amenity") == "hospital":
-            props["destination_type"] = "hospital" if props.get("amenity") == "hospital" else "town"
+        kinds = MAPPING.destination_types(props)
+        if kinds:
+            props['destination_types'] = kinds
+            props["destination_type"] = kinds[0]
             props["operational_status"] = "unknown; mapped pre-event facility only"
             destinations.append(feature)
 
@@ -167,7 +170,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=MAPPING.road_snap_distance_
             props["snap_status"] = "outside_snap_limit"
             continue
         projected = segment.interpolate(segment.project(point))
-        props["snap_status"] = "on_mapped_road" if distance <= 1 else "unverified_off_road_connector"
+        props["snap_status"] = "on_mapped_road" if distance <= MAPPING.road_on_network_tolerance_m else "unverified_off_road_connector"
         if distance > 1:
             props["snap_connector"] = {"type": "Feature", "geometry": mapping(grid.geographic(LineString([point, projected]))), "properties": {"assumption": "unverified connector; may cross water, terrain or barriers"}}
         props["_node"] = node_for(projected, road_id)
@@ -229,7 +232,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=MAPPING.road_snap_distance_
         return target_features, pre, post, observed
 
     groups = {"all": destination_maps(destinations)}
-    groups.update({kind: destination_maps([item for item in destinations if item["properties"]["destination_type"] == kind]) for kind in ("hospital", "town")})
+    groups.update({kind: destination_maps([item for item in destinations if kind in item["properties"]["destination_types"]]) for kind in MAPPING.destination_profiles})
     same_target_distances = {}
 
     def connectivity(props, group):
@@ -239,12 +242,12 @@ def analyze_impacts(osm, extent, grid, snap_distance=MAPPING.road_snap_distance_
                   "after_destination": None, "after_destination_id": None, "after_destination_type": None, "before_distance_km": None, "after_distance_km": None,
                   "same_destination_after_distance_km": None, "same_destination_extra_distance_km": None, "nearest_destination_access_lost": None,
                   "assessment_reason": "no_mapped_destination" if not targets else "settlement_not_snapped_to_mapped_motorable_road"}
-        if not targets and any(group == "all" or destination["properties"]["destination_type"] == group for destination in destinations):
+        if not targets and any(group == "all" or group in destination["properties"]["destination_types"] for destination in destinations):
             result["assessment_reason"] = "no_destination_within_mapped_road_snap_limit"
         if node in pre_dist:
             before_target = pre_paths[node][0]
             before_feature = targets[before_target][0]
-            result.update(nearest_destination=before_feature["name"], before_destination_id=before_feature["id"], before_destination_type=before_feature["destination_type"],
+            result.update(nearest_destination=before_feature["name"], before_destination_id=before_feature["id"], before_destination_type=group if group != 'all' else before_feature["destination_type"],
                           before_distance_km=round(pre_dist[node]/1000, 2), baseline_route=route_evidence(pre_paths[node], baseline),
                           status="connected" if node in post_dist else "cut_off", assessment_reason="assumed_road_overlap_closure_scenario")
             if node in post_dist:
@@ -253,7 +256,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=MAPPING.road_snap_distance_
                 use_observed = node in observed_dist and props["snap_status"] == "on_mapped_road"
                 distances, paths, graph = (observed_dist, observed_paths, observed_after) if use_observed else (post_dist, post_paths, after)
                 after_feature = min(targets[paths[node][0]], key=lambda item: (item["snap_status"] != "on_mapped_road", item["id"]))
-                result.update(after_destination=after_feature["name"], after_destination_id=after_feature["id"], after_destination_type=after_feature["destination_type"],
+                result.update(after_destination=after_feature["name"], after_destination_id=after_feature["id"], after_destination_type=group if group != 'all' else after_feature["destination_type"],
                               after_distance_km=round(distances[node]/1000, 2), after_route=route_evidence(paths[node], graph))
                 if node not in observed_dist or props["snap_status"] != "on_mapped_road":
                     result.update(status="uncertain_access", assessment_reason="unobserved_or_unverified_route_or_connector")
@@ -273,7 +276,7 @@ def analyze_impacts(osm, extent, grid, snap_distance=MAPPING.road_snap_distance_
     for item in settlements:
         props = item["properties"]
         props["boundary_limited"] = props.get("_node") in boundary_component_nodes
-        props["connectivity_by_destination_type"] = {kind: connectivity(props, kind) for kind in ("hospital", "town")}
+        props["connectivity_by_destination_type"] = {kind: connectivity(props, kind) for kind in MAPPING.destination_profiles}
         props.update(connectivity(props, "all"))
         props["closure_min_length_m"] = minimum_overlap
         props["access_mode"] = "mapped motorable roads; no footpath or off-road travel assumed"

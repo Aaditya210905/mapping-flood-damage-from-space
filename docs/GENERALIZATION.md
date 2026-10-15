@@ -21,11 +21,13 @@ The subsequent [six remaining hardcoding repairs](REMAINING_HARDCODING_REPAIRS.m
 
 | File or environment variable | Purpose |
 | --- | --- |
-| `app/mapping.toml` | Versioned water/debris/terrain/access rules and SCL policy |
+| `app/mapping.toml` | Versioned water/debris/terrain/access/SCL rules, median window/support, road tolerance, settlement tags and labeled destination profiles |
 | `app/acquisition.toml` | Provider endpoints, default provider, catalog bounds, scene ranking, retries and terrain horizon |
 | `app/presets.json` | Optional named input areas/dates/cutoffs; never output statistics |
 | `FLOOD_LENS_MAPPING_CONFIG` | Replacement local mapping TOML |
 | `FLOOD_LENS_ACQUISITION_CONFIG` | Replacement local acquisition TOML |
+| `app/runtime.toml`, `FLOOD_LENS_RUNTIME_CONFIG` | Bounded analysis workers, OAuth/feature/result/provider-account cache sizes |
+| `app/evaluation.toml`, `FLOOD_LENS_EVALUATION_CONFIG` | Independent reference-comparison tolerances |
 | `FLOOD_LENS_PRESETS_FILE` | Replacement validated preset JSON; `{}` disables presets |
 | `CDSE_CLIENT_ID`, `CDSE_CLIENT_SECRET` | Private Sentinel Hub OAuth credentials |
 | `LLM_ENABLED=true`, `GROQ_API_KEY` | Private Groq enablement/key |
@@ -37,6 +39,8 @@ The subsequent [six remaining hardcoding repairs](REMAINING_HARDCODING_REPAIRS.m
 Restart after configuration changes. New analyses record the effective provider, requested provider and mapping/acquisition settings. Existing analyses keep their original observations and parameters. Model/reasoning/deadline settings remain in `.env.example` and [Copilot configuration](COPILOT.md).
 
 Scientific thresholds, physical units, API contracts, resource limits, legal wording and bilingual labels are necessary declared rules. Moving an arbitrary threshold into a file does not make it accurate everywhere; regional calibration still requires independent evidence. Only the explicit synthetic path uses generated fixtures.
+
+The [integrated repair record](INTEGRATED_REPAIRS.md) covers subsequent query semantics and configuration. Destination profiles drive historical OSM extraction, per-type graph analysis, inventory, query recognition, evidence labels and feature detail. New profiles require new matching OSM inputs; cached replay refuses a broader extraction profile. Defaults keep the existing hospital/town semantics. Configuration files are validated together at startup; use current complete files when setting overrides.
 
 ## Run with actual observations
 

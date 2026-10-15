@@ -6,7 +6,32 @@ import tomllib
 from typing import Literal
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+
+class DestinationProfile(BaseModel):
+    model_config = ConfigDict(extra='forbid', frozen=True)
+    label_en: str = Field(min_length=1, max_length=80)
+    label_ne: str = Field(min_length=1, max_length=80)
+    keywords: list[str] = Field(min_length=1, max_length=30)
+    tags: dict[str, list[str]] = Field(min_length=1, max_length=10)
+
+    @field_validator('tags')
+    @classmethod
+    def valid_tags(cls, value):
+        if any(not re.fullmatch(r'[a-z][a-z0-9_:]*', key) or not values
+               or len(values) != len(set(values))
+               or any(not re.fullmatch(r'[a-zA-Z0-9_:.-]+', item) for item in values)
+               for key, values in value.items()):
+            raise ValueError('Destination selectors require OSM tag keys and unique literal values')
+        return value
+
+    @field_validator('keywords')
+    @classmethod
+    def valid_keywords(cls, value):
+        if any(not word.strip() or len(word) > 80 for word in value):
+            raise ValueError('Destination keywords must be nonempty bounded phrases')
+        return value
 
 
 class MappingSettings(BaseModel):
@@ -28,6 +53,39 @@ class MappingSettings(BaseModel):
     road_overlap_cell_fraction: float = Field(gt=0, le=1)
     road_snap_distance_m: float = Field(ge=0, le=1000)
     drivable_highways:list[str]=Field(min_length=1,max_length=100)
+    radar_median_window_pixels: int = Field(ge=1, le=15)
+    radar_median_minimum_support: int = Field(ge=1, le=225)
+    road_on_network_tolerance_m: float = Field(ge=0, le=1000)
+    settlement_places: list[str] = Field(min_length=1, max_length=30)
+    destination_profiles: dict[str, DestinationProfile] = Field(min_length=1, max_length=20)
+
+    @model_validator(mode='after')
+    def coherent_policy(self):
+        if self.radar_median_window_pixels % 2 != 1 or self.radar_median_minimum_support > self.radar_median_window_pixels ** 2:
+            raise ValueError('Radar median window must be odd and support must fit the window')
+        if self.road_on_network_tolerance_m > self.road_snap_distance_m:
+            raise ValueError('On-network tolerance cannot exceed the road snap distance')
+        if len(set(self.settlement_places)) != len(self.settlement_places) or any(not re.fullmatch(r'[a-z][a-z0-9_]*', place) for place in self.settlement_places):
+            raise ValueError('Settlement places require unique OSM place values')
+        if any(name == 'all' or not re.fullmatch(r'[a-z][a-z0-9_]{0,39}', name) for name in self.destination_profiles):
+            raise ValueError('Destination profile identifiers must be unique lowercase names other than all')
+        return self
+
+    def asset_selection(self):
+        return {'settlement_places': list(self.settlement_places),
+                'destination_tags': {kind: profile.tags for kind, profile in self.destination_profiles.items()}}
+
+    def osm_filter(self):
+        selectors = {'place': set(self.settlement_places)}
+        for profile in self.destination_profiles.values():
+            for key, values in profile.tags.items():
+                selectors.setdefault(key, set()).update(values)
+        return 'building=* or highway=* or bridge=* or man_made=bridge or ' + ' or '.join(
+            key + ' in (' + ','.join(sorted(values)) + ')' for key, values in sorted(selectors.items()))
+
+    def destination_types(self, properties):
+        return [kind for kind, profile in self.destination_profiles.items()
+                if any(properties.get(key) in values for key, values in profile.tags.items())]
 
     @field_validator('drivable_highways')
     @classmethod
@@ -80,6 +138,8 @@ class AcquisitionSettings(BaseModel):
     http_retries:int=Field(ge=0,le=5)
     max_retry_wait_seconds:float=Field(ge=0,le=60)
     token_expiry_margin_seconds:float=Field(ge=0,le=300)
+    token_timeout_seconds:float=Field(gt=0,le=300)
+    reference_download_timeout_seconds:float=Field(gt=0,le=600)
     minimum_scene_coverage:float=Field(gt=0,le=1)
     radar_repeat_days:float=Field(gt=0,le=48)
     radar_pre_gap_weight:float=Field(ge=0,le=10)
@@ -112,6 +172,17 @@ class EvaluationSettings(BaseModel):
     asset_match_distance_m:float=Field(ge=0,le=1000)
 
 
+class RuntimeSettings(BaseModel):
+    model_config=ConfigDict(extra='forbid',frozen=True)
+    version:str
+    analysis_workers:int=Field(ge=1,le=8)
+    token_cache_entries:int=Field(ge=1,le=128)
+    feature_alias_cache_entries:int=Field(ge=1,le=128)
+    run_cache_entries:int=Field(ge=1,le=128)
+    run_cache_max_mb:int=Field(ge=1,le=2048)
+    provider_account_cache_entries:int=Field(ge=1,le=1024)
+
+
 def configured_file(variable,name):
     return Path(os.getenv(variable) or Path(__file__).with_name(name))
 
@@ -119,6 +190,26 @@ def configured_file(variable,name):
 MAPPING = MappingSettings.model_validate(tomllib.loads(configured_file('FLOOD_LENS_MAPPING_CONFIG','mapping.toml').read_text()))
 ACQUISITION = AcquisitionSettings.model_validate(tomllib.loads(configured_file('FLOOD_LENS_ACQUISITION_CONFIG','acquisition.toml').read_text()))
 EVALUATION = EvaluationSettings.model_validate(tomllib.loads(configured_file('FLOOD_LENS_EVALUATION_CONFIG','evaluation.toml').read_text()))
+RUNTIME = RuntimeSettings.model_validate(tomllib.loads(configured_file('FLOOD_LENS_RUNTIME_CONFIG','runtime.toml').read_text()))
+
+# Compatibility contract for already acquired v1-v4 OSM extracts, rather than
+# current processing defaults. Never infer broader old coverage from new settings.
+LEGACY_ASSET_SELECTION = {'settlement_places': ['village', 'hamlet', 'isolated_dwelling'],
+                          'destination_tags': {'hospital': {'amenity': ['hospital']}, 'town': {'place': ['town', 'city']}}}
+LEGACY_DESTINATION_PROFILES = {
+    'hospital': DestinationProfile(label_en='Hospital', label_ne='अस्पताल',
+        keywords=['hospital', 'hospitals', 'healthcare', 'अस्पताल'], tags=LEGACY_ASSET_SELECTION['destination_tags']['hospital']),
+    'town': DestinationProfile(label_en='Town', label_ne='नगर',
+        keywords=['town', 'towns', 'city', 'cities', 'नगर', 'सहर', 'शहर'], tags=LEGACY_ASSET_SELECTION['destination_tags']['town'])}
+
+
+def asset_selection_covers(recorded, requested):
+    def selectors(selection):
+        pairs = {('place', value) for value in selection['settlement_places']}
+        for tags in selection['destination_tags'].values():
+            pairs.update((key, value) for key, values in tags.items() for value in values)
+        return pairs
+    return selectors(requested).issubset(selectors(recorded))
 
 
 def satellite_provider(requested):

@@ -92,8 +92,12 @@ async function inspectFeature(layer, identifier) {
     const pairs = [["OSM ID", p.id], ["Assessment", p.assessment_status || "Unknown"], ["Observed fraction", p.assessment_fraction == null ? "Unavailable" : `${numberLabel(p.assessment_fraction * 100, 1)}%`], ["Exposure", p.exposed ? "Potential exposure; physical damage not confirmed" : p.assessment_fraction < 1 ? "Unassessed or partial; absence of exposure is unknown" : "No mapped overlap in assessed hazard classes"], ["Counting unit", p.counting_unit || "Historical OSM element; inventory completeness unknown"]];
     if (layer === "settlements") {
       pairs.push(["Access", accessNames[p.status] || "Unknown"], ["Baseline destination", p.nearest_destination || "Not mapped"], ["After destination", p.after_destination_name || p.after_destination || "Unavailable"], ["Snap connector", `${numberLabel(p.snap_distance_m, 1)} m · off-road access unverified`], ["Same-target extra distance", p.same_destination_extra_distance_km == null ? "Unavailable" : `${p.same_destination_extra_distance_km} km`], ["Boundary", p.boundary_limited ? "Routes beyond the area may change this result" : "Routes outside the area are not assessed"]);
-      const hospital = p.connectivity_by_destination_type?.hospital;
-      pairs.push(["Hospital access", hospital ? `${accessNames[hospital.status] || hospital.status} · ${hospital.nearest_destination || hospital.before_destination_name || "No mapped reachable hospital"}` : "Hospital-specific routing was not computed for this saved run"]);
+      const profiles = state.run.provenance?.mapping_configuration?.destination_profiles || {};
+      for (const [kind, access] of Object.entries(p.connectivity_by_destination_type || {})) {
+        const label = profiles[kind]?.label_en || kind;
+        pairs.push([`${label} access`, `${accessNames[access.status] || access.status || "Unavailable"} · ${access.nearest_destination || access.before_destination_name || "No mapped reachable destination"}`]);
+      }
+      if (!p.connectivity_by_destination_type) pairs.push(["Destination-specific access", "Routing by destination type was not computed for this saved run"]);
     }
     if (layer === "buildings") pairs.push(["Footprint overlap", `${numberLabel(p.overlap_fraction * 100, 1)}%`]);
     if (layer === "roads" || layer === "bridges") pairs.push(["Mapped overlap", `${numberLabel(p.exposed_length_m, 1)} m`], ["Closure", p.closure_assessment || "Candidate closure scenario; not a verified closure"]);

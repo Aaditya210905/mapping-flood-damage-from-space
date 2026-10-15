@@ -4,6 +4,8 @@ Checked against the local `Track B.pdf`. The selected AI component is the situat
 
 Latest custom-area/provider/quota repairs and verification: [GENERALIZATION.md](GENERALIZATION.md). Older submission PDFs/video remain dated snapshots; the new acquisition fixes do not rewrite those artifacts.
 
+The subsequent [integrated repairs](INTEGRATED_REPAIRS.md) verify negative exposure/access queries, pre-event disconnection, either-destination access and partial-data list counts. Mapping and source selection share configurable destination profiles; unknown access remains distinct from confirmed modeled absence.
+
 | PDF requirement | Current status and evidence |
 | --- | --- |
 | Area/date input and before/after Sentinel-1 mapping | Implemented. Inputs are explicit; auto uses configured CDSE credentials. Fresh small-area CDSE acquisitions completed in Bangladesh, Nepal and Europe; IDs/coverage are in the generalization verification |

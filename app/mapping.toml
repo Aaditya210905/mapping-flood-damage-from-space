@@ -1,5 +1,5 @@
 # Versioned processing defaults. Per-run parameters remain in result.json.
-version = "rule-based-v4"
+version = "rule-based-v5"
 resolution_m = 30
 search_days = 24
 water_threshold_db = -17.0
@@ -15,4 +15,20 @@ optical_only_vegetation_loss_threshold = 0.4
 optical_only_bare_increase_threshold = 0.2
 road_overlap_cell_fraction = 0.5
 road_snap_distance_m = 100.0
+road_on_network_tolerance_m = 1.0
+radar_median_window_pixels = 3
+radar_median_minimum_support = 3
+settlement_places = ["village", "hamlet", "isolated_dwelling"]
 drivable_highways = ["motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link", "secondary", "secondary_link", "tertiary", "tertiary_link", "unclassified", "residential", "living_street", "service", "road"]
+
+[destination_profiles.hospital]
+label_en = "Hospital"
+label_ne = "अस्पताल"
+keywords = ["hospital", "hospitals", "healthcare", "अस्पताल"]
+tags = { amenity = ["hospital"] }
+
+[destination_profiles.town]
+label_en = "Town"
+label_ne = "नगर"
+keywords = ["town", "towns", "city", "cities", "नगर", "सहर", "शहर"]
+tags = { place = ["town", "city"] }

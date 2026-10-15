@@ -1,0 +1,8 @@
+# Resource limits, independent of event values or credentials.
+version = "runtime-v1"
+analysis_workers = 2
+token_cache_entries = 8
+feature_alias_cache_entries = 2
+run_cache_entries = 2
+run_cache_max_mb = 160
+provider_account_cache_entries = 64

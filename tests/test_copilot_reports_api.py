@@ -87,7 +87,7 @@ def test_api_compound_questions_unsupported_statistics_and_unknown_runs(stored_c
     client,_,run=stored_client;base=f"/api/analyses/{run['id']}"
     reply=client.post(base+'/copilot',json={'question':'Which roads are exposed and which settlements are isolated?'}).json()
     fields={f['field_name'] for f in reply['facts']}
-    assert {'roads_exposed','settlements_cut_off'}.issubset(fields)
+    assert {'matching_assets_count','matching_settlements_count'}.issubset(fields)
     absent=client.post(base+'/copilot',json={'question':'How many people died?'}).json()
     assert absent['intent']=='unsupported' and not absent['facts']
     assert client.post(f'/api/analyses/{uuid.uuid4()}/copilot',json={'question':'summary'}).status_code==404

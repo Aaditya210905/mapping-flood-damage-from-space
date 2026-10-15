@@ -117,7 +117,7 @@ def slope_degrees(dem, resolution):
     return np.degrees(np.arctan(np.hypot(dx, dy)))
 
 
-def masked_median(values, valid, size=3, minimum_support=3):
+def masked_median(values, valid, size=None, minimum_support=None):
     """Median of observed neighbours, with no synthetic values at mask edges.
 
     Process a bounded strip at a time: a full 2500-square sliding window can
@@ -125,6 +125,8 @@ def masked_median(values, valid, size=3, minimum_support=3):
     at least three observed samples are required; an isolated return is not
     enough evidence for a change estimate.
     """
+    size = MAPPING.radar_median_window_pixels if size is None else size
+    minimum_support = MAPPING.radar_median_minimum_support if minimum_support is None else minimum_support
     if size < 1 or size % 2 != 1 or not 1 <= minimum_support <= size * size:
         raise ValueError("Median size must be odd and support must fit the window.")
     values = np.asarray(values, dtype=np.float32)

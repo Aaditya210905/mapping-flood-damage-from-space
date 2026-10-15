@@ -16,7 +16,7 @@ SOURCES = [
      "description": "L2A green, red, near-infrared, SWIR and scene classifications; used when a suitable pair is available.",
      "url": "https://dataspace.copernicus.eu/", "license": "Copernicus free, full and open data policy"},
     {"id": "osm", "name": "Historical OpenStreetMap", "role": "infrastructure and road access", "category": "input",
-     "description": "Buildings, roads, bridges, settlements and hospitals from a verified pre-event snapshot.",
+     "description": "Buildings, roads, bridges, settlements and configured destinations from a verified pre-event snapshot.",
      "url": "https://api.ohsome.org/v1", "license": "ODbL"},
     {"id": "copernicus_dem", "name": "Copernicus DEM GLO-30", "role": "terrain correction and downhill trace", "category": "input",
      "description": "Elevation for radar geometry, slope screening and the optional downhill path.",

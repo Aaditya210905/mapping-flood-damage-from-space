@@ -3,6 +3,7 @@ from collections import OrderedDict
 import hashlib
 import threading
 import unicodedata
+from app.settings import RUNTIME
 
 _cache = OrderedDict()
 _lock = threading.RLock()
@@ -21,6 +22,8 @@ def word(character):
 def _trie(context):
     entries = []
     digest = hashlib.blake2b(digest_size=16)
+    generic = _GENERIC | {normalized(keyword) for profile in context.destination_profiles.values() for keyword in profile.keywords}
+    digest.update(repr(sorted(generic)).encode())
     for subject, feature in context.index.items():
         name = feature["properties"].get("name")
         entries.append((subject, name))
@@ -37,14 +40,14 @@ def _trie(context):
                     if not isinstance(value, str) or not value.strip():
                         continue
                     alias = normalized(value)
-                    if value != subject[1] and alias in _GENERIC:
+                    if value != subject[1] and alias in generic:
                         continue
                     node = trie
                     for character in alias:
                         node = node.setdefault(character, {})
                     node.setdefault(_END, set()).add(subject)
             _cache[key] = trie
-            while len(_cache) > 2:
+            while len(_cache) > RUNTIME.feature_alias_cache_entries:
                 _cache.popitem(last=False)
         _cache.move_to_end(key)
     return trie

@@ -20,7 +20,7 @@ from app.models import AnalysisRequest, Scene, validate_pair
 from app.pipeline import ANALYSIS_SOURCE_POLICY, run_analysis
 from app.storage import sha256
 from app.presets import osm_cutoff
-from app.settings import ACQUISITION
+from app.settings import ACQUISITION, MAPPING, LEGACY_ASSET_SELECTION, asset_selection_covers
 
 
 CDSE_PROVIDER = "Copernicus Data Space Sentinel Hub Processing API"
@@ -136,6 +136,9 @@ def load_cached_cdse_inputs(source_folder):
     if osm.get("type") != "FeatureCollection" or not isinstance(osm.get("features"), list):
         raise ValueError("Cached OSM source is not a FeatureCollection.")
     metadata = osm.get("metadata") or {}
+    recorded_selection = metadata.get('asset_selection') or LEGACY_ASSET_SELECTION
+    if not asset_selection_covers(recorded_selection, MAPPING.asset_selection()):
+        raise ValueError('The configured asset profile exceeds the recorded OSM extract. Acquire fresh historical OSM inputs before using this broader profile.')
     if metadata.get("snapshot") and _instant(metadata["snapshot"]) != snapshot_instant:
         raise ValueError("Cached OSM metadata disagrees with the saved historical timestamp.")
     if metadata.get("sourceApi") not in {ACQUISITION.osm_url,ACQUISITION.osm_v2_url}:
@@ -153,7 +156,7 @@ def load_cached_cdse_inputs(source_folder):
         raise ValueError("Cached source changed during validation; retry with immutable inputs.")
     reprocessing = {"mode": "cached_cdse_inputs", "source_run_id": original_id,
                     "source_created_at": run.get("created_at"), "source_result_sha256": source_result_sha,
-                    "input_sha256": hashes, "new_acquisition": False}
+                    "input_sha256": hashes, "new_acquisition": False, 'osm_asset_selection': recorded_selection}
     warnings = [message for message in run.get("warnings", []) if isinstance(message, str) and
                 ("CDSE denied" in message or "optical" in message.lower())]
     warnings.append("This run reprocesses recorded real CDSE inputs using the current algorithm. No new satellite or OSM acquisition was performed.")

@@ -30,7 +30,6 @@ PROCESS_URL = ACQUISITION.cdse_process_url
 TOKEN_URL = ACQUISITION.cdse_token_url
 OSM_URL = ACQUISITION.osm_url
 OSM_V2_URL = ACQUISITION.osm_v2_url
-OSM_FILTER = "building=* or highway=* or bridge=* or man_made=bridge or place in (village,hamlet,isolated_dwelling,town,city) or amenity=hospital"
 
 
 def historical_request(client, method, url, **kwargs):
@@ -161,7 +160,7 @@ def historical_v2(client, params, event, snapshot_hint=None):
     snapshot = choose_snapshot(body, event, snapshot_hint, osm_cutoff(params))
     timestamp = snapshot.isoformat().replace("+00:00", "Z")
     response = client.get(f"{OSM_V2_URL}/extraction/features.parquet", params={
-        "aoi": ",".join(map(str, params.bbox)), "time": timestamp, "filter": OSM_FILTER, "clip": "true",
+        "aoi": ",".join(map(str, params.bbox)), "time": timestamp, "filter": MAPPING.osm_filter(), "clip": "true",
     }, headers=headers)
     response.raise_for_status()
     if not response.content.startswith(b"PAR1"):
@@ -190,7 +189,7 @@ def osm_snapshot(params):
             timestamp = snapshot.isoformat().replace("+00:00", "Z")
             response = historical_request(client,"POST",f"{OSM_URL}/elements/geometry", data={
                 "bboxes": ",".join(map(str, params.bbox)), "time": timestamp,
-                "filter": OSM_FILTER, "properties": "tags,metadata", "clipGeometry": "true",
+                "filter": MAPPING.osm_filter(), "properties": "tags,metadata", "clipGeometry": "true",
             })
             response.raise_for_status()
             data = response.json()
@@ -220,6 +219,7 @@ def osm_snapshot(params):
                 raise ValueError("OSM feature was edited after the event; refusing this input.")
             if edited_at > datetime.fromisoformat(timestamp.replace("Z", "+00:00")):
                 raise ValueError("OSM feature was edited after the requested historical snapshot; refusing this input.")
+    data.setdefault('metadata', {}).update({'asset_selection': MAPPING.asset_selection(), 'filter': MAPPING.osm_filter()})
     return data, timestamp
 
 
@@ -248,7 +248,7 @@ def historical_v1_interval(client, params, available_until):
     end = (instant + timedelta(seconds=1)).isoformat().replace("+00:00", "Z")
     response = historical_request(client,"POST",f"{OSM_URL}/elementsFullHistory/geometry", data={
         "bboxes": ",".join(map(str, params.bbox)), "time": f"{timestamp},{end}",
-        "filter": OSM_FILTER, "properties": "tags,metadata", "clipGeometry": "true",
+        "filter": MAPPING.osm_filter(), "properties": "tags,metadata", "clipGeometry": "true",
     })
     response.raise_for_status()
     data = interval_snapshot(response.json(), instant)

@@ -48,7 +48,8 @@ def public_cache_key(params):
         'event':str(params.flood_date),'search_days':params.search_days,'osm_cutoff':cutoff.isoformat() if cutoff else None,
         'catalog':ACQUISITION.public_stac_url,'signer':ACQUISITION.public_sign_url,
         'dem':ACQUISITION.public_dem_base_url,'geoid':ACQUISITION.public_geoid_url,
-        'osm':[ACQUISITION.osm_url,ACQUISITION.osm_v2_url],'terrain_ray_steps':ACQUISITION.terrain_ray_steps}
+        'osm':[ACQUISITION.osm_url,ACQUISITION.osm_v2_url], 'osm_filter': MAPPING.osm_filter(),
+        'terrain_ray_steps':ACQUISITION.terrain_ray_steps}
     return hashlib.sha256(json.dumps(identity,sort_keys=True).encode()).hexdigest()[:20]
 
 

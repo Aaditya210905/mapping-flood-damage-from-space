@@ -8,7 +8,7 @@ from decimal import Decimal, ROUND_HALF_UP
 import re
 
 from app.copilot_types import AnswerDraft, Claim
-from app.evidence import FLOOD_FIELDS, INFRA_FIELDS, INFRA_CONTEXT_FIELDS, ACCESS_FIELDS, CONNECTIVITY_QUERY_FIELDS
+from app.evidence import FLOOD_FIELDS, INFRA_FIELDS, INFRA_CONTEXT_FIELDS, INFRA_QUERY_FIELDS, ACCESS_FIELDS, CONNECTIVITY_QUERY_FIELDS
 
 
 class GroundingError(ValueError):
@@ -23,7 +23,7 @@ EXPLANATIONS = {
     "satellite_limits": ("Satellite revisit gaps, terrain shadow, clouds and vegetation limit interpretation; the system cannot provide minute-ahead warnings.", "उपग्रहको पुनरागमन, भूभागको छाया, बादल र वनस्पतिले नतिजा सीमित गर्छन्; यसले केही मिनेटअघि चेतावनी दिन सक्दैन।"),
     "routing_limits": ("Incomplete OSM roads, facility operation and routes outside the analysis bounds remain unverified.", "अपूर्ण OSM सडक, गन्तव्य सञ्चालन र विश्लेषण क्षेत्रबाहिरका मार्ग जाँचिएका छैनन्।"),
     "missing_data": ("Unavailable measurements remain unavailable and must not be interpreted as zero.", "उपलब्ध नभएका मापनलाई शून्य मान्न मिल्दैन।"),
-    "destination_limits": ("Access is specific to the requested mapped destination type. Combined town/hospital results cannot establish hospital-only access; facility operation is unverified.", "पहुँच अनुरोध गरिएको नक्साको गन्तव्यको प्रकारका लागि मात्र हो। नगर र अस्पतालको संयुक्त नतिजाले अस्पतालसम्मको पहुँच पुष्टि गर्दैन; गन्तव्य सञ्चालन जाँचिएको छैन।"),
+    "destination_limits": ("Access is specific to the requested mapped destination type. Combined destination results cannot establish type-specific access; facility operation is unverified.", "पहुँच अनुरोध गरिएको नक्साको गन्तव्यको प्रकारका लागि मात्र हो। संयुक्त गन्तव्यको नतिजाले विशेष प्रकारको गन्तव्यसम्मको पहुँच पुष्टि गर्दैन; गन्तव्य सञ्चालन जाँचिएको छैन।"),
 }
 HEADINGS = {
     "summary": ("Analysis summary", "विश्लेषणको सारांश"),
@@ -36,6 +36,10 @@ HEADINGS = {
     "feature": ("Feature evidence", "विशेष नक्सा अभिलेखको प्रमाण"),
 }
 STATUS_TEXT = {
+    'not_connected': ('No modeled connection: baseline disconnected or access lost; uncertain and unassessed access excluded', 'मोडेल अनुसार सम्पर्क छैन: घटनाअघि सम्पर्क नभएको वा पछि गुमेको; अनिश्चित र अमूल्याङ्कित अवस्था समावेश छैन'),
+    'baseline_connected': ('Baseline connection existed in the mapped network', 'घटनाअघिको नक्साको सञ्जालमा सम्पर्क थियो'),
+    'exposed': ('Potential exposure to mapped change', 'नक्साको परिवर्तनबाट सम्भावित प्रभाव'),
+    'not_exposed': ('No mapped exposure within complete available hazard observations; not a safety determination', 'उपलब्ध विपद् वर्गको पूर्ण अवलोकनमा प्रभाव भेटिएन; सुरक्षित भएको निष्कर्ष होइन'),
     "cut_off": ("Modeled loss of previous road connection", "मोडेल अनुसार पहिलेदेखिको सडक सम्पर्क गुमेको"),
     "connected": ("Modeled route available in the assessed network", "मूल्याङ्कन गरिएको सञ्जालमा मोडेल अनुसार मार्ग उपलब्ध"),
     "uncertain_access": ("Uncertain access; route, connectors or exterior alternatives are unverified", "सडक सम्पर्क अनिश्चित; मार्ग, जोड्ने बाटो वा क्षेत्रबाहिरका विकल्प जाँचिएका छैनन्"),
@@ -87,7 +91,7 @@ def validate_draft(draft, context, language):
                     raise GroundingError("Rounding is not permitted for this fact")
             if section.topic == "flood" and fact.field_name not in FLOOD_FIELDS + ("mapping_method", "water_threshold_db", "change_threshold_db", "max_slope_deg", "resolution_m"):
                 raise GroundingError("Fact is associated with the wrong topic")
-            if section.topic == "infrastructure" and fact.subject_type not in ("buildings", "roads", "bridges") and fact.field_name not in INFRA_FIELDS + INFRA_CONTEXT_FIELDS:
+            if section.topic == "infrastructure" and fact.subject_type not in ("buildings", "roads", "bridges") and fact.field_name not in INFRA_FIELDS + INFRA_CONTEXT_FIELDS + INFRA_QUERY_FIELDS:
                 raise GroundingError("Fact is associated with the wrong infrastructure topic")
             if section.topic == "connectivity" and fact.subject_type not in ("settlements", "destinations") and fact.field_name not in ACCESS_FIELDS + CONNECTIVITY_QUERY_FIELDS:
                 raise GroundingError("Fact is associated with the wrong connectivity topic")

@@ -6,7 +6,8 @@ import time
 
 from pydantic import ValidationError
 from app.copilot_types import AnswerDraft, AnswerSection, GenerationInfo, ProviderDraft
-from app.evidence import EvidenceContext, FLOOD_FIELDS, INFRA_FIELDS, ACCESS_FIELDS, tool_definitions
+from app.evidence import EvidenceContext, FLOOD_FIELDS, INFRA_FIELDS, INFRA_QUERY_FIELDS, ACCESS_FIELDS, tool_definitions
+from app.query_filters import connectivity_matches, exposure_class
 from app.grounding import GroundingError, claim_for, validate_draft, render_draft, UNSUPPORTED
 from app.llm import LLMConfig, GroqProvider, ProviderFailure
 from app.attribution import run_attributions
@@ -21,8 +22,10 @@ Compose a draft in the required JSON schema. Each claim contains only an exact r
 Answer the actual question directly, in concise conversational language. Each section may contain narrative sentences with text and fact_ids. In narrative text use {fact:EXACT_FACT_ID} for every factual statement; Python expands it to a complete labeled value and citation. NEVER type a value, date, place name, unsupported outcome or extra measurement into prose. Use your own short connective wording around these placeholders, not repetitive headings or a dump of all retrieved fields. Every selected claim must appear in a placeholder, and fact_ids must match those placeholders. If you cannot write a grounded sentence use narrative=[]. Python supplies mandatory uncertainty; set explanations=[]. For reports use at most two short narrative sentences per section. The explicit selected language takes precedence over a language mentioned in the question. For situation reports use kind=report. For a specific feature use topic=feature; for mapped inventory use topic=inventory and include inventory_count. Cover EVERY supported topic and requested field, including unavailable facts. resolved_scope.unsupported_parts are declined separately by Python; answer the supported question rather than refusing it all.
 History is never evidence for values. For resolved named features use only those features' claims, without whole-analysis measurements. For villages depending on a road include filter_road_id, matching_settlements_count and route_membership_unavailable_count. Python retrieves the matching complete list separately; do not copy every village into the narrative. These are recorded route dependencies, not physical proximity. Never substitute whole-analysis counts for filtered queries. For an ambiguous reference use kind=clarification with sections=[]. Include requested_fields even when unavailable. For a report choose the smallest set of claims covering every required topic; Python also preserves all mandatory report measurements.
 """
-RETRIEVAL_PROMPT += " For hospital-only or town-only access, pass resolved_scope.destination_type to settlement_connectivity or feature_evidence. Never substitute the combined destination results."
-PROMPT += " Use resolved_scope.response_kind as kind for a supported question. Always set explanations=[] in every section. Python appends mandatory uncertainty; never generate an explanation code. Fact IDs such as F001 are request-local references; copy them exactly in claims, placeholders and fact_ids. Python restores the permanent run-bound citation IDs. Each placeholder expands a COMPLETE label and value, so use neutral introductions without repeating the metric label, unit or conclusion. Prefer 'The recorded findings are {fact:...} and {fact:...}.' Do not write a broad claim such as no assets are exposed or roads are open; coverage can be partial. For destination-specific queries include destination_type, matching_settlements_count and destination_assessment_unavailable_count; use only the matching connectivity_by_destination_type feature facts. Missing destination-specific results remain unavailable, never a zero or the combined town/hospital result."
+RETRIEVAL_PROMPT += " For destination-specific access, pass resolved_scope.destination_type to settlement_connectivity or feature_evidence. Never substitute the combined destination results."
+RETRIEVAL_PROMPT += " Destination identifiers come from the selected run's configured profiles. Pass the resolved settlement_status exactly, including baseline_disconnected or not_connected. For infrastructure lists/counts use resolved_scope.exposure, with only_exposed true only for exposed. Unknown observations do not establish not_exposed."
+PROMPT += " For filtered access include filter_status and matching_settlements_count from the exact requested scope. For infrastructure lists or non-default exposure include matching_assets_count, filter_exposure and asset_assessment_unavailable_count for every requested asset layer. Whole-analysis exposed totals cannot answer these queries."
+PROMPT += " Use resolved_scope.response_kind as kind for a supported question. Always set explanations=[] in every section. Python appends mandatory uncertainty; never generate an explanation code. Fact IDs such as F001 are request-local references; copy them exactly in claims, placeholders and fact_ids. Python restores the permanent run-bound citation IDs. Each placeholder expands a COMPLETE label and value, so use neutral introductions without repeating the metric label, unit or conclusion. Prefer 'The recorded findings are {fact:...} and {fact:...}.' Do not write a broad claim such as no assets are exposed or roads are open; coverage can be partial. For destination-specific queries include destination_type, matching_settlements_count and destination_assessment_unavailable_count; use only the matching connectivity_by_destination_type feature facts. Missing destination-specific results remain unavailable, never a zero or the combined destination result."
 
 
 def _draft_intent(draft):
@@ -98,7 +101,7 @@ def _parse_draft(value, context):
 
 
 def _query_tools(plan, page_size=5):
-    if plan.inventory_layer:
+    if plan.inventory_layer and plan.topics == ['inventory']:
         names={'mapped_inventory'}
     elif plan.road_id:
         names={'settlement_connectivity'}
@@ -137,7 +140,10 @@ def _covers_topics(facts, plan):
             return False
         if topic == 'infrastructure':
             expected = {asset + '_exposed' for asset in plan.assets if asset in ('buildings', 'roads', 'bridges')}
-            if (expected and not expected.issubset(fields)) or not fields.intersection(INFRA_FIELDS):
+            scoped = plan.listing or plan.exposure != 'exposed'
+            if scoped and not {'matching_assets_count', 'filter_exposure', 'asset_assessment_unavailable_count'}.issubset(fields):
+                return False
+            if not scoped and ((expected and not expected.issubset(fields)) or not fields.intersection(INFRA_FIELDS)):
                 return False
         if topic == 'inventory' and 'inventory_count' not in fields:
             return False
@@ -171,7 +177,7 @@ def _validate_relevance(draft, context, plan):
         for fact in facts:
             if fact.subject_type == 'settlements':
                 props = context.connectivity_properties(context.index[('settlements', fact.subject_id)]['properties'],plan.destination_type)
-                if context.route_membership(props, plan.road_id) is not True or (plan.status != 'all' and props.get('status') != plan.status):
+                if context.route_membership(props, plan.road_id) is not True or not connectivity_matches(props, plan.status):
                     raise GroundingError('The answer used an unrelated settlement')
     elif plan.references:
         subjects = {(f.subject_type, f.subject_id) for f in facts if f.subject_type not in ('analysis', 'observation')}
@@ -182,22 +188,44 @@ def _validate_relevance(draft, context, plan):
                 if fact.subject_type == 'settlements' and fact.field_name != 'name' and '.connectivity_by_destination_type.'+plan.destination_type+'.' not in fact.path:
                     raise GroundingError('Combined destination access cannot answer a destination-specific question')
     if plan.inventory_layer:
-        expected = context.call('mapped_inventory', {'layer': plan.inventory_layer, 'destination_type': plan.destination_type}).facts[0]
-        if not any(f.fact_id == expected.fact_id for f in facts):
-            raise GroundingError('The answer used a different inventory scope')
-    if plan.destination_type != 'all' and 'connectivity' in plan.topics and not plan.references:
+        for layer in plan.inventory_targets:
+            expected = context.call('mapped_inventory', {'layer': layer, 'destination_type': plan.destination_type}).facts[0]
+            if not any(f.fact_id == expected.fact_id for f in facts):
+                raise GroundingError('The answer used a different inventory scope')
+    if 'connectivity' in plan.topics and (plan.destination_type != 'all' or plan.status != 'all') and (not plan.references or plan.road_id):
         fields = {f.field_name:f for f in facts if f.subject_type == 'analysis'}
-        required = {'destination_type','matching_settlements_count','destination_assessment_unavailable_count'}
-        if not required.issubset(fields) or fields['destination_type'].value != plan.destination_type:
-            raise GroundingError('Destination-specific query facts are required')
+        required = {'filter_status', 'matching_settlements_count', 'destination_assessment_unavailable_count'}
+        if plan.destination_type != 'all':
+            required.update(('destination_type', 'destination_assessment_unavailable_count'))
+        if not required.issubset(fields) or fields['filter_status'].value != plan.status:
+            raise GroundingError('Query-specific access facts are required')
+        if plan.destination_type != 'all' and fields['destination_type'].value != plan.destination_type:
+            raise GroundingError('The answer used a different destination type')
         scope=context.connectivity_query_scope(plan.road_id,plan.status,None,plan.destination_type)
         if any(not fields[key].path.startswith('queries.settlement_connectivity.'+scope+'.') for key in required):
             raise GroundingError('The answer used a different destination-specific filter')
         if any(f.field_name in ACCESS_FIELDS for f in facts):
-            raise GroundingError('Combined town/hospital counts cannot answer a destination-specific query')
+            raise GroundingError('Combined destination counts cannot answer a destination-specific query')
         for fact in facts:
-            if fact.subject_type == 'settlements' and fact.field_name != 'name' and '.connectivity_by_destination_type.'+plan.destination_type+'.' not in fact.path:
-                raise GroundingError('Destination-specific feature evidence is required')
+            if fact.subject_type == 'settlements':
+                if plan.destination_type != 'all' and fact.field_name != 'name' and '.connectivity_by_destination_type.'+plan.destination_type+'.' not in fact.path:
+                    raise GroundingError('Destination-specific feature evidence is required')
+                props = context.connectivity_properties(context.index[('settlements', fact.subject_id)]['properties'], plan.destination_type)
+                if not connectivity_matches(props, plan.status):
+                    raise GroundingError('The answer used a settlement with a different access status')
+    if 'infrastructure' in plan.topics and (plan.listing or plan.exposure != 'exposed'):
+        for asset in plan.assets or ['buildings', 'roads', 'bridges']:
+            expected = context.call('infrastructure_impacts', plan.infrastructure_arguments(asset))
+            required = {f.fact_id for f in expected.facts if f.field_name in INFRA_QUERY_FIELDS}
+            if not required.issubset({f.fact_id for f in facts}):
+                raise GroundingError('The answer omitted the requested exposure scope')
+        for fact in facts:
+            if fact.field_name in INFRA_FIELDS:
+                raise GroundingError('Whole-analysis exposed counts cannot answer a scoped list')
+            if fact.subject_type in ('roads', 'bridges', 'buildings'):
+                props = context.index[(fact.subject_type, fact.subject_id)]['properties']
+                if exposure_class(props) != plan.exposure:
+                    raise GroundingError('The answer used a feature with a different exposure assessment')
 
 
 def _retrieve(context, plan, page_size):
@@ -215,15 +243,14 @@ def _retrieve(context, plan, page_size):
             results.append(result)
         elif topic == 'infrastructure':
             for asset in plan.assets or ['buildings', 'roads', 'bridges']:
-                result = context.call('infrastructure_impacts', {'asset_type': asset, 'only_exposed': True, 'offset': 0, 'limit': page_size})
+                result = context.call('infrastructure_impacts', plan.infrastructure_arguments(asset, limit=page_size))
                 # Lists are paginated locally after generation. Aggregate
                 # questions/reports do not need dozens of footprint facts.
                 results.append(result.model_copy(update={'facts': [f for f in result.facts if f.subject_type == 'analysis' and (plan.intent != 'summary' or f.field_name in INFRA_FIELDS)]}))
         elif topic == 'inventory':
-            results.append(context.call('mapped_inventory', {'layer': plan.inventory_layer, 'destination_type': plan.destination_type, 'offset': 0, 'limit': page_size}))
+            results.extend(context.call('mapped_inventory', {'layer': layer, 'destination_type': plan.destination_type, 'offset': 0, 'limit': page_size}) for layer in plan.inventory_targets)
         elif topic == 'connectivity':
-            result = context.call('settlement_connectivity', {'status': plan.status, 'offset': 0, 'limit': page_size,
-                                  'road_id': plan.road_id, 'destination_type': plan.destination_type})
+            result = context.call('settlement_connectivity', plan.connectivity_arguments(limit=page_size))
             results.append(result.model_copy(update={'facts': [f for f in result.facts if f.subject_type == 'analysis']}))
         elif topic in ('sources', 'limitations'):
             result = context.call('sources_limitations', {})
@@ -307,6 +334,7 @@ def _fallback_draft(context, plan, language):
     sections=[]
     page_size=1 if plan.intent=='summary' else 4
     remaining=80
+    topic_budget = remaining // len(plan.topics)
     for current in plan.topics:
         facts=[]
         if current=='flood':
@@ -315,13 +343,14 @@ def _fallback_draft(context, plan, language):
         elif current=='infrastructure':
             assets=plan.assets or ['buildings','roads','bridges']
             for asset in assets:
-                result=context.call('infrastructure_impacts',{'asset_type':asset,'only_exposed':True,'offset':0,'limit':page_size})
+                result=context.call('infrastructure_impacts',plan.infrastructure_arguments(asset,limit=page_size))
                 facts.extend(f for f in result.facts if f.subject_type=='analysis' or f.field_name in ('name','assessment_status','exposed_length_m','overlap_fraction'))
         elif current=='inventory':
-            result=context.call('mapped_inventory', {'layer':plan.inventory_layer,'destination_type':plan.destination_type,'offset':0,'limit':page_size})
-            facts=result.facts
+            for layer in plan.inventory_targets:
+                result=context.call('mapped_inventory', {'layer':layer,'destination_type':plan.destination_type,'offset':0,'limit':page_size})
+                facts.extend(result.facts)
         elif current=='connectivity':
-            result=context.call('settlement_connectivity',{'status':plan.status,'offset':0,'limit':page_size,'road_id':plan.road_id,'destination_type':plan.destination_type})
+            result=context.call('settlement_connectivity',plan.connectivity_arguments(limit=page_size))
             facts=[f for f in result.facts if f.subject_type=='analysis' or f.field_name in ('name','status','nearest_destination','before_distance_km','after_distance_km','baseline_road_ids')]
         elif current=='sources':
             result=context.call('sources_limitations',{})
@@ -333,7 +362,11 @@ def _fallback_draft(context, plan, language):
         else:
             result=context.call('sources_limitations',{})
             facts=[f for f in result.facts if f.field_name in ('limitations','warnings')]
-        facts=list({f.fact_id:f for f in facts}.values())[:remaining]
+        facts=list({f.fact_id:f for f in facts}.values())
+        # Query counts/scope and aggregate facts must survive before optional
+        # feature detail, with room reserved for every later requested topic.
+        facts.sort(key=lambda fact: fact.subject_type not in ('analysis', 'observation'))
+        facts=facts[:min(topic_budget, remaining)]
         remaining-=len(facts)
         if facts:sections.append(AnswerSection(topic=current,claims=[claim_for(f) for f in facts],explanations=[]))
     return AnswerDraft(run_id=context.run_id,language=language,kind='report' if plan.intent=='summary' else 'answer',sections=sections)
@@ -407,10 +440,16 @@ def respond(run,question,language='en',history=None):
         if unsupported:intent='unsupported'
         draft=_fallback_draft(context,plan,language)
         validate_draft(draft,context,language)
+        if plan.topics and not plan.clarification:
+            _validate_relevance(draft,context,plan)
         text,facts=render_draft(draft,context)
         evidence=[{'path':f.path,'run_id':f.run_id,'fact_id':f.fact_id} for f in facts]
         generation=GenerationInfo(mode='deterministic_fallback',provider=None,model=None,reason='unsupported_evidence' if unsupported else reason,validation='deterministic_facts')
-        if plan.clarification:generation.reason='ambiguous_reference'
+        if plan.clarification:
+            generation.reason=plan.clarification_reason or 'ambiguous_reference'
+            if plan.clarification_reason == 'destination_combination':
+                text = ('संयुक्त सञ्जालले कुनै एउटा गन्तव्यसम्मको पहुँच देखाउँछ। दुवै गन्तव्य आवश्यक भएको वा प्रत्येक गन्तव्यका लागि फरक सर्त भएको प्रश्नमा प्रत्येक गन्तव्यको पहुँच छुट्टाछुट्टै सोध्नुहोस्।'
+                        if language == 'ne' else 'The combined network models reaching any destination. For access requiring both destinations, a subset of destination types, or different conditions per destination, ask about each destination type separately.')
         intent=_draft_intent(draft)
         confidence=score
     if plan.unsupported_parts and plan.topics:

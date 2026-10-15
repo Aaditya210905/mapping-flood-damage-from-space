@@ -10,13 +10,13 @@ def collect_lists(context, plan, language, max_records=1000):
         return [], []
     queries = []
     if 'connectivity' in plan.topics:
-        queries.append(('settlements', 'settlement_connectivity', {'status': plan.status, 'road_id': plan.road_id,
-                        'destination_type': plan.destination_type}))
+        queries.append(('settlements', 'settlement_connectivity', plan.connectivity_arguments()))
     if 'infrastructure' in plan.topics:
-        queries.extend((asset, 'infrastructure_impacts', {'asset_type': asset, 'only_exposed': True})
+        queries.extend((asset, 'infrastructure_impacts', plan.infrastructure_arguments(asset))
                        for asset in plan.assets or ['buildings', 'roads', 'bridges'])
     if plan.inventory_layer:
-        queries.append((plan.inventory_layer, 'mapped_inventory', {'layer': plan.inventory_layer, 'destination_type': plan.destination_type}))
+        queries.extend((layer, 'mapped_inventory', {'layer': layer, 'destination_type': plan.destination_type})
+                       for layer in plan.inventory_targets)
     lists, facts = [], []
     for layer, tool, arguments in queries:
         offset, rows, total = 0, [], None

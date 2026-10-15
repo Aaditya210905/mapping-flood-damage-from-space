@@ -82,6 +82,20 @@ def test_reprocessing_uses_only_frozen_acquired_inputs_and_preserves_source(cdse
     assert all(sha256(destination / name) == digest for name, digest in audit["input_sha256"].items())
 
 
+def test_broader_asset_profile_requires_new_acquisition_and_preserves_old_cache(cdse_cache, monkeypatch):
+    from app import reprocess
+    from app.settings import MAPPING, MappingSettings
+    source, _, _, _ = cdse_cache
+    original_hashes = {path.name: sha256(path) for path in source.iterdir()}
+    policy = MAPPING.model_dump()
+    policy['destination_profiles']['clinic'] = {'label_en': 'Clinic', 'label_ne': 'क्लिनिक',
+        'keywords': ['clinic'], 'tags': {'amenity': ['clinic']}}
+    monkeypatch.setattr(reprocess, 'MAPPING', MappingSettings.model_validate(policy))
+    with pytest.raises(ValueError, match='exceeds the recorded OSM extract'):
+        reprocess.load_cached_cdse_inputs(source)
+    assert {path.name: sha256(path) for path in source.iterdir()} == original_hashes
+
+
 @pytest.mark.parametrize("mutation", ["demo", "public", "policy", "orbit", "grid", "scene_time", "post_osm", "dem_source"])
 def test_reprocessing_refuses_incompatible_or_unapproved_source_metadata(cdse_cache, mutation):
     source, saved, _, _ = cdse_cache

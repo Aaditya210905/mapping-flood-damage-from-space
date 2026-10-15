@@ -6,6 +6,8 @@ import math
 from urllib.parse import urlsplit
 from uuid import UUID
 from app.availability import normalize_analysis_availability
+from app.query_filters import connectivity_matches, exposure_class
+from app.settings import DestinationProfile, LEGACY_DESTINATION_PROFILES
 
 from app.copilot_types import (EvidenceFact, ToolResult, EmptyArgs, InfrastructureArgs,
                                ConnectivityArgs, FeatureArgs, InventoryArgs)
@@ -33,13 +35,14 @@ METRICS = {
     "roads_total": ("Mapped motorable road elements", "नक्सामा रहेका मोटर सडक अभिलेख", "count", "recorded_metadata"),
     "bridges_total": ("Mapped bridge elements", "नक्सामा रहेका पुल अभिलेख", "count", "recorded_metadata"),
     "settlements_total": ("Mapped settlements", "नक्सामा रहेका बस्ती", "count", "recorded_metadata"),
-    "destinations_total": ("Mapped hospital and town destinations", "नक्सामा रहेका अस्पताल र नगर गन्तव्य", "count", "recorded_metadata"),
+    "destinations_total": ("Mapped destinations", "नक्सामा रहेका गन्तव्य", "count", "recorded_metadata"),
 }
 FLOOD_FIELDS = ("water_km2", "debris_km2", "permanent_water_km2", "valid_coverage_pct", "optical_clear_pct", "water_eligible_coverage_pct", "debris_eligible_coverage_pct", "radar_valid_coverage_pct")
 INFRA_FIELDS = ("buildings_exposed", "roads_exposed", "bridges_exposed", "road_exposed_km")
 INFRA_CONTEXT_FIELDS = ("water_eligible_coverage_pct", "debris_eligible_coverage_pct")
+INFRA_QUERY_FIELDS = ('matching_assets_count', 'filter_exposure', 'asset_assessment_unavailable_count')
 ACCESS_FIELDS = ("settlements_cut_off", "settlements_unassessed", "settlements_access_uncertain", "settlements_baseline_disconnected")
-CONNECTIVITY_QUERY_FIELDS = ("filter_road_id", "matching_settlements_count", "route_membership_unavailable_count", "destination_type", "destination_assessment_unavailable_count")
+CONNECTIVITY_QUERY_FIELDS = ("filter_road_id", "matching_settlements_count", "route_membership_unavailable_count", "destination_type", "destination_assessment_unavailable_count", 'filter_status')
 FEATURE_FIELDS = {
     "name": ("Name", "नाम", None, "recorded_metadata"),
     "exposed": ("Mapped intersection", "नक्साको परिवर्तनसँग जुधेको", None, "potential_exposure"),
@@ -83,6 +86,10 @@ class EvidenceContext:
         self.run = run
         self.stats = run.get("stats") if isinstance(run.get("stats"), dict) else {}
         self.provenance = run.get("provenance") if isinstance(run.get("provenance"), dict) else {}
+        mapping_configuration = self.provenance.get('mapping_configuration')
+        configured = mapping_configuration.get('destination_profiles') if isinstance(mapping_configuration, dict) else None
+        self.destination_profiles = ({kind: DestinationProfile.model_validate(profile) for kind, profile in configured.items()}
+                                     if isinstance(configured, dict) and configured else LEGACY_DESTINATION_PROFILES)
         self.facts = {}
         self.global_fields = {}
         self.index = {}
@@ -251,7 +258,7 @@ class EvidenceContext:
             if field == "name":
                 value = original_props.get(field)
                 path = f"layers.{layer}.features.{position}.properties.name"
-            if field == "exposed" and value is False and props.get("assessment_status") == "unassessed_or_partial":
+            if field == "exposed" and value is False and exposure_class(props) == 'unassessed':
                 value = None
             if field in ("water_assessment_fraction", "debris_assessment_fraction"):
                 kind = field.split("_", 1)[0]
@@ -263,8 +270,9 @@ class EvidenceContext:
                 value = props.get(route, {}).get("properties", {}).get("road_ids") if isinstance(props.get(route), dict) else None
                 path = prefix + f".{route}.properties.road_ids"
             if typed and field != "name":
-                en = ("Hospital access: " if destination_type == "hospital" else "Town access: ") + en
-                ne = ("अस्पतालसम्मको पहुँच: " if destination_type == "hospital" else "नगरसम्मको पहुँच: ") + ne
+                profile = self.destination_profiles.get(destination_type)
+                en = (profile.label_en if profile else destination_type) + ' access: ' + en
+                ne = (profile.label_ne if profile else destination_type) + 'सम्मको पहुँच: ' + ne
             check = self.numeric if unit in ("m", "km") else (lambda v: self.numeric(v) and v <= 1) if unit == "fraction" else self.text
             if field in ("exposed", "assessment_complete"):
                 check = lambda v: type(v) is bool
@@ -279,7 +287,7 @@ class EvidenceContext:
             facts.append(self._add(path, field, value, (en, ne), unit=unit, interpretation=semantics,
                 subject_type=layer, subject_id=identifier, subject_name=original_props.get("name"),
                 source_ids=[f"{layer}.geojson", identifier], method=props.get("assessment_method") if self.text(props.get("assessment_method")) else "Saved infrastructure intersections or road-graph result", validator=check,
-                missing_reason="The selected run has no saved destination-specific graph evidence; combined town/hospital access cannot answer this question." if typed and not props else None))
+                missing_reason="The selected run has no saved destination-specific graph evidence; combined destination access cannot answer this type-specific question." if typed and not props else None))
         return facts
 
     def _result(self, tool, facts, *, feature_ids=None, next_offset=None, total_count=None, missing=None):
@@ -298,18 +306,40 @@ class EvidenceContext:
         return self._result("flood_surface_change", [self.global_fields[k] for k in keys])
 
     def infrastructure_impacts(self, args):
-        rows = [(identifier, item) for (layer, identifier), item in self.index.items() if layer == args.asset_type
-                and (not args.only_exposed or item["properties"].get("exposed") is True)
+        candidates = [(identifier, item) for (layer, identifier), item in self.index.items() if layer == args.asset_type
                 and (not args.query or args.query.casefold() in (identifier+' '+str(item['properties'].get('name',''))).casefold())]
+        exposure = args.exposure or ('exposed' if args.only_exposed else 'all')
+        rows = [(identifier, item) for identifier, item in candidates
+                if exposure == 'all' or exposure_class(item['properties']) == exposure]
         selection = rows[args.offset:args.offset + args.limit]
         fields = [args.asset_type + "_exposed"] + (["road_exposed_km"] if args.asset_type == "roads" else []) + list(INFRA_CONTEXT_FIELDS)
-        facts = [self.global_fields[k] for k in fields]
+        missing_layer = args.asset_type in self.layer_missing
+        if args.exposure is not None:
+            prefix = 'queries.infrastructure_impacts.' + self.infrastructure_query_scope(args)
+            facts = [self._add(prefix + '.count', 'matching_assets_count', None if missing_layer else len(rows),
+                     ('Mapped elements matching the requested exposure assessment', 'अनुरोध गरिएको प्रभाव मूल्याङ्कनसँग मिल्ने नक्साका तत्व'),
+                     unit='count', interpretation='potential_exposure', source_ids=[args.asset_type + '.geojson'],
+                     subject_name=args.asset_type, method='Saved exposure classification before pagination; incomplete or unavailable observations do not establish absence'),
+                     self._add(prefix + '.exposure', 'filter_exposure', exposure,
+                     ('Requested exposure assessment', 'अनुरोध गरिएको प्रभाव मूल्याङ्कन'), source_ids=[args.asset_type + '.geojson']),
+                     self._add(prefix + '.unavailable', 'asset_assessment_unavailable_count',
+                     None if missing_layer else sum(exposure_class(item['properties']) == 'unassessed' for _, item in candidates),
+                     ('Elements with incomplete or unavailable exposure assessment', 'अपूर्ण वा अनुपलब्ध प्रभाव मूल्याङ्कन भएका तत्व'),
+                     unit='count', interpretation='potential_exposure', source_ids=[args.asset_type + '.geojson'])]
+            facts += [self.global_fields[k] for k in INFRA_CONTEXT_FIELDS]
+        else:
+            facts = [self.global_fields[k] for k in fields]
         for identifier, _ in selection:
             facts += self.feature_facts(args.asset_type, identifier)
         return self._result("infrastructure_impacts", facts, feature_ids=[x[0] for x in selection],
-            total_count=len(rows),
+            total_count=None if missing_layer else len(rows),
             next_offset=args.offset + args.limit if args.offset + args.limit < len(rows) else None,
             missing=[f"Saved {args.asset_type} layer unavailable"] if args.asset_type in self.layer_missing else [])
+
+    @staticmethod
+    def infrastructure_query_scope(args):
+        scope = {'asset_type': args.asset_type, 'exposure': args.exposure, 'query': args.query}
+        return hashlib.sha256(json.dumps(scope, sort_keys=True).encode()).hexdigest()[:20]
 
     def route_membership(self, properties, road_id):
         """None means unavailable; False requires at least one valid saved route."""
@@ -339,31 +369,39 @@ class EvidenceContext:
                       and (not args.query or args.query.casefold() in (identifier+' '+str(item['properties'].get('name',''))).casefold())]
         destination_missing = sum(not self.connectivity_properties(item["properties"], args.destination_type) for _, item in candidates)
         destination_unassessed = sum(not self.connectivity_properties(item["properties"], args.destination_type)
-                                    or self.connectivity_properties(item["properties"], args.destination_type).get("status") == "unassessed"
+                                    or self.connectivity_properties(item["properties"], args.destination_type).get("status") in ('unassessed', 'uncertain_access')
                                     for _, item in candidates)
         rows = [(identifier, item) for identifier, item in candidates
-                if (args.status == "all" or self.connectivity_properties(item["properties"], args.destination_type).get("status") == args.status)
+                if connectivity_matches(self.connectivity_properties(item["properties"], args.destination_type), args.status)
                 and (args.destination_type == "all" or self.connectivity_properties(item["properties"], args.destination_type))]
         if args.road_id:
             unknown = sum(self.route_membership(self.connectivity_properties(item["properties"], args.destination_type), args.road_id) is None for _, item in rows)
             rows = [(identifier, item) for identifier, item in rows if self.route_membership(self.connectivity_properties(item["properties"], args.destination_type), args.road_id) is True]
-        if args.road_id or args.destination_type != "all":
+        missing_layer = 'settlements' in self.layer_missing
+        typed_evidence_absent = bool(candidates) and args.destination_type != "all" and destination_missing == len(candidates)
+        if args.road_id or args.destination_type != "all" or args.status != 'all':
             scope = self.connectivity_query_scope(args.road_id, args.status, args.query, args.destination_type)
             prefix = "queries.settlement_connectivity." + scope
             missing_layer = "settlements" in self.layer_missing
             typed_evidence_absent = bool(candidates) and args.destination_type != "all" and destination_missing == len(candidates)
             facts = [
+                self._add(prefix + '.status', 'filter_status', args.status,
+                          ('Requested modeled access status', 'अनुरोध गरिएको मोडेल अनुसारको पहुँच अवस्था'), source_ids=['settlements.geojson']),
                 self._add(prefix + ".matching_count", "matching_settlements_count", None if missing_layer else len(rows),
                           ("Recorded settlement route matches for the requested filters", "अनुरोध गरिएका सर्तसँग मिल्ने अभिलेखित बस्ती मार्ग"),
                           unit="count", interpretation="modeled_connectivity", method="Saved destination-specific status and optional road-route membership filter; before pagination",
                           source_ids=["settlements.geojson"],
-                          missing_reason="This run has no destination-specific graph results; combined town/hospital access cannot determine hospital-only or town-only access." if typed_evidence_absent else None),
+                          missing_reason="This run has no destination-specific graph results; combined destination access cannot determine access to a specific destination type." if typed_evidence_absent else None),
             ]
             if typed_evidence_absent:
-                facts[0] = self._add(prefix + ".matching_count", "matching_settlements_count", None,
+                facts[-1] = self._add(prefix + ".matching_count", "matching_settlements_count", None,
                     ("Recorded settlement route matches for the requested filters", "अनुरोध गरिएका सर्तसँग मिल्ने अभिलेखित बस्ती मार्ग"),
                     unit="count", interpretation="modeled_connectivity", source_ids=["settlements.geojson"],
-                    missing_reason="This run has no destination-specific graph results; combined town/hospital access cannot determine hospital-only or town-only access.")
+                    missing_reason="This run has no destination-specific graph results; combined destination access cannot determine access to a specific destination type.")
+            facts.append(self._add(prefix + '.destination_unavailable_count', 'destination_assessment_unavailable_count',
+                None if missing_layer else destination_unassessed,
+                ('Settlements with unassessed or uncertain access for this scope', 'यस दायरामा पहुँच मूल्याङ्कन नभएका वा अनिश्चित भएका बस्ती'),
+                unit='count', interpretation='modeled_connectivity', source_ids=['settlements.geojson']))
             if args.road_id:
                 facts += [self._add(prefix + ".road_id", "filter_road_id", args.road_id,
                     ("Road used to filter saved settlement routes", "बस्तीका अभिलेखित मार्ग छान्न प्रयोग गरिएको सडक"), source_ids=["roads.geojson", args.road_id]),
@@ -372,17 +410,14 @@ class EvidenceContext:
                     unit="count", interpretation="modeled_connectivity", source_ids=["settlements.geojson"])]
             if args.destination_type != "all":
                 facts += [self._add(prefix + ".destination_type", "destination_type", args.destination_type,
-                    ("Requested destination type", "अनुरोध गरिएको गन्तव्यको प्रकार"), source_ids=["settlements.geojson"]),
-                    self._add(prefix + ".destination_unavailable_count", "destination_assessment_unavailable_count", None if missing_layer else destination_unassessed,
-                    ("Settlements without assessable destination-specific access", "गन्तव्य अनुसारको पहुँच मूल्याङ्कन हुन नसकेका बस्ती"),
-                    unit="count", interpretation="modeled_connectivity", source_ids=["settlements.geojson"])]
+                    ("Requested destination type", "अनुरोध गरिएको गन्तव्यको प्रकार"), source_ids=["settlements.geojson"])]
         else:
             facts = [self.global_fields[k] for k in ACCESS_FIELDS]
         selection = rows[args.offset:args.offset + args.limit]
         for identifier, _ in selection:
             facts += self.feature_facts("settlements", identifier, args.destination_type)
         return self._result("settlement_connectivity", facts, feature_ids=[x[0] for x in selection],
-            total_count=None if "settlements" in self.layer_missing else len(rows),
+            total_count=None if missing_layer or typed_evidence_absent else len(rows),
             next_offset=args.offset + args.limit if args.offset + args.limit < len(rows) else None,
             missing=["Saved settlements layer unavailable"] if "settlements" in self.layer_missing else [])
 
@@ -397,14 +432,12 @@ class EvidenceContext:
     def mapped_inventory(self, args):
         rows = [(identifier, item) for (layer, identifier), item in self.index.items() if layer == args.layer
                 and (args.layer != "destinations" or args.destination_type == "all"
-                     or item["properties"].get("destination_type") == args.destination_type
-                     or (args.destination_type == "hospital" and item["properties"].get("amenity") == "hospital")
-                     or (args.destination_type == "town" and item["properties"].get("place") in ("town", "city")))]
+                     or self.destination_matches(item['properties'], args.destination_type))]
         scope = hashlib.sha256(json.dumps([args.layer, args.destination_type]).encode()).hexdigest()[:20]
         missing = args.layer in self.layer_missing
         kind = args.destination_type if args.layer == "destinations" and args.destination_type != "all" else args.layer
-        labels = {"hospital": ("Mapped hospital elements", "नक्सामा रहेका अस्पताल अभिलेख"),
-                  "town": ("Mapped town elements", "नक्सामा रहेका नगर अभिलेख")}
+        labels = {key: (f'Mapped {profile.label_en.lower()} elements', f'नक्सामा रहेका {profile.label_ne} अभिलेख')
+                  for key, profile in self.destination_profiles.items()}
         fact = self._add(f"queries.mapped_inventory.{scope}.count", "inventory_count", None if missing else len(rows),
                          labels.get(kind, (f"Mapped {kind} elements", f"नक्सामा रहेका {kind} अभिलेख")),
                          unit="count", interpretation="recorded_metadata", subject_name=kind,
@@ -428,18 +461,29 @@ class EvidenceContext:
             raise EvidenceError("Tool is not approved")
         model, _ = TOOL_REGISTRY[name]
         args = model.model_validate(arguments)
+        destination_type = getattr(args, 'destination_type', 'all')
+        if destination_type != 'all' and destination_type not in self.destination_profiles:
+            raise EvidenceError('Destination type is not part of the selected analysis profile')
         # Only this explicit registry is callable; arguments cannot choose a path, run or method.
         return getattr(self, name)(args)
+
+    def destination_matches(self, properties, kind):
+        if 'destination_types' in properties:
+            return kind in properties['destination_types']
+        if properties.get('destination_type'):
+            return properties['destination_type'] == kind
+        profile = self.destination_profiles.get(kind)
+        return bool(profile and any(properties.get(key) in values for key, values in profile.tags.items()))
 
 
 TOOL_REGISTRY = {
     "event_summary": (EmptyArgs, "Retrieve the selected event, computed aggregate metrics, acquisition dates and limitations."),
     "flood_surface_change": (EmptyArgs, "Retrieve measured potential water/surface change, units, method and thresholds."),
-    "infrastructure_impacts": (InfrastructureArgs, "Retrieve saved potentially exposed buildings, roads or bridges, with feature IDs and measurements. Paginated."),
-    "settlement_connectivity": (ConnectivityArgs, "Retrieve modeled connectivity, destinations and saved route evidence. Select destination_type=hospital or town for that specific target, all for the combined network. Optionally filter by an exact road_id from this run; matches use recorded baseline/disrupted routes, not physical proximity. Filtered counts precede pagination; missing routes remain unknown. No field closures are confirmed. Paginated."),
+    "infrastructure_impacts": (InfrastructureArgs, "Retrieve saved building, road or bridge exposure assessments. Use exposure=not_exposed for complete available observations without mapped change, unassessed for incomplete/unknown assessments, exposed for potential intersections, or all. Only-exposed is the legacy selector when exposure is omitted. Query counts precede pagination."),
+    "settlement_connectivity": (ConnectivityArgs, "Retrieve modeled connectivity, destinations and saved route evidence. Select a destination_type from the selected analysis profiles for that target, or all for the combined network. Known absence (not_connected) excludes uncertain/unassessed access; baseline_disconnected is not newly lost access. Optionally filter by an exact road_id from this run; matches use recorded baseline/disrupted routes, not physical proximity. Filtered counts precede pagination; missing routes remain unknown. No field closures are confirmed. Paginated."),
     "sources_limitations": (EmptyArgs, "Retrieve actual recorded products, acquisition dates, historical OSM, processing and limitations."),
     "feature_evidence": (FeatureArgs, "Retrieve saved evidence for one exact feature ID and layer in this run; never accept filesystem paths."),
-    "mapped_inventory": (InventoryArgs, "Count/list unique saved mapped elements. For hospital inventory use layer=destinations and destination_type=hospital. Counts describe historical OSM inventory, not exposed assets or verified operating facilities. Paginated."),
+    "mapped_inventory": (InventoryArgs, "Count/list unique saved mapped elements. For a specific destination inventory use layer=destinations and a destination_type from the selected run profiles. Counts describe historical OSM inventory, not exposed assets or verified operating facilities. Paginated."),
 }
 
 

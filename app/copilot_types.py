@@ -1,5 +1,5 @@
 """Strict contracts shared by evidence tools, the claim validator and reports."""
-from typing import Literal
+from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, JsonValue
 
 Language = Literal["en", "ne"]
@@ -8,6 +8,7 @@ SubjectType = Literal["analysis", "observation", "buildings", "roads", "bridges"
 Interpretation = Literal["measurement", "potential_exposure", "modeled_connectivity", "recorded_metadata", "limitation", "unavailable"]
 Topic = Literal["summary", "flood", "infrastructure", "inventory", "connectivity", "sources", "limitations", "feature"]
 ExplanationCode = Literal["potential_damage", "modeled_closure", "coverage_limits", "surface_change_uncertain", "satellite_limits", "routing_limits", "missing_data", "destination_limits"]
+DestinationType = Annotated[str, Field(pattern=r'^[a-z][a-z0-9_]{0,39}$')]
 
 
 class StrictModel(BaseModel):
@@ -55,29 +56,30 @@ class EmptyArgs(StrictModel):
 class InfrastructureArgs(StrictModel):
     asset_type: Literal["buildings", "roads", "bridges"]
     only_exposed: bool
+    exposure: Literal['all', 'exposed', 'not_exposed', 'unassessed'] | None = None
     offset: int = Field(ge=0, le=100000)
     limit: int = Field(ge=1, le=5)
     query: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class ConnectivityArgs(StrictModel):
-    status: Literal["all", "cut_off", "connected", "uncertain_access", "unassessed", "baseline_disconnected"]
+    status: Literal["all", "cut_off", "connected", "not_connected", "uncertain_access", "unassessed", "baseline_disconnected", "baseline_connected"]
     offset: int = Field(ge=0, le=100000)
     limit: int = Field(ge=1, le=5)
     query: str | None = Field(default=None, min_length=1, max_length=200)
     road_id: str | None = Field(default=None, min_length=1, max_length=200)
-    destination_type: Literal["all", "hospital", "town"] = "all"
+    destination_type: DestinationType = "all"
 
 
 class FeatureArgs(StrictModel):
     layer: Layer
     feature_id: str = Field(min_length=1, max_length=200)
-    destination_type: Literal["all", "hospital", "town"] = "all"
+    destination_type: DestinationType = "all"
 
 
 class InventoryArgs(StrictModel):
     layer: Layer
-    destination_type: Literal["all", "hospital", "town"] = "all"
+    destination_type: DestinationType = "all"
     offset: int = Field(default=0, ge=0, le=100000)
     limit: int = Field(default=5, ge=1, le=5)
 

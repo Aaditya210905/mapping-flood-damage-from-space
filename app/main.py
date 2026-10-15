@@ -31,7 +31,7 @@ from app.run_store import load_result, run_metadata
 from app.storage import save_json
 from app.availability import normalize_analysis_availability
 from app.presets import PRESETS
-from app.settings import MAPPING, ACQUISITION, EVALUATION, satellite_provider
+from app.settings import MAPPING, ACQUISITION, EVALUATION, RUNTIME, satellite_provider
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -39,14 +39,14 @@ DATA = Path(os.getenv("FLOOD_LENS_DATA", ROOT / "data" / "runs"))
 DATA.mkdir(parents=True, exist_ok=True)
 jobs, lock = {}, threading.Lock()
 executor = None
-capacity = threading.BoundedSemaphore(2)
+capacity = threading.BoundedSemaphore(RUNTIME.analysis_workers)
 logger = logging.getLogger("flood_lens")
 
 
 @asynccontextmanager
 async def lifespan(app):
     global executor
-    executor = ThreadPoolExecutor(max_workers=2)
+    executor = ThreadPoolExecutor(max_workers=RUNTIME.analysis_workers)
     yield
     executor.shutdown(wait=False, cancel_futures=True)
     executor = None
@@ -141,6 +141,7 @@ def data_sources():
             "presets": PRESETS, "mapping_configuration": MAPPING.model_dump(),
             "acquisition_configuration":ACQUISITION.model_dump(),
             "evaluation_configuration":EVALUATION.model_dump(),
+            "runtime_configuration":RUNTIME.model_dump(),
             "parameter_schema": AnalysisRequest.model_json_schema(),
             "workspace": {"completed_actual_runs": completed["live"], "completed_synthetic_runs": completed["demo"],
                           "preferred_satellite_provider": "copernicus" if os.getenv("CDSE_CLIENT_ID") and os.getenv("CDSE_CLIENT_SECRET") else "public",

@@ -9,12 +9,13 @@ from pathlib import Path
 import threading
 
 from app.storage import save_json
+from app.settings import RUNTIME
 
 
 _lock = threading.RLock()
 _cache = OrderedDict()
-_MAX_CACHED_RUNS = 2
-_MAX_CACHED_BYTES = 160 * 1024 * 1024
+_MAX_CACHED_RUNS = RUNTIME.run_cache_entries
+_MAX_CACHED_BYTES = RUNTIME.run_cache_max_mb * 1024 * 1024
 
 
 def signature(path):

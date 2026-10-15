@@ -1,5 +1,7 @@
 # Hardcoding audit and repairs
 
+Latest integrated follow-up: [INTEGRATED_REPAIRS.md](INTEGRATED_REPAIRS.md), including negation/baseline/combined-destination semantics, missing-list counts, median/snap policy, configurable destination profiles and runtime limits.
+
 The repaired application derives event measurements from the selected run. Mapping/acquisition rules, independent evaluation policy and optional presets are explicit configuration. Custom bounds/date are required unless a preset is explicitly selected. Legal credit strings and bilingual labels remain authored content. See [the six additional repairs and verification](REMAINING_HARDCODING_REPAIRS.md) and [earlier live verification](GENERALIZATION.md).
 
 | Fault | Repaired location and behavior |

@@ -7,6 +7,7 @@ from groq import Groq
 from app.copilot import answer
 from app.evidence import EvidenceContext
 from app.grounding import claim_for
+from app.copilot_query import plan_question
 
 
 class SDKItem(SimpleNamespace):
@@ -62,13 +63,19 @@ def test_llm_uses_tools_and_validated_facts(evidence_run,fake_provider):
 
 def test_compound_question_retrieves_both_tools(evidence_run,fake_provider):
     c=EvidenceContext(evidence_run)
+    question='List the potentially exposed roads and villages with modeled loss of access.'
+    plan=plan_question(c,question,[])
+    roads=plan.infrastructure_arguments('roads',limit=2)
+    access=plan.connectivity_arguments(limit=2)
+    road_facts=c.call('infrastructure_impacts',roads).facts
+    access_facts=c.call('settlement_connectivity',access).facts
     d={'run_id':c.run_id,'language':'en','kind':'answer','sections':[
-        {'topic':'infrastructure','claims':[claim_for(c.global_fields['roads_exposed']).model_dump()],'explanations':[]},
-        {'topic':'connectivity','claims':[claim_for(c.global_fields['settlements_cut_off']).model_dump()],'explanations':[]}]}
-    fake_provider.responses=[result([call('infrastructure_impacts',{'asset_type':'roads','only_exposed':True,'offset':0,'limit':2},'call_roads'),call('settlement_connectivity',{'status':'all','offset':0,'limit':2},'call_access')]),result(draft=d)]
-    reply=answer(evidence_run,'List the potentially exposed roads and villages with modeled loss of access.')
+        {'topic':'infrastructure','claims':[claim_for(f).model_dump() for f in road_facts if f.subject_type=='analysis'],'explanations':[]},
+        {'topic':'connectivity','claims':[claim_for(f).model_dump() for f in access_facts if f.subject_type=='analysis'],'explanations':[]}]}
+    fake_provider.responses=[result([call('infrastructure_impacts',roads,'call_roads'),call('settlement_connectivity',access,'call_access')]),result(draft=d)]
+    reply=answer(evidence_run,question)
     assert reply['intent']=='compound' and reply['generation']['mode']=='llm'
-    assert {'roads_exposed','settlements_cut_off'}.issubset({f['field_name'] for f in reply['facts']})
+    assert {'matching_assets_count','matching_settlements_count'}.issubset({f['field_name'] for f in reply['facts']})
     assert all(not item['truncated'] for item in reply['lists'])
     assert 'Actual closures' in reply['answer']
     assert 'not confirmed damage' in reply['answer']
@@ -104,8 +111,8 @@ def test_provider_failures_use_original_safe_fallback(evidence_run,fake_provider
     reply=answer(evidence_run,'Which settlements are cut off?')
     assert reply['intent']=='access'
     assert reply['generation']['reason']==reason
-    count=next(f for f in reply['facts'] if f['field_name']=='settlements_cut_off')
-    assert count['value']==evidence_run['stats']['settlements_cut_off']
+    count=next(f for f in reply['facts'] if f['field_name']=='matching_settlements_count')
+    assert count['value']==sum(item['properties'].get('status')=='cut_off' for item in evidence_run['layers']['settlements']['features'])
     assert '['+count['fact_id']+']' in reply['answer']
 
 

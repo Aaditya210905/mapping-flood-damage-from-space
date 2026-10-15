@@ -1,5 +1,6 @@
 """Bounded, process-local reuse of validated drafts and account cooldowns."""
 from collections import OrderedDict
+from app.settings import RUNTIME
 from contextlib import contextmanager
 import copy
 import hashlib
@@ -40,7 +41,7 @@ def failed(config,error):
     if delay<=0:return
     with _condition:
         _cooldowns[account(config)]=(time.monotonic()+min(delay,3600),error.reason,error.http_status)
-        while len(_cooldowns)>64:_cooldowns.popitem(last=False)
+        while len(_cooldowns)>RUNTIME.provider_account_cache_entries:_cooldowns.popitem(last=False)
 
 
 @contextmanager

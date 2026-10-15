@@ -38,23 +38,43 @@ class QueryPlan:
     road_id: str | None = None
     status: str = "all"
     clarification: bool = False
+    clarification_reason: str | None = None
     followup: bool = False
     requested_fields: list[str] = field(default_factory=list)
     destination_type: str = "all"
     inventory_layer: str | None = None
+    inventory_layers: list[str] = field(default_factory=list)
     listing: bool = False
+    exposure: str = 'exposed'
     unsupported_parts: list[str] = field(default_factory=list)
 
     @property
     def scoped(self):
-        return bool(self.references or self.road_id or self.followup or self.status != "all" or self.destination_type != "all")
+        return bool(self.references or self.road_id or self.followup or self.status != "all" or self.destination_type != "all" or self.exposure != 'exposed')
+
+    def connectivity_arguments(self, offset=0, limit=5):
+        return {'status': self.status, 'road_id': self.road_id,
+                'destination_type': self.destination_type, 'offset': offset, 'limit': limit}
+
+    def infrastructure_arguments(self, asset, offset=0, limit=5):
+        arguments = {'asset_type': asset, 'only_exposed': self.exposure == 'exposed',
+                     'offset': offset, 'limit': limit}
+        if self.listing or self.exposure != 'exposed':
+            arguments['exposure'] = self.exposure
+        return arguments
+
+    @property
+    def inventory_targets(self):
+        return self.inventory_layers or ([self.inventory_layer] if self.inventory_layer else [])
 
     def provider_context(self):
         return {"features": [{"layer": layer, "feature_id": identifier} for layer, identifier in self.references],
                 "road_id": self.road_id, "settlement_status": self.status,
                 "requested_fields": self.requested_fields, "destination_type": self.destination_type,
+                "exposure": self.exposure, "listing": self.listing,
                 "response_kind": "report" if self.intent == "summary" else "answer",
                 "topics": self.topics, "inventory_layer": self.inventory_layer,
+                "inventory_layers": self.inventory_targets,
                 "unsupported_parts": self.unsupported_parts}
 
 
@@ -139,33 +159,71 @@ def plan_question(context, question, history):
             plan.clarification = True
     elif plan.references:
         plan.topics = ["feature"]
-    if re.search(r"\b(?:uncertain|unobserved|no confirmed access|unconfirmed access)\b|अनिश्चित", question, re.I):
+    # Separate explicit asset and settlement clauses before interpreting their
+    # predicates (e.g. unassessed roads AND connected villages).
+    clauses = re.split(r';|\band\b|साथै', question, flags=re.I)
+    asset_clauses = [part for part in clauses if any(re.search(LAYERS[layer], part, re.I) for layer in ('roads', 'bridges', 'buildings'))]
+    access_clauses = [part for part in clauses if re.search(LAYERS['settlements'], part, re.I)]
+    status_question = ' and '.join(access_clauses) if asset_clauses and access_clauses else question
+    asset_question = ' and '.join(asset_clauses) if asset_clauses and access_clauses else question
+    access_negative = r"\b(?:(?:not|never)\s+(?:still\s+)?connected|(?:cannot|can't|can not|unable to|do not|don't)\s+reach|without\s+(?:road\s+)?access)\b|पुग्न नसक्ने|सम्पर्क नभएका"
+    disconnected = r"\b(?:cut.off|isolated|disconnected|lost|lose|loss)\b|सम्पर्कविहीन|सम्पर्क टुट"
+    before_event = bool(re.search(r'\b(?:before (?:the )?(?:flood|event)|pre.event|baseline|already)\b|घटनाअघि|बाढीअघि', status_question, re.I))
+    if re.search(r"\bnot\s+(?:disconnected|isolated|cut.off)\b", status_question, re.I):
+        plan.status = 'baseline_connected' if before_event else 'connected'
+    elif before_event and (re.search(disconnected, status_question, re.I) or re.search(access_negative, status_question, re.I)):
+        plan.status = 'baseline_disconnected'
+    elif re.search(access_negative, status_question, re.I):
+        plan.status = 'not_connected'
+    elif re.search(r"\b(?:uncertain|unobserved|no confirmed access|unconfirmed access)\b|अनिश्चित", status_question, re.I):
         plan.status = "uncertain_access"
-    elif re.search(r"\b(?:unassessed|not assessed)\b|मूल्याङ्कन हुन नसके", question, re.I):
+    elif re.search(r"\b(?:unassessed|not assessed)\b|मूल्याङ्कन हुन नसके", status_question, re.I):
         plan.status = "unassessed"
-    elif re.search(r"\b(?:connected|can reach|still reach|route available)\b|पुग्न सक्ने", question, re.I):
-        plan.status = "connected"
-    elif re.search(r"\b(?:cut.off|isolated|disconnected|lost|lose|loss)\b|सम्पर्कविहीन|सम्पर्क टुट", question, re.I):
+    elif re.search(r"\b(?:connected|can reach|still reach|route available)\b|पुग्न सक्ने", status_question, re.I):
+        plan.status = 'baseline_connected' if before_event else 'connected'
+    elif re.search(disconnected, status_question, re.I):
         plan.status = "cut_off"
     elif "connectivity" in plan.topics and re.search(r"\b(?:all|status|statuses)\b", question, re.I):
         plan.status = "all"
 
-    if re.search(r"\b(?:hospitals?|healthcare)\b|अस्पताल", plan.question, re.I):
-        plan.destination_type = "hospital"
-    elif re.search(r"\b(?:towns?|cities|city)\b|नगर|सहर|शहर", plan.question, re.I):
-        plan.destination_type = "town"
-    if plan.destination_type != "all" and "connectivity" in plan.topics:
-        plan.assets = []
+    destinations = [kind for kind, profile in context.destination_profiles.items()
+                    if any(re.search(r'(?<!\w)' + re.escape(keyword) + r'(?!\w)' if keyword.isascii() else re.escape(keyword),
+                                     plan.question, re.I) for keyword in profile.keywords)]
+    if len(destinations) > 1:
+        plan.destination_type = 'all'
+        # The combined network models reaching either target. Requiring both
+        # targets, or different predicates for each, needs separate queries.
+        if re.search(r'\bboth\b|दुवै|\bbut not\b', question, re.I) or set(destinations) != set(context.destination_profiles):
+            plan.clarification = True
+            plan.clarification_reason = 'destination_combination'
+    elif destinations:
+        plan.destination_type = destinations[0]
+    if 'settlements' in wanted_layers and plan.status != 'all' and not plan.references:
+        # Flood/event words qualify the graph epoch; they do not request area.
+        temporal_only = re.sub(r'\b(?:before|after|since|during)\s+(?:the\s+)?(?:flood|event)\b', '', question, flags=re.I)
+        plan.topics = ['connectivity'] + [TOPICS[t] for t in question_topics(temporal_only)
+                                         if t not in ('access', 'summary') and (t != 'damage' or plan.assets)]
+        plan.topics = list(dict.fromkeys(plan.topics))
+        plan.intent = 'compound' if len(plan.topics) > 1 else 'access'
+    if plan.assets and not plan.references:
+        if re.search(r'\b(?:(?:not|never)\s+(?:potentially\s+)?(?:exposed|affected)|unexposed|unaffected|without (?:mapped )?(?:exposure|impacts?))\b|प्रभावित छैन|प्रभाव नपरे', asset_question, re.I):
+            plan.exposure = 'not_exposed'
+        elif re.search(r'\b(?:unassessed|not assessed|unobserved|unknown coverage)\b|मूल्याङ्कन हुन नसके', asset_question, re.I):
+            plan.exposure = 'unassessed'
+        if plan.exposure != 'exposed':
+            plan.topics = list(dict.fromkeys(['infrastructure'] + ([topic for topic in plan.topics if topic != 'infrastructure'] if 'settlements' in wanted_layers else [])))
+            plan.intent = 'compound' if len(plan.topics) > 1 else 'damage'
     inventory = re.search(r"\b(?:mapped|inventory|total|how many|number of|count)\b|कति.*(?:नक्सा|अस्पताल)|नक्सामा", question, re.I)
     impacts = re.search(r"\b(?:exposed|exposure|damaged?|affected|hit|impacts?|overlap|reach|access|connect\w*|route|cut.off|isolat\w*)\b|प्रभाव|क्षति|पहुँच|सम्पर्क", question, re.I)
-    if inventory and not impacts and not plan.references:
-        if plan.destination_type != "all":
-            plan.inventory_layer = "destinations"
-        elif wanted_layers:
-            plan.inventory_layer = wanted_layers[0]
+    if inventory and not impacts and not plan.references and plan.exposure == 'exposed' and plan.status == 'all':
+        plan.inventory_layers = list(wanted_layers)
+        if destinations:
+            plan.inventory_layers.append('destinations')
+        if plan.inventory_layers:
+            plan.inventory_layer = plan.inventory_layers[0]
         if plan.inventory_layer:
-            plan.topics = ["inventory"]
-            plan.intent = "inventory"
+            plan.topics = ['inventory'] + [topic for topic in plan.topics if topic not in ('inventory', 'infrastructure', 'connectivity')]
+            plan.intent = 'compound' if len(plan.topics) > 1 else 'inventory'
     if not plan.references and not plan.road_id and re.search(
             r"\b(?:is|about|status of|for|from)\s+[A-Z][\w .'-]*?\s+(?:village|settlement|road|bridge|building)\b|"
             r"\b(?:road|bridge|settlement|building)\s+(?:[rsb]-\d+|(?:way|node)/\d+)\b", question):
