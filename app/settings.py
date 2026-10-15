@@ -116,6 +116,7 @@ class AcquisitionSettings(BaseModel):
     public_dem_base_url:str
     public_geoid_url:str
     ems_activation_url:str
+    ems_public_base_url:str
     public_catalog_page_size:int=Field(ge=1,le=1000)
     public_catalog_max_pages:int=Field(ge=1,le=100)
     public_catalog_timeout_seconds:float=Field(gt=0,le=300)
@@ -153,7 +154,7 @@ class AcquisitionSettings(BaseModel):
     trace_settlement_buffer_m:float=Field(gt=0,le=10000)
 
     @field_validator('cdse_stac_url','cdse_process_url','cdse_token_url','osm_url','osm_v2_url',
-                     'public_stac_url','public_sign_url','public_dem_base_url','public_geoid_url','ems_activation_url')
+                     'public_stac_url','public_sign_url','public_dem_base_url','public_geoid_url','ems_activation_url','ems_public_base_url')
     @classmethod
     def endpoint(cls,value):
         parsed=urlsplit(value)

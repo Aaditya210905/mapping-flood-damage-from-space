@@ -135,7 +135,7 @@ def test_nepali_selected_language_and_identical_evidence(evidence_run,fake_provi
     records=[]
     for language in ('en','ne'):
         fake_provider.responses=[result([call('flood_surface_change',{})]),result(draft=good_draft(evidence_run,language=language))]
-        reply=answer(evidence_run,'Explain these measurements.',language)
+        reply=answer(evidence_run,'Explain the new-water measurements.',language)
         assert ('सम्भावित' in reply['answer']) if language=='ne' else ('Potential new inundation' in reply['answer'])
         records.append(reply['facts'])
     assert records[0]==records[1]

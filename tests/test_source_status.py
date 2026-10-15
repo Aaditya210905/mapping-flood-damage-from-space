@@ -9,7 +9,7 @@ def test_empty_workspace_exposes_copilot_route_and_analysis_sources(tmp_path, mo
     sources = {source["id"]: source for source in status["sources"]}
     assert {s["id"] for s in sources.values() if s["category"] == "input"} == {"sentinel1", "sentinel2", "osm", "copernicus_dem"}
     assert len(sources) == 5
-    assert sources["emsr927"]["category"] == "evaluation_only"
+    assert sources['ems']['category'] == 'evaluation_only'
     assert status["mapping"]["type"] == "rule_based"
     assert not status["mapping"]["requires_model_weights"]
     assert not status["mapping"]["requires_training_datasets"]

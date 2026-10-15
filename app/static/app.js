@@ -125,7 +125,7 @@ function popup(title, pairs) {
 }
 
 function sourceUsage(source) {
-  if (source.category === "evaluation_only") return [state.run?.mode === "live" && state.run?.evaluation?.metrics && String(state.run.evaluation.activation || "").toLowerCase() === source.id ? "Comparison attached" : "Evaluation only", "reference"];
+  if (source.category === "evaluation_only") return [state.run?.mode === "live" && state.run?.evaluation?.metrics && state.run?.evaluation_reference_url ? "Comparison attached" : "Evaluation only", "reference"];
   if (!state.run) return ["On demand", ""];
   if (state.run.mode === "demo") return ["Synthetic fixture", "demo"];
   if (source.id === "sentinel2" && !state.run.provenance.optical_scenes?.length) return ["Unavailable in run", ""];
@@ -322,10 +322,10 @@ function renderRun(run) {
   $("provenance-content").innerHTML = rows.map(([k, v]) => `<div class="provenance-row"><span>${escapeHTML(k)}</span><strong>${escapeHTML(v)}</strong></div>`).join("") + run.warnings.map((w) => `<p class="field-note">${escapeHTML(w)}</p>`).join("");
   $("limitations-list").innerHTML = run.limitations.map((item) => `<li>${escapeHTML(item)}</li>`).join("");
   const score = (value) => Number.isFinite(value) ? value.toFixed(3) : "N/A";
-  const activation = /^EMSR\d+$/.test(run.evaluation.activation || "") ? run.evaluation.activation : null;
+  const activation = run.evaluation_reference_url ? run.evaluation.activation : null;
   $("evaluation-title").textContent = activation ? `Copernicus ${activation}` : "Independent reference comparison";
   $("evaluation-reference").hidden = !activation;
-  if (activation) $("evaluation-reference").href = `https://mapping.emergency.copernicus.eu/activations/${activation}/`;
+  if (run.evaluation_reference_url) $("evaluation-reference").href = run.evaluation_reference_url;
   $("evaluation-status").textContent = run.evaluation.metrics ? `${run.mode === "demo" ? "Synthetic sanity check" : "Independent reference comparison"}: IoU ${score(run.evaluation.metrics.iou)}, F1 ${score(run.evaluation.metrics.f1)}. ${run.evaluation.reason || ""} ${run.evaluation.primary_target || ""}. ${run.evaluation.limitations || ""}` : run.evaluation.reason;
   $("conversation").replaceChildren();
   renderMap(run);

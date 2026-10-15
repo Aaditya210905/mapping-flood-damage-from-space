@@ -25,6 +25,8 @@ class LLMConfig(BaseModel):
     max_completion_tokens: int = Field(default=4096, ge=512, le=8192)
     reasoning_effort: Literal['none','default','low','medium','high'] | None = None
     application_retrieval: bool = True
+    query_planning: Literal['semantic', 'local'] = 'semantic'
+    query_max_completion_tokens: int = Field(default=1024, ge=128, le=2048)
     retrieval_rounds: int = Field(default=2, ge=1, le=4)
     max_tool_calls: int = Field(default=6, ge=1, le=12)
     retrieval_page_size: int = Field(default=5, ge=1, le=5)
@@ -50,26 +52,22 @@ class LLMConfig(BaseModel):
 
     @classmethod
     def from_env(cls):
-        return cls(enabled=os.getenv("LLM_ENABLED", "false").lower() in ("true", "1", "yes"),
-                   api_key=SecretStr(os.getenv("LLM_API_KEY", "") or os.getenv("GROQ_API_KEY", "")),
-                   model=os.getenv("LLM_MODEL", "openai/gpt-oss-120b"),
-                   base_url=os.getenv("LLM_BASE_URL") or "https://api.groq.com",
-                   timeout_seconds=os.getenv("LLM_TIMEOUT_SECONDS", "25"),
-                   budget_seconds=os.getenv("LLM_BUDGET_SECONDS", "60"),
-                   max_completion_tokens=os.getenv("LLM_MAX_COMPLETION_TOKENS", "4096"),
-                   reasoning_effort=os.getenv("LLM_REASONING_EFFORT") or None,
-                   application_retrieval=os.getenv("LLM_APPLICATION_RETRIEVAL", "true").lower() in ("true", "1", "yes"),
-                   retrieval_rounds=os.getenv("LLM_RETRIEVAL_ROUNDS", "2"),
-                   max_tool_calls=os.getenv("LLM_MAX_TOOL_CALLS", "6"),
-                   retrieval_page_size=os.getenv("LLM_RETRIEVAL_PAGE_SIZE", "5"),
-                   max_rate_limit_retries=os.getenv("LLM_MAX_RATE_LIMIT_RETRIES", "1"),
-                   max_retry_wait_seconds=os.getenv("LLM_MAX_RETRY_WAIT_SECONDS", "3"),
-                   max_list_records=os.getenv("COPILOT_MAX_LIST_RECORDS", "1000"),
-                   response_cache_ttl_seconds=os.getenv('LLM_RESPONSE_CACHE_TTL_SECONDS','300'),
-                   response_cache_entries=os.getenv('LLM_RESPONSE_CACHE_ENTRIES','64'),
-                   max_concurrent_requests=os.getenv('LLM_MAX_CONCURRENT_REQUESTS','2'),
-                   queue_wait_seconds=os.getenv('LLM_QUEUE_WAIT_SECONDS','2'),
-                   provider_cooldown_seconds=os.getenv('LLM_PROVIDER_COOLDOWN_SECONDS','30'))
+        # One source of defaults: absent environment values use the validated
+        # model fields, rather than a second copied list of model/URL/budgets.
+        environment = {'enabled': 'LLM_ENABLED', 'model': 'LLM_MODEL', 'base_url': 'LLM_BASE_URL',
+            'timeout_seconds': 'LLM_TIMEOUT_SECONDS', 'budget_seconds': 'LLM_BUDGET_SECONDS',
+            'max_completion_tokens': 'LLM_MAX_COMPLETION_TOKENS', 'reasoning_effort': 'LLM_REASONING_EFFORT',
+            'application_retrieval': 'LLM_APPLICATION_RETRIEVAL', 'query_planning': 'LLM_QUERY_PLANNING',
+            'query_max_completion_tokens': 'LLM_QUERY_MAX_COMPLETION_TOKENS',
+            'retrieval_rounds': 'LLM_RETRIEVAL_ROUNDS', 'max_tool_calls': 'LLM_MAX_TOOL_CALLS',
+            'retrieval_page_size': 'LLM_RETRIEVAL_PAGE_SIZE', 'max_rate_limit_retries': 'LLM_MAX_RATE_LIMIT_RETRIES',
+            'max_retry_wait_seconds': 'LLM_MAX_RETRY_WAIT_SECONDS', 'max_list_records': 'COPILOT_MAX_LIST_RECORDS',
+            'response_cache_ttl_seconds': 'LLM_RESPONSE_CACHE_TTL_SECONDS', 'response_cache_entries': 'LLM_RESPONSE_CACHE_ENTRIES',
+            'max_concurrent_requests': 'LLM_MAX_CONCURRENT_REQUESTS', 'queue_wait_seconds': 'LLM_QUEUE_WAIT_SECONDS',
+            'provider_cooldown_seconds': 'LLM_PROVIDER_COOLDOWN_SECONDS'}
+        values = {field: os.environ[name] for field, name in environment.items() if os.getenv(name)}
+        values['api_key'] = SecretStr(os.getenv('LLM_API_KEY', '') or os.getenv('GROQ_API_KEY', ''))
+        return cls(**values)
 
     @property
     def ready(self):
@@ -81,6 +79,7 @@ def provider_status():
         config = LLMConfig.from_env()
         return {"provider": "groq", "enabled": config.enabled, "configured": config.ready,
                 "model": config.model if config.enabled else None,
+                "query_planning": config.query_planning,
                 "fallback_available": True, "status": "configured" if config.ready else "deterministic"}
     except ValueError:
         return {"provider": "groq", "enabled": False, "configured": False,
@@ -153,7 +152,7 @@ class GroqProvider:
             raise ProviderFailure("timeout")
         timeout = min(self.config.timeout_seconds, remaining)
         parameters = {"model": self.config.model, "messages": _messages(instructions, items),
-                      "temperature": 0, "max_completion_tokens": self.config.max_completion_tokens if tool_choice == "none" else 1024, "store": False}
+                      "temperature": 0, "max_completion_tokens": self.config.max_completion_tokens if tool_choice == "none" else self.config.query_max_completion_tokens, "store": False}
         if self.config.reasoning_effort is not None:
             parameters['reasoning_effort']=self.config.reasoning_effort
         # Groq does not combine local tool use with strict structured outputs.

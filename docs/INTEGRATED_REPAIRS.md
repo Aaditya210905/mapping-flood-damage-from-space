@@ -1,5 +1,7 @@
 # Integrated repair and verification
 
+The later [behavioral hardcoding follow-up](BEHAVIORAL_HARDCODING_FOLLOWUP.md) corrects the scope of this earlier record. It replaces the primary keyword-selected scope with semantic query planning, removes the fixed EMS activation and corrects the fixed half-cell warning. The current suite has 375 passing tests; the counts and API-request totals below are historical snapshots from the preceding pass.
+
 Completed 15 October 2026. This pass addresses the shared causes behind the remaining audit findings, including query interpretation, evidence retrieval, lists, source selection and configuration. Earlier real acquisitions and submission artifacts retain their original snapshots.
 
 | Reproduced problem or fixed assumption | Current behavior and location |

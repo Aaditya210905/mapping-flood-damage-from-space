@@ -79,7 +79,8 @@ def generation(key,config):
 def remember(key,draft,config):
     if not key or config.response_cache_ttl_seconds<=0:return
     with _condition:
-        _drafts[key]=(time.monotonic()+config.response_cache_ttl_seconds,draft.model_dump(mode='json'))
+        payload = draft.model_dump(mode='json') if hasattr(draft, 'model_dump') else copy.deepcopy(draft)
+        _drafts[key]=(time.monotonic()+config.response_cache_ttl_seconds,payload)
         _drafts.move_to_end(key)
         while len(_drafts)>config.response_cache_entries:_drafts.popitem(last=False)
 

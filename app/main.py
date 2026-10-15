@@ -26,7 +26,7 @@ from app.report import report_html, report_pdf, build_report_data, ReportDataErr
 from app.copilot_types import SituationReport
 from app.evidence import EvidenceContext, EvidenceError, TOOL_REGISTRY
 from app.llm import provider_status
-from app.sources import MAPPING_METHOD, SOURCES
+from app.sources import MAPPING_METHOD, SOURCES, evaluation_reference_url
 from app.run_store import load_result, run_metadata
 from app.storage import save_json
 from app.availability import normalize_analysis_availability
@@ -162,7 +162,9 @@ def dashboard_view(run):
     compact = [{**feature, "properties": {key: value for key, value in feature["properties"].items()
                 if key not in ("baseline_route", "after_route", "connectivity_by_destination_type")}}
                for feature in settlements["features"]]
-    return {**run, "layers": {**run["layers"], "buildings": {**buildings, "features": [
+    evaluation = run.get('evaluation') if isinstance(run.get('evaluation'), dict) else {}
+    return {**run, 'evaluation_reference_url': evaluation_reference_url(evaluation.get('activation')),
+        "layers": {**run["layers"], "buildings": {**buildings, "features": [
         f for f in buildings["features"] if f["properties"].get("exposed")]},
         "settlements": {**settlements, "features": compact}},
         "route_detail_scope": "Full route and destination-type evidence is available from the feature-detail endpoint.",

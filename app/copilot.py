@@ -9,7 +9,7 @@ import re
 COPILOT_INFO = {
     "component": "situation_report_copilot",
     "languages": ["en", "ne"],
-    "algorithm": "Groq tool calling with validated facts; bilingual topic and contextual retrieval fallback",
+    "algorithm": "Groq semantic query planning and validated evidence answers; bilingual local fallback",
     "external_model_weights": False,
     "external_training_datasets": False,
     "model_training": False,
@@ -17,8 +17,8 @@ COPILOT_INFO = {
     "grounding": "Counts, areas, source dates and settlement names come from the saved analysis. Unsupported questions receive no estimate.",
 }
 
-# These rules select fallback topics, never values. They do not restrict which
-# approved tools the configured generative model can select for other questions.
+# These rules serve explicit local mode and the labeled provider-failure fallback.
+# The primary configured Groq path interprets a typed query by meaning first.
 TOPIC_PATTERNS = {
     "summary": r"\b(?:summar\w*|briefing|overview|situation report)\b|सारांश|प्रतिवेदन|स्थिति विवरण|बाढीको अवस्था",
     "extent": r"\b(?:flood(?:ed|ing)?|inundat\w*|water|debris|surface.change|change mask|coverage|observed|observable|eligible|eligibility|assessable|observation coverage|threshold|backscatter|slope|resolution|pixel size)\b|डुबान|डुबेको|पानी|भग्नावशेष|अवलोकन क्षेत्र|योग्य.*क्षेत्र",

@@ -1,5 +1,5 @@
 # Acquisition policy. No event measurements or credentials belong here.
-version = "acquisition-v4"
+version = "acquisition-v5"
 default_provider = "auto"
 cdse_stac_url = "https://stac.dataspace.copernicus.eu/v1/search"
 cdse_process_url = "https://sh.dataspace.copernicus.eu/process/v1"
@@ -11,6 +11,7 @@ public_sign_url = "https://planetarycomputer.microsoft.com/api/sas/v1/sign"
 public_dem_base_url = "https://copernicus-dem-30m.s3.amazonaws.com"
 public_geoid_url = "https://cdn.proj.org/us_nga_egm08_25.tif"
 ems_activation_url = "https://rapidmapping.emergency.copernicus.eu/backend/dashboard-api/public-activations/"
+ems_public_base_url = "https://mapping.emergency.copernicus.eu/activations"
 public_catalog_page_size = 100
 public_catalog_max_pages = 20
 public_catalog_timeout_seconds = 90

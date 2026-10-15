@@ -14,6 +14,9 @@ def isolated_provider_state(monkeypatch):
     # reuse/cooldown cases explicitly enable these policies.
     monkeypatch.setenv('LLM_RESPONSE_CACHE_TTL_SECONDS','0')
     monkeypatch.setenv('LLM_PROVIDER_COOLDOWN_SECONDS','0')
+    # The established deterministic/tool-selection suites explicitly exercise
+    # that compatibility path. Semantic planning has its own native-SDK matrix.
+    monkeypatch.setenv('LLM_QUERY_PLANNING', 'local')
     yield
     copilot_cache.clear()
     with cdse_runtime._lock:cdse_runtime._tokens.clear()

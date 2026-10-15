@@ -1,5 +1,7 @@
 """Analysis inputs and independent references for the copilot route."""
 from app.storage import ROOT
+from app.settings import ACQUISITION
+import re
 
 REFERENCE_ROOT = ROOT / "data" / "reference_only"
 MAPPING_METHOD = {
@@ -17,11 +19,16 @@ SOURCES = [
      "url": "https://dataspace.copernicus.eu/", "license": "Copernicus free, full and open data policy"},
     {"id": "osm", "name": "Historical OpenStreetMap", "role": "infrastructure and road access", "category": "input",
      "description": "Buildings, roads, bridges, settlements and configured destinations from a verified pre-event snapshot.",
-     "url": "https://api.ohsome.org/v1", "license": "ODbL"},
+     "url": ACQUISITION.osm_url, "license": "ODbL"},
     {"id": "copernicus_dem", "name": "Copernicus DEM GLO-30", "role": "terrain correction and downhill trace", "category": "input",
      "description": "Elevation for radar geometry, slope screening and the optional downhill path.",
      "url": "https://dataspace.copernicus.eu/", "license": "Copernicus DEM license and WorldDEM attribution"},
-    {"id": "emsr927", "name": "Copernicus EMSR927", "role": "case-study evaluation only", "category": "evaluation_only",
-     "url": "https://mapping.emergency.copernicus.eu/activations/EMSR927/",
+    {"id": "ems", "name": "Copernicus Emergency Management Service", "role": "independent evaluation only; explicit activation required", "category": "evaluation_only",
+     "url": ACQUISITION.ems_public_base_url,
      "license": "European Union, Copernicus Emergency Management Service data"},
 ]
+
+
+def evaluation_reference_url(activation):
+    code = str(activation or '').upper()
+    return f'{ACQUISITION.ems_public_base_url}/{code}/' if re.fullmatch(r'EMSR[0-9]{3,}', code) else None
