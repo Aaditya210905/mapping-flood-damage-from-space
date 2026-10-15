@@ -14,7 +14,7 @@ from rasterio.warp import calculate_default_transform, reproject, Resampling
 from scipy import ndimage
 from shapely.geometry import LineString, Point, box, mapping, shape
 from shapely import transform as transform_geometry
-from app.settings import MAPPING
+from app.settings import MAPPING, ACQUISITION
 
 
 @lru_cache(maxsize=128)
@@ -170,9 +170,9 @@ def detect_changes(before, after, grid, params, dem=None, optical_before=None, o
     optical_valid = np.zeros_like(water)
     optical_water = np.zeros_like(water)
     if optical_before is not None and optical_after is not None:
-        excluded = [0, 1, 3, 7, 8, 9, 10, 11]
+        allowed=[code for code in range(12) if code not in MAPPING.optical_excluded_scl_classes]
         optical_valid = (optical_before[5] > 0) & (optical_after[5] > 0)
-        optical_valid &= ~np.isin(optical_before[4], excluded) & ~np.isin(optical_after[4], excluded)
+        optical_valid &= np.isin(optical_before[4], allowed) & np.isin(optical_after[4], allowed)
         optical_valid &= np.all(np.isfinite(optical_before[:4]), axis=0) & np.all(np.isfinite(optical_after[:4]), axis=0)
         optical_valid &= np.all(optical_before[:4] >= 0,axis=0) & np.all(optical_after[:4] >= 0,axis=0)
         def index(a, b):
@@ -305,7 +305,7 @@ def trace_downhill(dem, grid, lon, lat, settlements):
     nearby = []
     for item in settlements:
         point = grid.project(shape(item["geometry"]).centroid)
-        if metric.distance(point) <= 1000:
+        if metric.distance(point) <= ACQUISITION.trace_settlement_buffer_m:
             nearby.append({"name": item["properties"]["name"], "distance_along_km": round(metric.project(point) / 1000, 2)})
     nearby.sort(key=lambda p: p["distance_along_km"])
     return {"type": "Feature", "geometry": mapping(line), "properties": {

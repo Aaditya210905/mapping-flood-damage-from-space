@@ -92,14 +92,19 @@ def load_cached_cdse_inputs(source_folder):
         raise ValueError("Cached OSM does not satisfy the pre-event snapshot rule.")
     optical_scenes = provenance.get("optical_scenes", [])
     optical_observations = provenance.get("optical_observations", [])
-    if not isinstance(optical_scenes, list) or len(optical_scenes) not in (0, 2):
+    if not isinstance(optical_scenes, list) or len(optical_scenes)==1 or len(optical_scenes)!=len(set(optical_scenes)):
         raise ValueError("Cached optical metadata must record either a complete pair or no pair.")
     if optical_scenes:
-        if len(optical_observations) != 2 or [item.get("id") for item in optical_observations] != optical_scenes or any("synthetic" in str(identifier).lower() for identifier in optical_scenes):
+        if len(optical_observations) != len(optical_scenes) or [item.get("id") for item in optical_observations] != optical_scenes or any("synthetic" in str(identifier).lower() for identifier in optical_scenes):
             raise ValueError("Recorded optical pair lacks matching acquisition metadata.")
         optical_dates = [_instant(item.get("acquired")) for item in optical_observations]
-        if optical_dates[0].date() >= params.flood_date or optical_dates[1].date() <= params.flood_date:
+        if (any(instant.date()==params.flood_date for instant in optical_dates)
+                or not any(instant.date()<params.flood_date for instant in optical_dates)
+                or not any(instant.date()>params.flood_date for instant in optical_dates)):
             raise ValueError("Cached optical scenes must strictly bracket the flood date.")
+        for record,instant in zip(optical_observations,optical_dates):
+            if record.get('epoch', 'before' if instant.date()<params.flood_date else 'after')!=('before' if instant.date()<params.flood_date else 'after'):
+                raise ValueError('Cached optical mosaic epoch disagrees with its observation date')
     elif optical_observations or any((source / name).exists() for name in ("s2-before.tif", "s2-after.tif")):
         raise ValueError("Unrecorded optical files or dates make this cache ambiguous; refusing replay.")
 

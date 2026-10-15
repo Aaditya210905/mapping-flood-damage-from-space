@@ -3,10 +3,12 @@ import argparse
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import re
 import sys
 
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent))
 from app.storage import save_json,sha256
+from app.attribution import run_attributions
 
 
 def main():
@@ -25,7 +27,9 @@ def main():
         path=args.run_folder/name
         value=json.loads(path.read_text())
         if value.get('run_id')!=run['id']:parser.error('A comparison belongs to a different analysis')
-        target=args.output/f'emsr927-{kind}-evaluation.json'
+        activation=str(value.get('activation') or '').lower()
+        reference_label=activation if re.fullmatch(r'[a-z0-9_-]{1,60}',activation) else 'reference'
+        target=args.output/f'{reference_label}-{kind}-evaluation.json'
         save_json(target,value)
         comparisons[kind]={'status':value.get('status'),'file':target.name,'sha256':sha256(target)}
     def summary(record,path):
@@ -37,7 +41,7 @@ def main():
                 'radar_scenes':provenance['radar_scenes'],'osm_snapshot':provenance['osm_snapshot'],
                 'mapping_configuration':provenance.get('mapping_configuration'),
                 'acquisition_provider':provenance.get('acquisition',{}).get('provider'),
-                'attributions':record['attributions']}
+                'attributions':run_attributions(record)}
     package=summary(run,source)
     package.update(generated_at=datetime.now(timezone.utc).isoformat(),comparisons=comparisons,
                    limitations='Evaluation only; unavailable matching observations are not negative impact or accuracy. No field verification or native Nepali sign-off.')
@@ -49,7 +53,9 @@ def main():
         save_json(args.output/'fresh-run-summary.json',summary(fresh,fresh_source))
         package['fresh_verification']={'file':'fresh-run-summary.json','sha256':sha256(args.output/'fresh-run-summary.json')}
     if sha256(source)!=prediction_before:raise ValueError('Packaging must not change prediction evidence')
-    save_json(args.output/'trishuli-comparison.json',package)
+    case_label=str(run.get('parameters',{}).get('case_id') or 'case-study')
+    if not re.fullmatch(r'[a-z0-9_-]{1,60}',case_label):case_label='case-study'
+    save_json(args.output/f'{case_label}-comparison.json',package)
     print(json.dumps({'output':str(args.output.resolve()),'run_id':run['id'],'comparisons':comparisons,'prediction_unchanged':True},indent=2))
 
 

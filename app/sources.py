@@ -10,7 +10,7 @@ MAPPING_METHOD = {
 }
 SOURCES = [
     {"id": "sentinel1", "name": "Sentinel-1 radar", "role": "before/after water detection", "category": "input",
-     "description": "Same-track VV/VH radar observations, calibrated and terrain-corrected locally.",
+     "description": "Same-track VV/VH radar observations, calibrated and terrain-corrected using Copernicus elevation.",
      "url": "https://dataspace.copernicus.eu/", "license": "Copernicus free, full and open data policy"},
     {"id": "sentinel2", "name": "Sentinel-2 optical", "role": "clear-sky water and debris support", "category": "input",
      "description": "L2A green, red, near-infrared, SWIR and scene classifications; used when a suitable pair is available.",

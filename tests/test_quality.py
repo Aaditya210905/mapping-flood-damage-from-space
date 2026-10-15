@@ -41,7 +41,7 @@ def test_clear_optical_debris_remains_eligible_in_steep_radar_shadow(grid):
     pre=np.stack([np.full((30,30),v) for v in [.15,.1,.5,.25,4,1]])
     post=np.stack([np.full((30,30),v) for v in [.15,.22,.1,.4,4,1]])
     dem=np.tile(np.arange(30)*60.,(30,1))
-    params=AnalysisRequest()
+    params=AnalysisRequest(case_id="trishuli")
     result=detect_changes(radar,radar,grid,params,dem,pre,post)
     assert result['debris'][15,15]
     assert not result['radar_valid'].any()

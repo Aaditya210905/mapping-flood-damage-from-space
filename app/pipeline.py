@@ -13,11 +13,12 @@ from app.copilot import COPILOT_INFO
 from app.geo import Grid, detect_changes, extent_features, image_bytes, clean_mask
 from app.impact import analyze_impacts
 from app.models import ATTRIBUTIONS, LIMITATIONS, validate_pair
+from app.attribution import run_attributions
 from app.providers import acquire_live
 from app.public_data import acquire_public
 from app.sources import MAPPING_METHOD
 from app.presets import osm_cutoff
-from app.settings import MAPPING
+from app.settings import MAPPING, ACQUISITION, satellite_provider
 
 ANALYSIS_SOURCE_POLICY = "Only Sentinel-1, Sentinel-2, Copernicus DEM and pre-event OSM are analysis inputs. No flood-segmentation model or external training dataset is used. Published damage maps are evaluation-only."
 
@@ -52,6 +53,9 @@ def class_availability(detected, aoi, grid, optical_pair_available):
 
 
 def run_analysis(params, run_id, folder, progress=lambda label, percent: None, *, acquired_inputs=None):
+    requested_provider=params.satellite_provider
+    if params.mode=='live':
+        params=params.model_copy(update={'satellite_provider':satellite_provider(requested_provider)})
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=True)
     grid = Grid.for_bbox(params.bbox, params.resolution_m)
@@ -123,7 +127,7 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None, *
     if not any(c["eligible_pixels"] for c in availability.values()):
         warnings.append("No hazard class has eligible observations. Infrastructure exposure and new cut-off counts are unavailable; mapped inventory totals remain available.")
     if params.mode == "demo":
-        warnings.insert(0, "All satellite-like inputs, terrain and OSM-like features in this run are synthetic. No results describe the real Trishuli event.")
+        warnings.insert(0, "All satellite-like inputs, terrain and OSM-like features in this run are synthetic. These are not real event observations.")
     if stats["settlements_unassessed"]:
         warnings.append("Some settlements have no nearby mapped road or no mapped destination; they are unassessed, not newly cut off.")
     if stats["valid_coverage_pct"] < 50:
@@ -149,11 +153,13 @@ def run_analysis(params, run_id, folder, progress=lambda label, percent: None, *
                           "osm_source_api": inputs["osm"].get("metadata", {}).get("sourceApi", "synthetic"),
                           "crs": grid.crs, "resolution_m": grid.resolution, "grid_bounds": grid.bounds,
                           "source_policy": ANALYSIS_SOURCE_POLICY,
-                          "ai_component": COPILOT_INFO, "mapping_configuration": MAPPING.model_dump()},
+                          "ai_component": COPILOT_INFO, "mapping_configuration": MAPPING.model_dump(),
+                          "acquisition_configuration":ACQUISITION.model_dump(),"requested_satellite_provider":requested_provider},
            "warnings": warnings, "limitations": LIMITATIONS, "attributions": ATTRIBUTIONS,
-           "evaluation": {"status": "pending", "activation": "EMSR927", "reason": "No official reference inundation geometry and reviewed coverage have been supplied. No accuracy claim is made."}}
+           "evaluation": {"status": "pending", "activation": None, "reason": "No independent matching reference and reviewed coverage have been supplied for this analysis. No accuracy claim is made."}}
     if inputs.get("reprocessing"):
         run["provenance"]["reprocessing"] = inputs["reprocessing"]
+    run['attributions'] = run_attributions(run)
     progress("Saving maps, audit metadata and reports", 95)
     for epoch in ("before", "after"):
         png, display_bbox = image_bytes(detected, inputs["dem"], epoch, grid)

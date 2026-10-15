@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 import json
+import tarfile
+from io import BytesIO
 
 import httpx
 import numpy as np
@@ -23,13 +25,17 @@ def test_live_radar_request_records_terrain_processing_and_pass_window(monkeypat
         if str(request.url)==providers.TOKEN_URL:
             return httpx.Response(200,json={"access_token":"synthetic-test-token"})
         calls.append(json.loads(request.content))
-        return httpx.Response(200,content=tiff,headers={"Content-Type":"image/tiff"})
+        buffer=BytesIO()
+        with tarfile.open(fileobj=buffer,mode='w') as archive:
+            for name,content in [('default.tif',tiff),('userdata.json',json.dumps({'tiles':[{'date':'2026-08-20T12:00:00Z','shId':1}]}).encode())]:
+                member=tarfile.TarInfo(name);member.size=len(content);archive.addfile(member,BytesIO(content))
+        return httpx.Response(200,content=buffer.getvalue(),headers={"Content-Type":"application/x-tar"})
     original=httpx.Client
     monkeypatch.setattr(providers.httpx,"Client",lambda **kw:original(transport=httpx.MockTransport(respond),**kw))
     monkeypatch.setenv("CDSE_CLIENT_ID","synthetic-test-client")
     monkeypatch.setenv("CDSE_CLIENT_SECRET","synthetic-test-secret")
     provider=providers.CopernicusProvider(grid,tmp_path)
-    scene=Scene(id="SYNTHETIC",acquired=datetime(2026,8,20,tzinfo=timezone.utc),relative_orbit=85,direction="ascending")
+    scene=Scene(id="SYNTHETIC",acquired=datetime(2026,8,20,12,tzinfo=timezone.utc),relative_orbit=85,direction="ascending")
     raster=provider.process("sentinel-1-grd","s1-before",scene)
     np.testing.assert_array_equal(raster,data)
     request=calls[0]["input"]["data"][0]

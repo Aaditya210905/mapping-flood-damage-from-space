@@ -39,7 +39,7 @@ def test_raw_dn_noise_and_calibration_are_in_power_units():
 
 
 def test_sentinel2_mosaic_uses_same_acquisition_and_strict_event_dates():
-    params = AnalysisRequest(bbox=[85, 27, 85.2, 27.2])
+    params = AnalysisRequest(case_id="trishuli", bbox=[85, 27, 85.2, 27.2])
     def tile(day, geom, identifier):
         return {"id": identifier, "geometry": mapping(geom), "properties": {
             "datetime": day + "T00:00:00Z", "platform": "Sentinel-2C", "sat:relative_orbit": 119, "eo:cloud_cover": 80}}
@@ -60,7 +60,7 @@ def test_radar_observations_and_water_slope_eligibility_are_separate(monkeypatch
     before = np.stack([np.full((11, 11), .1), np.ones((11, 11))])
     after = before.copy()
     after[0] = 10 ** (-23 / 10)
-    result = detect_changes(before, after, grid, AnalysisRequest(), dem=np.zeros((11, 11)))
+    result = detect_changes(before, after, grid, AnalysisRequest(case_id="trishuli"), dem=np.zeros((11, 11)))
     assert result["radar_valid"].all()
     assert result["valid"].sum() == 9
     assert result["valid"][5, 5]

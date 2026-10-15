@@ -31,6 +31,11 @@ class LLMConfig(BaseModel):
     max_rate_limit_retries: int = Field(default=1, ge=0, le=2)
     max_retry_wait_seconds: float = Field(default=3, ge=0, le=10)
     max_list_records: int = Field(default=1000, ge=1, le=5000)
+    response_cache_ttl_seconds:float=Field(default=300,ge=0,le=3600)
+    response_cache_entries:int=Field(default=64,ge=1,le=512)
+    max_concurrent_requests:int=Field(default=2,ge=1,le=8)
+    queue_wait_seconds:float=Field(default=2,ge=0,le=10)
+    provider_cooldown_seconds:float=Field(default=30,ge=0,le=300)
 
     @field_validator("base_url")
     @classmethod
@@ -59,7 +64,12 @@ class LLMConfig(BaseModel):
                    retrieval_page_size=os.getenv("LLM_RETRIEVAL_PAGE_SIZE", "5"),
                    max_rate_limit_retries=os.getenv("LLM_MAX_RATE_LIMIT_RETRIES", "1"),
                    max_retry_wait_seconds=os.getenv("LLM_MAX_RETRY_WAIT_SECONDS", "3"),
-                   max_list_records=os.getenv("COPILOT_MAX_LIST_RECORDS", "1000"))
+                   max_list_records=os.getenv("COPILOT_MAX_LIST_RECORDS", "1000"),
+                   response_cache_ttl_seconds=os.getenv('LLM_RESPONSE_CACHE_TTL_SECONDS','300'),
+                   response_cache_entries=os.getenv('LLM_RESPONSE_CACHE_ENTRIES','64'),
+                   max_concurrent_requests=os.getenv('LLM_MAX_CONCURRENT_REQUESTS','2'),
+                   queue_wait_seconds=os.getenv('LLM_QUEUE_WAIT_SECONDS','2'),
+                   provider_cooldown_seconds=os.getenv('LLM_PROVIDER_COOLDOWN_SECONDS','30'))
 
     @property
     def ready(self):

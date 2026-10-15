@@ -17,7 +17,7 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0,str(ROOT))
-from app.models import ATTRIBUTIONS
+from app.attribution import run_attributions
 
 # Final playback cues match the supplied three-minute voiceover. Each captured
 # scene is edited independently so API latency cannot shift later sections.
@@ -224,7 +224,7 @@ def main():
         until(132)
         report_url = report['links']['html']
         page.goto(base + report_url, wait_until='networkidle')
-        caption('The one-page report explicitly marks cached real inputs, incomplete observations and unavailable debris. Nepali text uses bundled Devanagari fonts; the report needs independent field and language review.')
+        caption('The one-page report preserves this run’s acquisition mode, observation coverage, unavailable values and source dates. Nepali text uses bundled Devanagari fonts; independent field and language review remain necessary.')
         check_screen()
         until(143)
         page.goto(base, wait_until='networkidle')
@@ -233,11 +233,11 @@ def main():
         page.locator('.evaluation-note').scroll_into_view_if_needed()
         evaluation = run.get('evaluation', {})
         if evaluation.get('status') == 'unavailable' and evaluation.get('reference_classes') == ['Landslide']:
-            caption('EMSR927 is evaluation-only. Its landslide references have no eligible debris observations here, so accuracy is N/A. A class mismatch or empty comparison is never presented as a perfect score.')
+            caption('Independent references are evaluation-only. Read available class-matched scores or N/A alongside observation coverage. A class mismatch or empty comparison is never presented as a perfect score.')
         else:
             caption('Published reference maps stay separate from prediction inputs. Evaluation needs matching classes and eligible observations; missing or empty comparisons cannot establish mapping accuracy.')
         until(158)
-        credits = ' '.join(ATTRIBUTIONS)
+        credits = ' '.join(run_attributions(run))
         page.locator('.page-footer').scroll_into_view_if_needed()
         caption('Educational prototype, not operational. Field verification and native Nepali review remain necessary. The copilot uses a hosted model; this application trains no model.')
         until(166)

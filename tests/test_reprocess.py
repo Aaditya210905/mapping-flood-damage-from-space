@@ -19,7 +19,7 @@ from app.storage import sha256
 def cdse_cache(tmp_path):
     source = tmp_path / str(uuid.uuid4())
     source.mkdir()
-    params = AnalysisRequest(bbox=[85.2, 28, 85.205, 28.005], satellite_provider="copernicus")
+    params = AnalysisRequest(case_id="trishuli", bbox=[85.2, 28, 85.205, 28.005], satellite_provider="copernicus")
     grid = Grid.for_bbox(params.bbox, params.resolution_m)
     shape = grid.height, grid.width
     def raster(name, values, transform=None):
@@ -154,6 +154,22 @@ def test_reprocessing_refuses_output_overwrite_and_old_identity(cdse_cache, tmp_
             reprocess_saved_cdse(source, destination)
     with pytest.raises(ValueError, match="new run ID"):
         reprocess_saved_cdse(source, tmp_path / "new", saved["id"])
+
+
+def test_reprocessing_accepts_recorded_multi_tile_optical_epochs(cdse_cache):
+    source,saved,grid,raster=cdse_cache
+    observations=[{'id':f'CDSE-SH-{index}','acquired':instant,'epoch':epoch}
+                  for index,(instant,epoch) in enumerate([
+                      ('2026-08-25T00:01:00Z','before'),('2026-08-25T00:02:00Z','before'),
+                      ('2026-08-27T00:01:00Z','after'),('2026-08-27T00:02:00Z','after')])]
+    saved['provenance']['optical_observations']=observations
+    saved['provenance']['optical_scenes']=[record['id'] for record in observations]
+    (source/'result.json').write_text(json.dumps(saved))
+    optical=np.stack([np.full((grid.height,grid.width),value) for value in (.15,.1,.5,.25,4,1)])
+    for name in ('s2-before.tif','s2-after.tif'):raster(name,optical)
+    _,inputs=load_cached_cdse_inputs(source)
+    assert inputs['optical_scenes']==saved['provenance']['optical_scenes']
+    assert np.array_equal(inputs['optical_after'],optical.astype('float32'))
 
 
 def test_reprocessing_refuses_osm_version_outside_snapshot(cdse_cache):

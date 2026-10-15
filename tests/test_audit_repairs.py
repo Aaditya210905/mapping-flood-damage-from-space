@@ -45,9 +45,9 @@ def fields(reply):
 
 
 def test_custom_requests_do_not_inherit_the_nepal_area_label():
-    assert AnalysisRequest(bbox=[75.0,10.0,75.01,10.01]).name=='Custom flood analysis'
-    assert AnalysisRequest(flood_date='2026-09-01').name=='Custom flood analysis'
-    assert AnalysisRequest().name==TRISHULI['name']
+    assert AnalysisRequest(case_id="trishuli", bbox=[75.0,10.0,75.01,10.01]).name=='Custom flood analysis'
+    assert AnalysisRequest(case_id="trishuli", flood_date='2026-09-01').name=='Custom flood analysis'
+    assert AnalysisRequest(case_id="trishuli").name==TRISHULI['name']
 
 
 def test_asset_comparison_requires_both_hazard_classes_and_the_exact_grid(tmp_path):
@@ -73,7 +73,7 @@ def test_clear_optical_baseline_water_cannot_be_new_radar_water():
     before = np.stack([np.full(size, .1), np.ones(size), np.zeros(size)])
     after = before.copy(); after[0] = .001
     optical = np.stack([np.full(size, .4), np.full(size, .1), np.full(size, .1), np.full(size, .1), np.full(size, 6), np.ones(size)])
-    detected = detect_changes(before, after, grid, AnalysisRequest(min_component_pixels=1), np.zeros(size), optical, optical)
+    detected = detect_changes(before, after, grid, AnalysisRequest(case_id="trishuli", min_component_pixels=1), np.zeros(size), optical, optical)
     assert detected['permanent'].all()
     assert not detected['water'].any()
     assert np.all(detected['classes'] == 1)
@@ -98,7 +98,7 @@ def test_new_saved_coverage_and_read_time_evidence_agree(evidence_run):
 
 
 def test_scene_selection_rejects_vv_only_before_acquisition():
-    params = AnalysisRequest()
+    params = AnalysisRequest(case_id="trishuli")
     def item(day, polarizations):
         return {'id': day + '-'.join(polarizations), 'geometry': mapping(box(*params.bbox)),
                 'properties': {'datetime': day + 'T00:00:00Z', 'sar:polarizations': polarizations,
@@ -114,15 +114,15 @@ def test_scene_selection_rejects_vv_only_before_acquisition():
 def test_case_cutoff_is_geographic_and_custom_cases_do_not_inherit_it():
     metadata = {'temporalExtent': {'end': '2026-10-01T00:00:00Z'}}
     event = datetime(2026, 8, 26, tzinfo=timezone.utc)
-    nepal = AnalysisRequest()
-    elsewhere = AnalysisRequest(bbox=[10, 10, 10.1, 10.1])
-    custom = AnalysisRequest(case_id='custom')
+    nepal = AnalysisRequest(case_id="trishuli")
+    elsewhere = AnalysisRequest(case_id="trishuli", bbox=[10, 10, 10.1, 10.1])
+    custom = AnalysisRequest(case_id='custom',bbox=TRISHULI['bbox'],flood_date=TRISHULI['flood_date'])
     assert osm_cutoff(nepal).isoformat().startswith('2026-07-27')
     for params in (elsewhere, custom):
         assert osm_cutoff(params) is None
         assert choose_snapshot(metadata, event, cutoff=osm_cutoff(params)).isoformat().startswith('2026-08-25')
-    assert AnalysisRequest().bbox == TRISHULI['bbox']
-    assert AnalysisRequest().water_threshold_db == MAPPING.water_threshold_db
+    assert AnalysisRequest(case_id="trishuli").bbox == TRISHULI['bbox']
+    assert AnalysisRequest(case_id="trishuli").water_threshold_db == MAPPING.water_threshold_db
 
 
 @pytest.mark.parametrize('question,expected', [

@@ -27,7 +27,7 @@ def test_new_water_excludes_permanent_water_and_nodata(grid):
     post[0, 16:24, 16:24] = 10 ** (-23 / 10)
     post[0, 2:8, 19:25] = 10 ** (-23 / 10)
     post[1, 2:8, 19:25] = 0
-    out = detect_changes(pre, post, grid, AnalysisRequest(mode="demo"))
+    out = detect_changes(pre, post, grid, AnalysisRequest(case_id="trishuli", mode="demo"))
     assert out["permanent"][6, 6]
     assert not out["water"][6, 6]
     assert out["water"][20, 20]
@@ -38,10 +38,10 @@ def test_new_water_excludes_permanent_water_and_nodata(grid):
 def test_shadow_and_steep_slopes_are_excluded(grid):
     pre, post = radar(-10), radar(-23)
     post[2, 5:10, 5:10] = 1
-    out = detect_changes(pre, post, grid, AnalysisRequest(mode="demo"))
+    out = detect_changes(pre, post, grid, AnalysisRequest(case_id="trishuli", mode="demo"))
     assert not out["water"][7, 7]
     dem = np.tile(np.arange(30) * 60., (30, 1))
-    out = detect_changes(pre, post, grid, AnalysisRequest(mode="demo"), dem=dem)
+    out = detect_changes(pre, post, grid, AnalysisRequest(case_id="trishuli", mode="demo"), dem=dem)
     assert not out["valid"].any()
 
 
@@ -50,7 +50,7 @@ def test_optical_cloud_snow_and_shadow_cannot_supply_debris(grid):
     optical = np.stack([np.full((30,30), v) for v in [.15, .1, .5, .25, 4, 1]])
     after = optical.copy(); after[2] = .12; after[1] = .16
     after[4, :10] = 9; after[4, 10:20] = 11; after[4, 20:25] = 3
-    out = detect_changes(pre, post, grid, AnalysisRequest(mode="demo"), optical_before=optical, optical_after=after)
+    out = detect_changes(pre, post, grid, AnalysisRequest(case_id="trishuli", mode="demo"), optical_before=optical, optical_after=after)
     assert not out["debris"][:25].any()
     assert out["debris"][27, 10]
 
@@ -68,7 +68,7 @@ def test_incompatible_or_same_day_radar_pairs_are_rejected(after):
 def test_catalog_selects_compatible_track_with_coverage():
     def item(day, orbit):
         return {"id": day, "geometry": mapping(box(85, 27, 86, 29)), "properties": {"datetime": day + "T00:00:00Z", "sat:relative_orbit": orbit, "sat:orbit_state": "ascending", "platform": "sentinel-1a", "sar:polarizations": ["VV", "VH"], "sar:instrument_mode": "IW"}}
-    before, after = select_pair([item("2026-08-20",19), item("2026-08-28",20), item("2026-09-01",19)], AnalysisRequest())
+    before, after = select_pair([item("2026-08-20",19), item("2026-08-28",20), item("2026-09-01",19)], AnalysisRequest(case_id="trishuli"))
     assert before.relative_orbit == after.relative_orbit == 19
     assert after.acquired.date() == date(2026, 9, 1)
 

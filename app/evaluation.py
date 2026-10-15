@@ -49,7 +49,8 @@ def _reference_kind(properties):
     return None
 
 
-def evaluate_run(folder, reference_path, coverage_path, activation="EMSR927", allow_demo=False, reference_class=None):
+def evaluate_run(folder, reference_path, coverage_path, activation=None, allow_demo=False, reference_class=None,
+                 reference_attribution=None):
     if reference_class not in {None, "water", "debris", "combined"}:
         raise ValueError("reference_class must be water, debris or combined after reviewing the reference legend.")
     folder = Path(folder)
@@ -168,7 +169,8 @@ def evaluate_run(folder, reference_path, coverage_path, activation="EMSR927", al
         "separate_classes": class_results,
         "water_validation": {"status": class_results["new_water"]["status"], "reason": class_results["new_water"]["reason"]},
         "comparison_type": "class-matched supplied reference comparison" if class_reviewed else "reference class review pending",
-        "attribution": "European Union, Copernicus Emergency Management Service data",
+        "attribution": reference_attribution or ("European Union, Copernicus Emergency Management Service data"
+            if isinstance(activation,str) and activation.upper().startswith('EMSR') and activation[4:].isdigit() else None),
         "limitations": "Pixel-center comparison inside reviewed and class-eligible coverage. Combined scores require both water and debris eligibility. Empty positive classes have no IoU/F1 score. Acquisition timing, candidate-versus-confirmed class definitions and map scale differ. Structural damage and actual road closures remain unverified.",
     }
     return result

@@ -21,7 +21,7 @@ def test_masked_median_does_not_invent_returns_next_to_nodata():
     before[0, 3, 2:5] = .1
     after[0, 3, 2:5] = 10 ** (-23 / 10)
     before[1, 3, 2:5] = after[1, 3, 2:5] = 1
-    out = detect_changes(before, after, grid, AnalysisRequest(min_component_pixels=1))
+    out = detect_changes(before, after, grid, AnalysisRequest(case_id="trishuli", min_component_pixels=1))
     assert out["after_db"][3, 3] == pytest.approx(-23)
     assert out["before_db"][3, 3] == pytest.approx(-10)
     assert out["water"][3, 3]
@@ -44,7 +44,7 @@ def test_zero_reflectance_is_not_usable_clear_optical_coverage():
     radar = np.stack([np.full((7, 7), .1), np.ones((7, 7)), np.zeros((7, 7))])
     optical = np.zeros((6, 7, 7))
     optical[4], optical[5] = 4, 1
-    out = detect_changes(radar, radar, grid, AnalysisRequest(), optical_before=optical, optical_after=optical)
+    out = detect_changes(radar, radar, grid, AnalysisRequest(case_id="trishuli"), optical_before=optical, optical_after=optical)
     assert not out["optical_valid"].any()
     assert not out["debris_eligible"].any()
 
@@ -61,7 +61,7 @@ def test_availability_uses_each_class_domain_not_union():
 
 @pytest.mark.parametrize("radar_observed", [True, False])
 def test_pipeline_missing_observations_are_null_not_zero(monkeypatch, tmp_path, radar_observed):
-    params = AnalysisRequest(bbox=[85.2, 28, 85.205, 28.005], satellite_provider="copernicus")
+    params = AnalysisRequest(case_id="trishuli", bbox=[85.2, 28, 85.205, 28.005], satellite_provider="copernicus")
     def acquire(params, grid, folder, progress):
         radar = np.stack([np.full((grid.height, grid.width), .1), np.ones((grid.height, grid.width)), np.zeros((grid.height, grid.width))])
         if not radar_observed:
@@ -126,6 +126,9 @@ def test_water_reference_does_not_produce_debris_accuracy(evaluation_case):
     before = {path.name: path.read_bytes() for path in folder.iterdir()}
     result = evaluate_run(folder, reference, coverage)
     assert result["metrics"]["iou"] == 1
+    assert result['activation'] is None and result['attribution'] is None
+    credited = evaluate_run(folder, reference, coverage, activation='custom-reference',reference_attribution='Independent reviewed data')
+    assert credited['activation']=='custom-reference' and credited['attribution']=='Independent reviewed data'
     assert result["separate_classes"]["new_water"]["iou"] == 1
     assert result["separate_classes"]["debris_candidate"]["iou"] is None
     assert {path.name: path.read_bytes() for path in folder.iterdir()} == before

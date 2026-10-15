@@ -49,14 +49,14 @@
           <div class="section-heading"><div><span class="eyebrow">01 / SET UP</span><h2>Define your analysis</h2></div><span class="section-icon" aria-hidden="true">⌖</span></div>
           <form id="analysis-form">
             <label for="region">Area of interest</label>
-            <select id="region"><option value="trishuli">Trishuli river corridor, Nepal</option><option value="custom">Custom area</option></select>
+            <select id="region"><option value="custom">Custom area</option></select>
             <label for="event-date">Flood date</label>
             <input id="event-date" type="date" required>
             <label for="mode">Analysis data</label>
             <select id="mode"><option value="live">Actual satellite observations</option><option value="demo">Synthetic demonstration</option></select>
             <p class="field-note" id="mode-note">Observations are fetched when you run an analysis.</p>
 
-            <details id="advanced">
+            <details id="advanced" open>
               <summary>Area bounds & resolution <span aria-hidden="true">+</span></summary>
               <div class="bounds-inputs">
                 <label for="west">West<input id="west" type="number" step="0.001" required></label>
@@ -73,7 +73,7 @@
 
             <div class="form-divider"></div>
             <label for="satellite-provider">Satellite access</label>
-            <select id="satellite-provider"><option value="public">Public Sentinel mirror</option><option value="copernicus">Copernicus account</option></select>
+            <select id="satellite-provider"><option value="auto">Automatic from configured credentials</option><option value="copernicus">Copernicus account</option><option value="public">Public Sentinel mirror</option></select>
             <p id="credential-note" class="field-note">Public access requires no satellite account. Historical OSM availability is checked separately.</p>
             <div class="method-callout"><i class="tiny-dot"></i><p id="mapping-method-note">Satellite change detection builds the map. The situation-report copilot answers questions and writes briefings from its results.</p></div>
             <button id="run-button" class="button primary" type="submit"><span aria-hidden="true">⌁</span> Run analysis <span class="button-arrow" aria-hidden="true">→</span></button>
@@ -183,7 +183,7 @@
             <div class="provenance-heading"><h4>Evidence for this analysis</h4><span id="evidence-mode" class="tag">No run loaded</span></div>
             <div id="provenance-content" class="provenance-content"><p class="field-note">Run an analysis to inspect acquisition dates, orbit geometry and the OSM snapshot.</p></div>
             <details class="limitations-details"><summary>Limitations & unassessed areas <span aria-hidden="true">+</span></summary><ul id="limitations-list"><li>Satellite observations, infrastructure exposure and assumed road closures require independent validation.</li></ul></details>
-            <div class="evaluation-note"><div><span class="eyebrow">EVALUATION ONLY</span><h4>Copernicus EMSR927</h4></div><p id="evaluation-status">No comparison attached. Reference maps are used only to check completed predictions.</p><a href="https://mapping.emergency.copernicus.eu/activations/EMSR927/" target="_blank" rel="noreferrer">Inspect official reference products ↗</a></div>
+            <div class="evaluation-note"><div><span class="eyebrow">EVALUATION ONLY</span><h4 id="evaluation-title">Independent reference comparison</h4></div><p id="evaluation-status">No comparison attached. Reference maps are used only to check completed predictions.</p><a id="evaluation-reference" hidden target="_blank" rel="noreferrer">Inspect official reference products ↗</a></div>
           </div>
 
           <div class="map-footer"><span><i class="tiny-dot"></i><span id="coverage-label">Observation coverage is shown after analysis</span></span><div><a id="export-geojson" href="#" aria-disabled="true" tabindex="-1">GeoJSON ↓</a><a id="export-raster" href="#" aria-disabled="true" tabindex="-1">GeoTIFF ↓</a><a id="export-audit" href="#" aria-disabled="true" tabindex="-1">Audit JSON ↓</a></div></div>
@@ -202,11 +202,11 @@
     <footer class="page-footer">
       <div><strong>floodlens</strong><span>Educational prototype · not operational · Field verification required</span></div>
       <details open><summary>Data attribution & licenses <span aria-hidden="true">+</span></summary>
-        <p>Contains modified Copernicus Sentinel data 2026.</p>
+        <p id="sentinel-attribution">Sentinel attribution follows the selected observations.</p>
         <p>Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.</p>
         <p><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors.</a> OSM-derived databases: <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer">ODbL</a>. Leaflet: BSD-2-Clause.</p>
         <p>Selected AI component: situation-report copilot. Mapping uses radar and optical change-detection rules; no flood-segmentation training dataset or external model weights are required.</p>
-        <p>EMSR927 is evaluation-only. Credit: European Union, Copernicus Emergency Management Service data. Synthetic demonstrations contain generated test inputs.</p>
+        <p>Copernicus Emergency Management Service references are evaluation-only and credited when attached. Synthetic demonstrations contain generated test inputs.</p>
       </details>
     </footer>
   </main>

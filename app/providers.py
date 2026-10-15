@@ -1,9 +1,13 @@
 """Allowed-input adapters. Published damage maps are deliberately absent."""
 from datetime import datetime, timedelta, timezone
+import hashlib
 import time
 from io import BytesIO
 import os
 from pathlib import Path
+import json
+import tarfile
+from urllib.parse import urljoin,urlsplit,urlunsplit
 
 import httpx
 import numpy as np
@@ -11,16 +15,21 @@ from rasterio.io import MemoryFile
 from rasterio.warp import reproject, Resampling
 from shapely import from_wkb
 from shapely.geometry import box, shape, mapping
+from shapely.ops import unary_union
 
 from app.models import Scene, validate_pair
 from app.presets import osm_cutoff
+from app.settings import ACQUISITION,MAPPING
+from app.scene_selection import optical_pair,acquired
+from app.cdse_runtime import access_token,request_with_retry
+from app.storage import save_json
 
 
-STAC_URL = "https://stac.dataspace.copernicus.eu/v1/search"
-PROCESS_URL = "https://sh.dataspace.copernicus.eu/process/v1"
-TOKEN_URL = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
-OSM_URL = "https://api.ohsome.org/v1"
-OSM_V2_URL = "https://api.heigit.org/ohsome-api/v2-rc"
+STAC_URL = ACQUISITION.cdse_stac_url
+PROCESS_URL = ACQUISITION.cdse_process_url
+TOKEN_URL = ACQUISITION.cdse_token_url
+OSM_URL = ACQUISITION.osm_url
+OSM_V2_URL = ACQUISITION.osm_v2_url
 OSM_FILTER = "building=* or highway=* or bridge=* or man_made=bridge or place in (village,hamlet,isolated_dwelling,town,city) or amenity=hospital"
 
 
@@ -40,22 +49,31 @@ def historical_request(client, method, url, **kwargs):
 
 
 def search_catalog(bbox, start, end, collection="sentinel-1-grd"):
-    payload = {"collections": [collection], "bbox": bbox, "datetime": f"{start}/{end}", "limit": 100}
+    payload = {"collections": [collection], "bbox": bbox, "datetime": f"{start}/{end}", "limit": ACQUISITION.catalog_page_size}
     features = []
-    with httpx.Client(timeout=60, follow_redirects=True) as client:
-        for _ in range(10):
-            response = client.post(STAC_URL, json=payload)
+    method,url='POST',STAC_URL
+    seen=set()
+    with httpx.Client(timeout=ACQUISITION.catalog_timeout_seconds, follow_redirects=True) as client:
+        for _ in range(ACQUISITION.catalog_max_pages):
+            response = request_with_retry(client,method,url,**({'json':payload} if method=='POST' else {}))
             response.raise_for_status()
             data = response.json()
-            features.extend(data.get("features", []))
+            for item in data.get('features',[]):
+                if item.get('id') not in seen:
+                    features.append(item);seen.add(item.get('id'))
             next_link = next((link for link in data.get("links", []) if link["rel"] == "next"), None)
             if not next_link:
                 break
             # CDSE STAC continuation body; keep a bounded catalog query.
-            if next_link.get("body"):
-                payload = {**payload, **next_link["body"]}
-            else:
+            target=urljoin(STAC_URL,next_link.get('href') or STAC_URL)
+            parsed=urlsplit(target)
+            if (parsed.scheme,parsed.netloc)!=(urlsplit(STAC_URL).scheme,urlsplit(STAC_URL).netloc):
+                raise ValueError('Catalog continuation changed service origin')
+            method=next_link.get('method','POST' if next_link.get('body') else 'GET').upper()
+            if method not in ('GET','POST') or not (next_link.get('href') or next_link.get('body')):
                 raise ValueError("Catalog search needs more pages. Reduce the area or search window.")
+            if method=='POST':payload={**payload,**next_link.get('body',{})}
+            url=target
         else:
             raise ValueError("Catalog page limit reached. Reduce the area or search window.")
     return features
@@ -67,19 +85,37 @@ def scene_from_item(item):
         raise ValueError("This acquisition path requires both VV and VH polarizations")
     return Scene(id=item["id"], acquired=datetime.fromisoformat(props["datetime"].replace("Z", "+00:00")),
                  relative_orbit=props["sat:relative_orbit"], direction=props["sat:orbit_state"],
-                 platform=props["platform"], instrument_mode=props.get("sar:instrument_mode", "UNKNOWN"))
+                 platform=props["platform"],polarization='+'.join(sorted(props['sar:polarizations'])), instrument_mode=props.get("sar:instrument_mode", "UNKNOWN"))
 
 
-def select_pair(items, params):
+def select_pair(items, params, *, allow_mosaics=False):
     area = box(*params.bbox)
     eligible = []
+    partial=[]
     for item in items:
         try:
             scene = scene_from_item(item)
-            if scene.instrument_mode == "IW" and shape(item["geometry"]).intersection(area).area / area.area >= .98:
-                eligible.append(scene)
+            footprint=shape(item['geometry']).intersection(area)
+            if scene.instrument_mode=='IW' and not footprint.is_empty and footprint.is_valid:
+                partial.append((scene,footprint))
+                if footprint.area/area.area>=ACQUISITION.minimum_scene_coverage:eligible.append(scene)
         except (ValueError, KeyError):
             continue
+    if allow_mosaics:
+        groups={}
+        for scene,footprint in partial:
+            key=(scene.acquired.date(),scene.platform,scene.relative_orbit,scene.direction,scene.polarization,scene.instrument_mode)
+            groups.setdefault(key,[]).append((scene,footprint))
+        for records in groups.values():
+            passes=[]
+            for record in sorted(records,key=lambda value:value[0].acquired):
+                if not passes or (record[0].acquired-passes[-1][0][0].acquired).total_seconds()>ACQUISITION.radar_pass_tolerance_seconds:
+                    passes.append([])
+                passes[-1].append(record)
+            for records in passes:
+                if len(records)<2 or unary_union([g for _,g in records]).area/area.area<ACQUISITION.minimum_scene_coverage:continue
+                identifiers=list(dict.fromkeys(scene.id for scene,_ in records))
+                eligible.append(records[0][0].model_copy(update={'catalog_ids':identifiers,'acquisition_end':records[-1][0].acquired}))
     pairs = []
     for before in eligible:
         for after in eligible:
@@ -90,10 +126,10 @@ def select_pair(items, params):
             interval = (after.acquired - before.acquired).total_seconds() / 86400
             delay = (after.acquired.date() - params.flood_date).days
             pre_gap = (params.flood_date - before.acquired.date()).days
-            score = delay + .3 * pre_gap + abs(interval - 12) * .4
+            score = delay + ACQUISITION.radar_pre_gap_weight * pre_gap + abs(interval - ACQUISITION.radar_repeat_days) * ACQUISITION.radar_repeat_weight
             pairs.append((score, before, after))
     if not pairs:
-        raise ValueError("No same-platform, same-track IW/VV pair covering this entire area. Reduce the area or widen the search window. The flood day itself is excluded.")
+        raise ValueError("No same-platform, same-track IW/VV+VH pair covering this entire area. Reduce the area or widen the search window. The flood day itself is excluded.")
     _, before, after = min(pairs, key=lambda p: p[0])
     return [before, after]
 
@@ -239,51 +275,106 @@ class CopernicusProcessingError(ValueError):
 class CopernicusProvider:
     def __init__(self, grid, folder):
         self.grid, self.folder = grid, Path(folder)
-        client_id, secret = os.getenv("CDSE_CLIENT_ID"), os.getenv("CDSE_CLIENT_SECRET")
-        if not client_id or not secret:
-            raise ValueError("Live mode needs CDSE_CLIENT_ID and CDSE_CLIENT_SECRET from a Copernicus Sentinel Hub OAuth client. The synthetic demo works without credentials.")
-        with httpx.Client(timeout=30) as client:
-            response = client.post(TOKEN_URL, data={"grant_type": "client_credentials", "client_id": client_id, "client_secret": secret})
-            if response.status_code != 200:
-                raise ValueError("Copernicus authentication failed. Check the Sentinel Hub OAuth client in your CDSE account.")
-            self.token = response.json()["access_token"]
+        self.token = access_token(TOKEN_URL)
+        self.observations={}
 
     def process(self, kind, output_name, scene=None):
         bands = {"sentinel-1-grd": ["VV", "dataMask", "shadowMask", "VH"], "sentinel-2-l2a": ["B03", "B04", "B08", "B11", "SCL", "dataMask"], "dem": ["DEM"]}[kind]
-        evaluation = f"//VERSION=3\nfunction setup(){{return {{input:{bands!r},output:{{bands:{len(bands)},sampleType:'FLOAT32'}}}};}}\nfunction evaluatePixel(s){{return [{','.join('s.' + band for band in bands)}];}}"
+        satellite=kind!='dem'
+        if satellite and not scene:raise ValueError('Satellite processing requires a selected catalog acquisition')
+        returns=','.join('s.'+band for band in bands)
+        if satellite:
+            allowed=[code for code in range(12) if code not in MAPPING.optical_excluded_scl_classes]
+            quality=f'{json.dumps(allowed)}.indexOf(s.SCL)>=0' if kind=='sentinel-2-l2a' else 's.shadowMask===0'
+            evaluation=(f"//VERSION=3\nfunction setup(){{return {{input:{json.dumps(bands)},mosaicking:'TILE',output:{{bands:{len(bands)},sampleType:'FLOAT32'}}}};}}\n"
+                f"function evaluatePixel(samples){{var first=null;for(var i=0;i<samples.length;i++){{var s=samples[i];if(s.dataMask>0){{if(first===null)first=s;if({quality})return [{returns}];}}}}if(first!==null){{var s=first;return [{returns}];}}return {json.dumps([0]*len(bands))};}}\n"
+                "function updateOutputMetadata(scenes,inputMetadata,outputMetadata){outputMetadata.userData={tiles:scenes.tiles.map(function(t){return {date:t.date,shId:t.shId,dataPath:t.dataPath};})};}")
+        else:
+            evaluation=f"//VERSION=3\nfunction setup(){{return {{input:{json.dumps(bands)},output:{{bands:{len(bands)},sampleType:'FLOAT32'}}}};}}\nfunction evaluatePixel(s){{return [{returns}];}}"
         data_filter = {}
         processing = {}
         if scene:
-            acquired = scene.acquired if isinstance(scene, Scene) else datetime.fromisoformat(scene["properties"]["datetime"].replace("Z", "+00:00"))
-            # A narrow acquisition window selects this pass; neighboring swath slices can
-            # contribute, all sharing its track. No before/after date-range mosaic.
-            data_filter["timeRange"] = {"from": (acquired - timedelta(seconds=30)).isoformat(), "to": (acquired + timedelta(seconds=60)).isoformat()}
+            selected=scene if isinstance(scene,list) else [scene]
+            times=[instant for item in selected for instant in ((item.acquired,item.acquisition_end or item.acquired) if isinstance(item,Scene) else (acquired(item),))]
+            # A narrow radar window selects this pass, including adjacent slices.
+            first,last=min(times),max(times)
+            lower=max(first-timedelta(seconds=ACQUISITION.scene_window_before_seconds),first.replace(hour=0,minute=0,second=0,microsecond=0))
+            upper=min(last+timedelta(seconds=ACQUISITION.scene_window_after_seconds),last.replace(hour=23,minute=59,second=59,microsecond=999999))
+            if kind=='sentinel-2-l2a':
+                # CDSE STAC timestamps describe the datatake start, whereas
+                # Sentinel Hub tile times describe local sensing. A tiny S1
+                # pass window can therefore return no S2 pixels. Query the
+                # selected UTC day and retain actual processed tile dates/IDs.
+                lower=first.replace(hour=0,minute=0,second=0,microsecond=0)
+                upper=last.replace(hour=23,minute=59,second=59,microsecond=999999)
+            data_filter["timeRange"] = {"from":lower.isoformat(),"to":upper.isoformat()}
         if kind == "sentinel-1-grd":
             data_filter.update({"acquisitionMode": "IW", "polarization": "DV", "orbitDirection": scene.direction.upper()})
             processing = {"orthorectify": True, "backCoeff": "GAMMA0_TERRAIN", "demInstance": "COPERNICUS_30", "speckleFilter": {"type": "NONE"}}
         elif kind == "dem":
             data_filter["demInstance"] = "COPERNICUS_30"
+        elif kind=='sentinel-2-l2a':
+            data_filter['mosaickingOrder']='leastCC'
+            # Per-tile cloud percentages are ranking hints, not AOI masks.
+            # SCL and dataMask decide which returned pixels are usable.
+            data_filter['maxCloudCoverage']=100
         payload = {
             "input": {"bounds": {"bbox": self.grid.bounds, "properties": {"crs": f"http://www.opengis.net/def/crs/EPSG/0/{self.grid.crs.split(':')[1]}"}},
                       "data": [{"type": kind, "dataFilter": data_filter, "processing": processing}]},
-            "output": {"width": self.grid.width, "height": self.grid.height, "responses": [{"identifier": "default", "format": {"type": "image/tiff"}}]},
+            "output": {"width": self.grid.width, "height": self.grid.height, "responses": [{"identifier": "default", "format": {"type": "image/tiff"}}]+([{'identifier':'userdata','format':{'type':'application/json'}}] if satellite else [])},
             "evalscript": evaluation,
         }
-        with httpx.Client(timeout=240) as client:
-            response = client.post(PROCESS_URL, headers={"Authorization": f"Bearer {self.token}"}, json=payload)
+        with httpx.Client(timeout=ACQUISITION.process_timeout_seconds) as client:
+            self.token=access_token(TOKEN_URL)
+            for attempt in range(2):
+                response = request_with_retry(client,'POST',PROCESS_URL,milliseconds=True,
+                    headers={"Authorization":f'Bearer {self.token}','Accept':'application/x-tar' if satellite else 'image/tiff'},json=payload)
+                if response.status_code!=401 or attempt:break
+                self.token=access_token(TOKEN_URL,invalidate=self.token)
         if response.status_code != 200:
             # Do not dump requests/headers or authentication responses into the UI/logs.
             raise CopernicusProcessingError(response.status_code, kind)
-        (self.folder / f"{output_name}.tif").write_bytes(response.content)
-        with MemoryFile(response.content) as memory, memory.open() as source:
+        content=response.content
+        metadata=None
+        if satellite:
+            try:
+                with tarfile.open(fileobj=BytesIO(content),mode='r:*') as archive:
+                    members=archive.getmembers()
+                    images=[member for member in members if member.name in ('default.tif','default.tiff')]
+                    details=[member for member in members if member.name=='userdata.json']
+                    if len(images)!=1 or len(details)!=1 or not images[0].isfile() or not details[0].isfile():raise ValueError('Missing unique imagery/metadata')
+                    if images[0].size>self.grid.width*self.grid.height*len(bands)*8+1024*1024 or details[0].size>4*1024*1024:
+                        raise ValueError('Oversized processing output')
+                    content=archive.extractfile(images[0]).read()
+                    metadata=json.load(archive.extractfile(details[0]))
+                tiles=metadata['tiles']
+                if not isinstance(tiles,list) or not tiles or len(tiles)>ACQUISITION.catalog_page_size*ACQUISITION.catalog_max_pages:
+                    raise ValueError('Missing or excessive processed tiles')
+                clean=[]
+                for tile in tiles:
+                    instant=datetime.fromisoformat(tile['date'].replace('Z','+00:00'))
+                    if instant.tzinfo is None or not lower<=instant<=upper:raise ValueError('Processing returned an unexpected observation date')
+                    path=urlsplit(str(tile.get('dataPath','')))
+                    clean.append({'date':instant.isoformat(),'shId':tile.get('shId'),
+                                  'dataPath':urlunsplit((path.scheme,path.netloc,path.path,'',''))})
+                metadata={'selected_catalog_ids':[identifier for item in selected for identifier in ((item.catalog_ids or [item.id]) if isinstance(item,Scene) else [item['id']])],
+                          'processed_tiles':clean,'time_range':data_filter['timeRange'],'mosaicking':'TILE; prefer observed non-shadow/clear samples'}
+            except (tarfile.TarError,OSError,KeyError,TypeError,ValueError):
+                raise ValueError('CDSE imagery or processed-scene metadata is invalid; refusing unverified observations') from None
+        with MemoryFile(content) as memory, memory.open() as source:
             if source.crs is None:
                 raise ValueError("Satellite TIFF is missing its coordinate reference system.")
+            if source.count!=len(bands):raise ValueError('CDSE raster band count does not match the requested sensor contract')
             array = np.full((len(bands), self.grid.height, self.grid.width), np.nan, dtype="float32")
             for index in range(len(bands)):
                 reproject(source.read(index + 1), array[index], src_transform=source.transform, src_crs=source.crs,
                           dst_transform=self.grid.transform, dst_crs=self.grid.crs, resampling=Resampling.nearest, dst_nodata=np.nan)
         if kind != "dem" and not np.any(array[bands.index("dataMask")] > 0):
             raise ValueError(f"No valid {kind} pixels returned for this acquisition.")
+        (self.folder/f'{output_name}.tif').write_bytes(content)
+        if metadata:
+            self.observations[output_name]=metadata
+            save_json(self.folder/f'{output_name}-sources.json',metadata)
         return array
 
 
@@ -296,7 +387,7 @@ def acquire_live(params, grid, folder, progress):
     end = (params.flood_date + timedelta(days=params.search_days)).isoformat() + "T23:59:59Z"
     progress("Searching matching Sentinel-1 orbit tracks", 12)
     items = search_catalog(params.bbox, start, end)
-    scenes = select_pair(items, params)
+    scenes = select_pair(items, params, allow_mosaics=True)
     progress("Processing pre-event Sentinel-1 GRD with terrain correction", 23)
     before = provider.process("sentinel-1-grd", "s1-before", scenes[0])
     progress("Processing post-event Sentinel-1 GRD with terrain correction", 38)
@@ -323,27 +414,36 @@ def acquire_live(params, grid, folder, progress):
     progress("Checking clear-sky Sentinel-2 support", 60)
     try:
         optical = search_catalog(params.bbox, start, end, "sentinel-2-l2a")
-        area = box(*params.bbox)
-        usable = [item for item in optical if item["properties"].get("eo:cloud_cover", 100) <= 60 and shape(item["geometry"]).intersection(area).area / area.area >= .98]
-        pre = [i for i in usable if i["properties"]["datetime"][:10] < str(params.flood_date)]
-        post = [i for i in usable if i["properties"]["datetime"][:10] > str(params.flood_date)]
-        def optical_score(item):
-            days = abs((datetime.fromisoformat(item["properties"]["datetime"].replace("Z", "+00:00")).date() - params.flood_date).days)
-            return item["properties"].get("eo:cloud_cover", 100) + days
-        if pre and post:
-            pre_item, post_item = min(pre, key=optical_score), min(post, key=optical_score)
-            optical_before = provider.process("sentinel-2-l2a", "s2-before", pre_item)
-            optical_after = provider.process("sentinel-2-l2a", "s2-after", post_item)
-            optical_scenes = [pre_item["id"], post_item["id"]]
-            optical_observations = [{"id": item["id"], "acquired": item["properties"]["datetime"]} for item in (pre_item, post_item)]
+        pair=optical_pair(optical,params)
+        if all(pair):
+            optical_before=provider.process('sentinel-2-l2a','s2-before',pair[0])
+            optical_after=provider.process('sentinel-2-l2a','s2-after',pair[1])
+            processed=getattr(provider,'observations',{})
+            if all('s2-'+epoch in processed for epoch in ('before','after')):
+                for epoch in ('before','after'):
+                    for tile in processed['s2-'+epoch]['processed_tiles']:
+                        identifier=('CDSE-SH-'+str(tile['shId'])) if tile.get('shId') is not None else ('CDSE-SH-'+hashlib.sha256((tile['dataPath']+tile['date']).encode()).hexdigest()[:20])
+                        if identifier not in optical_scenes:
+                            optical_scenes.append(identifier)
+                            optical_observations.append({'id':identifier,'acquired':tile['date'],'epoch':epoch,'source':'actual Sentinel Hub processed tile metadata'})
+            else:
+                optical_scenes=[item['id'] for tiles in pair for item in tiles]
+                optical_observations=[{'id':item['id'],'acquired':item['properties']['datetime'],'epoch':epoch}
+                                      for epoch,tiles in zip(('before','after'),pair) for item in tiles]
         else:
             warnings.append("No suitable pre/post optical pair. Debris candidates are unavailable; radar water analysis continues.")
     except (httpx.HTTPError, ValueError, KeyError):
         warnings.append("Optical provider unavailable. Radar water analysis continues without debris candidates.")
         optical_before, optical_after = None, None
+        optical_scenes,optical_observations=[],[]
+        for epoch in ('before','after'):
+            path=Path(folder)/f's2-{epoch}.tif'
+            if path.exists():path.replace(path.with_name('unpaired-'+path.name))
     return {"before": before, "after": after, "vh_before": before[3], "vh_after": after[3], "dem": dem, "osm": osm, "scenes": scenes, "snapshot": timestamp,
             "optical_before": optical_before, "optical_after": optical_after, "optical_scenes": optical_scenes, "optical_observations": optical_observations, "warnings": warnings,
             "acquisition": {"provider": "Copernicus Data Space Sentinel Hub Processing API", "catalog": STAC_URL,
                             "process_endpoint": PROCESS_URL, "radar_scene_ids": [scene.id for scene in scenes],
+                            "radar_catalog_ids":[scene.catalog_ids or [scene.id] for scene in scenes],
                             "dem": dem_source,
+                            "processed_observations":getattr(provider,'observations',{}),
                             "processing": "Sentinel Hub VV/VH gamma0 terrain backscatter, orthorectified using COPERNICUS_30; data and shadow masks retained"}}

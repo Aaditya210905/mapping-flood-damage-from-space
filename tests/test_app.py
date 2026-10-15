@@ -15,7 +15,7 @@ from app.pipeline import run_analysis
 @pytest.fixture(scope="module")
 def synthetic_run(tmp_path_factory):
     folder = tmp_path_factory.mktemp("run")
-    return run_analysis(AnalysisRequest(mode="demo", resolution_m=100), str(uuid.uuid4()), folder), folder
+    return run_analysis(AnalysisRequest(case_id="trishuli", mode="demo", resolution_m=100), str(uuid.uuid4()), folder), folder
 
 
 @pytest.mark.parametrize("question,intent", [
@@ -48,7 +48,7 @@ def test_live_mode_requires_credentials_without_falling_back(monkeypatch):
     monkeypatch.delenv("CDSE_CLIENT_ID", raising=False)
     monkeypatch.delenv("CDSE_CLIENT_SECRET", raising=False)
     with TestClient(main.app) as client:
-        response = client.post("/api/analyses", json={"mode":"live", "satellite_provider":"copernicus"})
+        response = client.post("/api/analyses", json={"case_id":"trishuli", "mode":"live", "satellite_provider":"copernicus"})
         assert response.status_code == 422
         assert "CDSE_CLIENT_ID" in response.json()["detail"]
 
@@ -57,7 +57,7 @@ def test_dashboard_job_exports_and_reports(tmp_path, monkeypatch):
     monkeypatch.setattr(main, "DATA", tmp_path)
     with TestClient(main.app) as client:
         assert client.get("/").status_code == 200
-        response = client.post("/api/analyses", json={"mode":"demo", "resolution_m":100})
+        response = client.post("/api/analyses", json={"case_id":"trishuli", "mode":"demo", "resolution_m":100})
         assert response.status_code == 202
         run_id = response.json()["id"]
         for _ in range(120):

@@ -6,7 +6,8 @@ const map = L.map("map", { zoomControl: true, attributionControl: true, preferCa
 map.createPane("radar");
 map.getPane("radar").style.zIndex = 250;
 map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noreferrer">Leaflet</a>');
-map.attributionControl.addAttribution("© OpenStreetMap contributors · Contains modified Copernicus Sentinel data 2026");
+map.attributionControl.addAttribution("© OpenStreetMap contributors");
+let selectedSentinelAttribution = null;
 L.control.scale({ position: "bottomright", imperial: false }).addTo(map);
 
 function escapeHTML(value) {
@@ -120,7 +121,7 @@ function popup(title, pairs) {
 }
 
 function sourceUsage(source) {
-  if (source.category === "evaluation_only") return [state.run?.mode === "live" && state.run?.evaluation?.metrics ? "Comparison attached" : "Evaluation only", "reference"];
+  if (source.category === "evaluation_only") return [state.run?.mode === "live" && state.run?.evaluation?.metrics && String(state.run.evaluation.activation || "").toLowerCase() === source.id ? "Comparison attached" : "Evaluation only", "reference"];
   if (!state.run) return ["On demand", ""];
   if (state.run.mode === "demo") return ["Synthetic fixture", "demo"];
   if (source.id === "sentinel2" && !state.run.provenance.optical_scenes?.length) return ["Unavailable in run", ""];
@@ -159,7 +160,8 @@ function syncSetup() {
   $("credential-note").hidden = demo;
   $("mode-note").textContent = demo ? "Generated test fixtures. No satellite data is downloaded." : "Observations are fetched when you run an analysis.";
   $("mapping-method-note").textContent = demo ? "Generated inputs supply the maps and facts for this synthetic copilot demonstration." : "Satellite change detection builds the map. The situation-report copilot answers questions and writes briefings from its results.";
-  $("credential-note").textContent = $("satellite-provider").value === "copernicus" ? "This provider requires your Copernicus account credentials. Historical OSM is verified separately." : "Public access requires no satellite account. Historical OSM availability is checked separately.";
+  const provider = $("satellite-provider").value;
+  $("credential-note").textContent = provider === "auto" ? "Automatic access uses CDSE when both account credentials are configured. Historical OSM is verified separately." : provider === "copernicus" ? "This provider requires your Copernicus account credentials. Historical OSM is verified separately." : "Public access requires no satellite account. Historical OSM availability is checked separately.";
 }
 
 function syncResultControls() {
@@ -262,6 +264,11 @@ function updateLayers() {
 }
 
 function renderRun(run) {
+  if (selectedSentinelAttribution) map.attributionControl.removeAttribution(selectedSentinelAttribution);
+  const sentinelCredit = (run.attributions || []).find((credit) => credit.startsWith("Contains modified Copernicus Sentinel data"));
+  selectedSentinelAttribution = sentinelCredit ? escapeHTML(sentinelCredit) : null;
+  if (selectedSentinelAttribution) map.attributionControl.addAttribution(selectedSentinelAttribution);
+  $("sentinel-attribution").textContent = sentinelCredit || "Sentinel attribution follows the selected observations.";
   state.run = run;
   state.history = [];
   try { localStorage.setItem("flood-lens-run", run.id); } catch { /* Results work without persistent browser storage. */ }
@@ -311,7 +318,11 @@ function renderRun(run) {
   $("provenance-content").innerHTML = rows.map(([k, v]) => `<div class="provenance-row"><span>${escapeHTML(k)}</span><strong>${escapeHTML(v)}</strong></div>`).join("") + run.warnings.map((w) => `<p class="field-note">${escapeHTML(w)}</p>`).join("");
   $("limitations-list").innerHTML = run.limitations.map((item) => `<li>${escapeHTML(item)}</li>`).join("");
   const score = (value) => Number.isFinite(value) ? value.toFixed(3) : "N/A";
-  $("evaluation-status").textContent = run.evaluation.metrics ? `${run.mode === "demo" ? "Synthetic sanity check" : "Official EMSR927 comparison"}: IoU ${score(run.evaluation.metrics.iou)}, F1 ${score(run.evaluation.metrics.f1)}. ${run.evaluation.reason || ""} ${run.evaluation.primary_target || ""}. ${run.evaluation.limitations}` : run.evaluation.reason;
+  const activation = /^EMSR\d+$/.test(run.evaluation.activation || "") ? run.evaluation.activation : null;
+  $("evaluation-title").textContent = activation ? `Copernicus ${activation}` : "Independent reference comparison";
+  $("evaluation-reference").hidden = !activation;
+  if (activation) $("evaluation-reference").href = `https://mapping.emergency.copernicus.eu/activations/${activation}/`;
+  $("evaluation-status").textContent = run.evaluation.metrics ? `${run.mode === "demo" ? "Synthetic sanity check" : "Independent reference comparison"}: IoU ${score(run.evaluation.metrics.iou)}, F1 ${score(run.evaluation.metrics.f1)}. ${run.evaluation.reason || ""} ${run.evaluation.primary_target || ""}. ${run.evaluation.limitations || ""}` : run.evaluation.reason;
   $("conversation").replaceChildren();
   renderMap(run);
   renderSources();
@@ -342,7 +353,8 @@ async function runAnalysis() {
   $("form-error").hidden = true;
   $("progress-fill").style.width = "0%";
   $("progress-track").setAttribute("aria-valuenow", "0");
-  const payload = { name: $("area-name").value, bbox: ["west", "south", "east", "north"].map((id) => Number($(id).value)), case_id: $("region").value, flood_date: $("event-date").value, mode: $("mode").value, satellite_provider: $("satellite-provider").value, resolution_m: Number($("resolution").value), change_threshold_db: Number($("change").value) };
+  const payload = { bbox: ["west", "south", "east", "north"].map((id) => Number($(id).value)), case_id: $("region").value, flood_date: $("event-date").value, mode: $("mode").value, satellite_provider: $("satellite-provider").value, resolution_m: Number($("resolution").value), change_threshold_db: Number($("change").value) };
+  if ($("area-name").value.trim()) payload.name = $("area-name").value.trim();
   try {
     const job = await post("/api/analyses", payload);
     while (true) {
@@ -393,6 +405,7 @@ async function ask(question) {
     appendMatchingLists(container, response, queriedRun, language);
     const status = document.createElement("p"); status.className = "generation-status";
     status.textContent = response.generation.mode === "llm" ? (language === "ne" ? "Groq · प्रमाणसँग जाँचिएका तथ्य" : "Groq · evidence-validated claims") : (language === "ne" ? "निश्चित वैकल्पिक उत्तर · सुरक्षित तथ्य" : "Deterministic fallback · evidence-backed answer"); container.append(status);
+    if (response.generation.cache_hit) status.textContent += language === "ne" ? " · पहिलेको जाँचिएको उत्तर पुनः प्रयोग" : " · reused validated answer";
     if (response.facts.some((fact) => fact.status === "available")) {
       const verified = document.createElement("span"); verified.className = "verification-badge";
       verified.textContent = language === "ne" ? "✓ मानहरू सुरक्षित तथ्यसँग मिल्छन् · वास्तविक अवस्था पुष्टि भएको होइन" : "✓ Values match this saved run · physical accuracy unverified"; container.append(verified);
@@ -476,6 +489,7 @@ $("generate-report").addEventListener("click", async () => {
     if (response.run_id !== runId || response.language !== language) throw new Error("Report does not match the selected analysis.");
     const label = language === "ne" ? (response.status === "partial" ? "अपूर्ण प्रतिवेदन · नभएका तथ्य उपलब्ध छैनन्" : "प्रतिवेदन तयार भयो") : (response.status === "partial" ? "Incomplete report · missing facts marked unavailable" : "Report ready");
     note.textContent = `${label} · ${response.generation.mode === "llm" ? "Groq" : language === "ne" ? "निश्चित वैकल्पिक उत्तर" : "Deterministic fallback"}`; note.className = "generation-status";
+    if (response.generation.cache_hit) note.textContent += language === "ne" ? " · जाँचिएको उत्तर पुनः प्रयोग" : " · reused validated wording";
     appendReportLinks($("conversation"), response.links, runId, language);
   } catch (error) { note.className = "error"; note.textContent = error.message; }
   finally { state.asking = false; syncResultControls(); }
@@ -510,6 +524,7 @@ document.querySelectorAll("[data-view]").forEach((button, index, buttons) => {
   });
 });
 $("preview-demo").addEventListener("click", () => {
+  if (!$("analysis-form").reportValidity()) return;
   $("mode").value = "demo"; $("resolution").value = "100";
   syncSetup(); runAnalysis();
 });
@@ -548,6 +563,9 @@ async function initialize() {
   syncResultControls();
   try {
     state.sources = await api("/api/data-sources");
+    for (const preset of Object.values(state.sources.presets || {})) {
+      const option = document.createElement("option"); option.value = preset.id; option.textContent = preset.name; $("region").append(option);
+    }
     const preset = state.sources.presets?.[$("region").value];
     const configuration = state.sources.mapping_configuration;
     if (preset) {
@@ -562,7 +580,7 @@ async function initialize() {
       $("change").value = configuration.change_threshold_db;
       $("change-value").textContent = `${configuration.change_threshold_db} dB`;
     }
-    if (state.sources.workspace?.preferred_satellite_provider === "copernicus") $("satellite-provider").value = "copernicus";
+    $("satellite-provider").value = state.sources.acquisition_configuration?.default_provider || "auto";
     renderSources();
   } catch (error) {
     $("dataset-status").textContent = `Source status unavailable: ${error.message}`;
@@ -586,8 +604,9 @@ async function initialize() {
     if (!run) return;
     $("event-date").value = run.flood_date; $("mode").value = run.mode; $("area-name").value = run.name;
     const legacyPreset = Object.values(state.sources?.presets || {}).find((preset) => preset.flood_date === run.flood_date && preset.bbox.every((value, index) => value === run.bbox[index]));
-    $("region").value = run.parameters.case_id || legacyPreset?.id || "custom";
-    $("satellite-provider").value = run.parameters.satellite_provider || "public";
+    const presetId = run.parameters.case_id || legacyPreset?.id;
+    $("region").value = state.sources?.presets?.[presetId] ? presetId : "custom";
+    $("satellite-provider").value = run.parameters.satellite_provider || "auto";
     ["west", "south", "east", "north"].forEach((id, i) => { $(id).value = run.bbox[i]; });
     $("resolution").value = run.parameters.resolution_m;
     $("change").value = run.parameters.change_threshold_db;

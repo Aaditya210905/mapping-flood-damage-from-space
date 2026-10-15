@@ -20,7 +20,7 @@ def test_cdse_dem_access_denial_uses_only_real_public_copernicus_dem(monkeypatch
     from app import public_data
     from app.geo import Grid
     from app.models import Scene
-    params = AnalysisRequest(mode='live', satellite_provider='copernicus', resolution_m=100,
+    params = AnalysisRequest(case_id="trishuli", mode='live', satellite_provider='copernicus', resolution_m=100,
                              bbox=[85.19, 27.90, 85.20, 27.91])
     grid = Grid.for_bbox(params.bbox, params.resolution_m)
     scenes = [Scene(id='real-before-contract-fixture', acquired='2026-08-20T00:00:00Z', relative_orbit=1, direction='ascending'),
@@ -34,7 +34,7 @@ def test_cdse_dem_access_denial_uses_only_real_public_copernicus_dem(monkeypatch
     monkeypatch.setattr(providers, 'CopernicusProvider', MockProvider)
     monkeypatch.setattr(providers, 'osm_snapshot', lambda p: ({'type': 'FeatureCollection', 'features': []}, '2026-07-27T00:00:00Z'))
     monkeypatch.setattr(providers, 'search_catalog', lambda *args: [])
-    monkeypatch.setattr(providers, 'select_pair', lambda *args: scenes)
+    monkeypatch.setattr(providers, 'select_pair', lambda *args,**kwargs: scenes)
     fetched = []
     def public_dem(actual_grid):
         fetched.append(True)
@@ -63,7 +63,7 @@ def test_real_ohsome_v1_schema_and_strict_pre_event_snapshot(monkeypatch,event,e
             return httpx.Response(200,json={"apiVersion":"1.10.4","extractRegion":{"temporalExtent":{"fromTimestamp":"2007-10-08T00:00:00Z","toTimestamp":"2026-07-27T09:00Z"}}})
         return httpx.Response(200,json={"type":"FeatureCollection","features":[]})
     monkeypatch.setattr(providers.httpx,"Client",lambda **kw:original(transport=httpx.MockTransport(respond),**kw))
-    _, timestamp = providers.osm_snapshot(AnalysisRequest(flood_date=event))
+    _, timestamp = providers.osm_snapshot(AnalysisRequest(case_id="trishuli", flood_date=event))
     assert timestamp == expected
     payload = parse_qs(requests[-1].content.decode())
     assert payload["time"] == [expected]
@@ -76,7 +76,7 @@ def test_unknown_metadata_shape_fails_without_current_osm_fallback(monkeypatch):
     original=httpx.Client
     monkeypatch.setattr(providers.httpx,"Client",lambda **kw:original(transport=httpx.MockTransport(lambda request:httpx.Response(200,json={"apiVersion":"future"})),**kw))
     with pytest.raises(ValueError,match="unverified snapshot"):
-        providers.osm_snapshot(AnalysisRequest())
+        providers.osm_snapshot(AnalysisRequest(case_id="trishuli"))
 
 
 def test_post_event_osm_metadata_is_rejected(monkeypatch):
@@ -87,7 +87,7 @@ def test_post_event_osm_metadata_is_rejected(monkeypatch):
         return httpx.Response(200,json={"type":"FeatureCollection","features":[{"properties":{"@lastEdit":"2026-09-01T00:00:00Z"}}]})
     monkeypatch.setattr(providers.httpx,"Client",lambda **kw:original(transport=httpx.MockTransport(respond),**kw))
     with pytest.raises(ValueError,match="edited after"):
-        providers.osm_snapshot(AnalysisRequest())
+        providers.osm_snapshot(AnalysisRequest(case_id="trishuli"))
 
 
 def test_historical_v2_fallback_preserves_snapshot_and_checks_key(monkeypatch):
@@ -110,7 +110,7 @@ def test_historical_v2_fallback_preserves_snapshot_and_checks_key(monkeypatch):
     original=httpx.Client
     monkeypatch.setattr(providers.httpx,"Client",lambda **kw:original(transport=httpx.MockTransport(respond),**kw))
     monkeypatch.setenv('OHSOME_API_KEY','synthetic-test-key')
-    data,timestamp=providers.osm_snapshot(AnalysisRequest())
+    data,timestamp=providers.osm_snapshot(AnalysisRequest(case_id="trishuli"))
     assert timestamp=='2026-07-27T09:00:00Z'
     assert str(requests[-1].url.params['time'])==timestamp
     assert data['features'][0]['properties']['@osmId']=='way/123'
@@ -127,7 +127,7 @@ def test_v2_requires_key_when_v1_is_unavailable(monkeypatch):
     monkeypatch.setattr(providers.httpx,"Client",lambda **kw:original(transport=httpx.MockTransport(respond),**kw))
     monkeypatch.delenv('OHSOME_API_KEY',raising=False)
     with pytest.raises(ValueError,match='OHSOME_API_KEY'):
-        providers.osm_snapshot(AnalysisRequest())
+        providers.osm_snapshot(AnalysisRequest(case_id="trishuli"))
 
 
 @pytest.mark.parametrize("last_edit,rejected", [("2026-07-01T00:00:00Z", False), ("2026-08-01T00:00:00Z", True)])
@@ -142,8 +142,8 @@ def test_nepal_snapshot_cap_remains_enforced_when_provider_history_advances(monk
     monkeypatch.setattr(providers.httpx, "Client", lambda **kw: original(transport=httpx.MockTransport(respond), **kw))
     if rejected:
         with pytest.raises(ValueError, match="requested historical snapshot"):
-            providers.osm_snapshot(AnalysisRequest())
+            providers.osm_snapshot(AnalysisRequest(case_id="trishuli"))
     else:
-        _, stamp = providers.osm_snapshot(AnalysisRequest())
+        _, stamp = providers.osm_snapshot(AnalysisRequest(case_id="trishuli"))
         assert stamp == "2026-07-27T23:59:59Z"
     assert parse_qs(requests[-1].content.decode())["time"] == ["2026-07-27T23:59:59Z"]

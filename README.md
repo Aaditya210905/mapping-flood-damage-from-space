@@ -15,7 +15,7 @@ uv sync --frozen --python 3.12
 ./run.sh
 ```
 
-Open **http://127.0.0.1:8000**. With CDSE credentials configured, the dashboard selects the Copernicus account provider. On a fresh checkout the workspace starts empty; enter bounds/date and run an actual analysis, or explicitly select synthetic mode to try the interface without downloading satellite data.
+Open **http://127.0.0.1:8000**. Automatic satellite access selects CDSE when both account credentials are configured. On a fresh checkout the workspace starts with empty custom bounds/date; enter them or explicitly select a configured preset, then run an actual analysis. Synthetic mode is an explicit interface demonstration.
 
 The dashboard shows observation status and the selected situation-report copilot. **Data & method** separates analysis inputs from independent evaluation maps. **Preview synthetic demo** generates test fixtures; its map and counts remain labeled as synthetic.
 
@@ -28,17 +28,20 @@ The dashboard shows observation status and the selected situation-report copilot
 | EMSR927 | Independent evaluation only; excluded from prediction inputs |
 
 ```bash
-# Synthetic fixtures; no observations of the actual Nepal event
-uv run python scripts/analyze.py --mode demo
-# Actual imagery and pre-event OSM; rule-based change detection
-uv run python scripts/analyze.py
+# Actual imagery and pre-event OSM for explicit custom inputs
+uv run --env-file .env python scripts/analyze.py \
+  --bbox 91.35,23.0,91.40,23.05 --date 2024-08-21 --provider auto
+# Explicitly choose the documented Nepal case
+uv run --env-file .env python scripts/analyze.py --preset trishuli
+# Synthetic fixtures for an explicitly selected case; no actual observations
+uv run python scripts/analyze.py --preset trishuli --mode demo
 ```
 
-Actual analysis retrieves original Sentinel-1 VV/VH measurements and annotations from the public Microsoft mirror, processes radar locally using Copernicus DEM GLO-30, and uses Sentinel-2 L2A reflectance/cloud classifications when available. Network/provider availability is required. Failed acquisition never substitutes synthetic inputs. The public path requires no satellite account; the optional Copernicus Sentinel Hub provider needs `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET`. The historical ohsome v2 fallback needs `OHSOME_API_KEY` when v1 is unavailable. `./run.sh` loads an optional `.env` using uv. Direct CLI commands use exported variables or `uv run --env-file .env`.
+Automatic access uses real CDSE Sentinel-1 VV/VH and Sentinel-2 L2A when `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET` are configured. Explicit public access retrieves original ESA measurements from the Microsoft mirror and processes radar locally using Copernicus DEM GLO-30. Network/provider availability is required. Failed acquisition never substitutes synthetic inputs. The historical ohsome v2 fallback needs `OHSOME_API_KEY` when v1 is unavailable. `./run.sh` loads an optional `.env` using uv. Direct CLI commands use exported variables or `uv run --env-file .env`.
 
 With `satellite_provider=copernicus`, radar and available optical imagery come from CDSE using those credentials. If CDSE returns HTTP 403 specifically for the DEM, the application fetches actual Copernicus GLO-30 elevation from its public mirror and records that source change in provenance and warnings. Other acquisition errors still fail the run; no demo data is substituted.
 
-Historical OSM is selected strictly before the event. The Nepal case uses 27 July 2026 or earlier. Published damage maps and post-event OSM edits are excluded from inference inputs. Ready-made mirror radar RTC using PlanetDEM is excluded; the local processor uses Copernicus DEM. EGM2008 is used only for vertical-datum conversion.
+Historical OSM is selected strictly before the event. The explicitly selected Nepal preset uses its configured 27 July 2026 cutoff or earlier; custom inputs do not inherit it. Published damage maps and post-event OSM edits are excluded from inference inputs. Ready-made mirror radar RTC using PlanetDEM is excluded; the local processor uses Copernicus DEM. EGM2008 is used only for vertical-datum conversion.
 
 ## Situation-report copilot
 
@@ -46,7 +49,9 @@ Ask questions about flood extent, infrastructure exposure, road access, acquisit
 
 The optional generative integration uses **Groq’s official SDK**, defaulting to hosted `openai/gpt-oss-120b`. Recognised questions retrieve saved evidence locally and normally need one generation request. Groq writes concise narrative around validated fact placeholders; Python binds run, subject, field and interpretation, inserts authoritative values and preserves citations/uncertainty. The labeled fallback uses deterministic bilingual routing. Hospital inventory, radar coverage and eligibility have separate evidence; mixed questions retain supported answers while declining unsupported estimates. Matching lists are paginated locally and displayed with totals/export links. Cached feature-name lookup avoids scanning every name with a regular expression. This application trains no model. Named features and follow-ups use saved identifiers and route evidence; ambiguous references request clarification. No model weights or satellite training datasets are downloaded. Native-speaker Nepali review remains necessary. See [audit repairs](docs/AUDIT_REPAIRS.md).
 
-Processing defaults are in `app/mapping.toml`; the Nepal preset is in `app/presets.py`. Selected configuration is recorded per run. The dashboard and CLI share defaults, and custom areas do not inherit Nepal labels or a global date cutoff. See the [hardcoding audit](docs/HARDCODING_AUDIT.md) and [PDF requirement checklist](docs/TRACK_B_CHECKLIST.md).
+Mapping rules are in `app/mapping.toml`, acquisition/ranking/retry policy in `app/acquisition.toml`, and optional case presets in `app/presets.json`. Local configuration-file overrides are supported. Selected configuration is recorded per run. Inputs never silently default to Nepal. See the [generalization repairs and live checks](docs/GENERALIZATION.md), [hardcoding audit](docs/HARDCODING_AUDIT.md) and [PDF requirement checklist](docs/TRACK_B_CHECKLIST.md).
+
+Identical questions reuse a validated Groq draft for up to five minutes only when run, evidence, scope, language, conversation and provider configuration match. Changed evidence is re-retrieved and revalidated. Concurrent duplicate questions share generation; provider concurrency, retry deadlines and rate-limit cooldowns are bounded. `generation.cache_hit` and request/token counts show actual usage.
 
 Copy `.env.example` to a new private `.env`, set `LLM_ENABLED=true` and `GROQ_API_KEY`, then restart `./run.sh`. Without credentials, or on provider/validation failure, the application stays usable. Each response identifies which engine actually produced it. Configuration and limitations: [Copilot documentation](docs/COPILOT.md).
 
@@ -84,7 +89,7 @@ Official EMSR927 products remain a separate evaluation-only path under **`data/r
 uv run python scripts/fetch_reference.py
 uv run python scripts/evaluate.py data/runs/RUN_ID \
   data/reference_only/EMSR927/reference-extent.geojson \
-  --coverage data/reference_only/EMSR927/reviewed-coverage.geojson \
+  --coverage data/reference_only/EMSR927/reviewed-coverage.geojson --activation EMSR927 \
   --output data/runs/RUN_ID/evaluation.json
 uv run python scripts/evaluate_assets.py data/runs/RUN_ID
 uv run python scripts/summarize_data.py data/runs/RUN_ID
@@ -124,7 +129,7 @@ API documentation is at `/docs`. Useful endpoints include `/api/health`, `/api/d
 
 ## Attribution
 
-Contains modified Copernicus Sentinel data 2026.
+Contains modified Copernicus Sentinel data. Runtime map/report credits include the years of the actual selected observations; the documented Nepal case contains 2026 data.
 
 Produced using Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.
 

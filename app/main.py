@@ -19,7 +19,8 @@ import rasterio
 
 from app.copilot import COPILOT_INFO, answer
 from app.geo import Grid, trace_downhill
-from app.models import AnalysisRequest, CopilotRequest, ReportRequest, TraceRequest, ATTRIBUTIONS
+from app.models import AnalysisRequest, CopilotRequest, ReportRequest, TraceRequest
+from app.attribution import run_attributions
 from app.pipeline import run_analysis
 from app.report import report_html, report_pdf, build_report_data, ReportDataError, ReportRenderingError
 from app.copilot_types import SituationReport
@@ -30,7 +31,7 @@ from app.run_store import load_result, run_metadata
 from app.storage import save_json
 from app.availability import normalize_analysis_availability
 from app.presets import PRESETS
-from app.settings import MAPPING
+from app.settings import MAPPING, ACQUISITION, satellite_provider
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -89,6 +90,7 @@ def saved_run(run_id):
     except (OSError, ValueError, TypeError):
         raise HTTPException(422, "Saved analysis data are invalid or do not belong to the requested run.") from None
     run = {**run, "processing_status": "stored_result"}
+    run['attributions'] = run_attributions(run)
     evaluation = path.with_name("evaluation.json")
     if evaluation.exists():
         try:
@@ -96,8 +98,7 @@ def saved_run(run_id):
             if not isinstance(comparison, dict) or comparison.get("run_id") != run["id"]:
                 raise ValueError("Evaluation ownership mismatch")
             run["evaluation"] = comparison
-            credits = run.get("attributions")
-            run["attributions"] = (credits if isinstance(credits, list) else ATTRIBUTIONS) + ([comparison["attribution"]] if isinstance(comparison.get("attribution"), str) else [])
+            run["attributions"] += ([comparison["attribution"]] if isinstance(comparison.get("attribution"), str) else [])
         except (ValueError, OSError):
             run["warnings"] = list(run.get("warnings") or []) + ["Optional reference evaluation is invalid or belongs to another run; it was not attached."]
     assets = path.with_name("asset-evaluation.json")
@@ -138,6 +139,7 @@ def data_sources():
             continue
     return {"sources": SOURCES, "mapping": MAPPING_METHOD, "copilot": {**COPILOT_INFO, "llm": provider_status()},
             "presets": PRESETS, "mapping_configuration": MAPPING.model_dump(),
+            "acquisition_configuration":ACQUISITION.model_dump(),
             "parameter_schema": AnalysisRequest.model_json_schema(),
             "workspace": {"completed_actual_runs": completed["live"], "completed_synthetic_runs": completed["demo"],
                           "preferred_satellite_provider": "copernicus" if os.getenv("CDSE_CLIENT_ID") and os.getenv("CDSE_CLIENT_SECRET") else "public",
@@ -186,9 +188,10 @@ def create_analysis(params: AnalysisRequest):
     # Validate expensive grid allocation before queueing a job.
     try:
         Grid.for_bbox(params.bbox, params.resolution_m)
+        effective_provider=satellite_provider(params.satellite_provider) if params.mode=='live' else params.satellite_provider
     except ValueError as error:
         raise HTTPException(422, str(error))
-    if params.mode == "live" and params.satellite_provider == "copernicus" and not (os.getenv("CDSE_CLIENT_ID") and os.getenv("CDSE_CLIENT_SECRET")):
+    if params.mode == "live" and effective_provider == "copernicus" and not (os.getenv("CDSE_CLIENT_ID") and os.getenv("CDSE_CLIENT_SECRET")):
         raise HTTPException(422, "Live mode needs CDSE_CLIENT_ID and CDSE_CLIENT_SECRET. Configure the Copernicus Sentinel Hub OAuth client, then restart the server.")
     if not capacity.acquire(blocking=False):
         raise HTTPException(429, "Two analyses are already running. Please wait for one to finish.")

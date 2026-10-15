@@ -1,4 +1,4 @@
-"""Deterministic synthetic sensor inputs. These are NOT observations of Nepal."""
+"""Deterministic synthetic sensor inputs. These are NOT real observations."""
 from datetime import datetime, timedelta, timezone
 
 import numpy as np

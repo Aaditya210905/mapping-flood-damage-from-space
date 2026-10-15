@@ -1,0 +1,9 @@
+{
+  "trishuli": {
+    "id": "trishuli",
+    "name": "Trishuli river corridor",
+    "bbox": [85.19, 27.90, 85.41, 28.30],
+    "flood_date": "2026-08-26",
+    "osm_snapshot_cutoff": "2026-07-27T23:59:59Z"
+  }
+}

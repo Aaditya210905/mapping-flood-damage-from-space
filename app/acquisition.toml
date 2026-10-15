@@ -1,0 +1,26 @@
+# Acquisition policy. No event measurements or credentials belong here.
+version = "acquisition-v2"
+default_provider = "auto"
+cdse_stac_url = "https://stac.dataspace.copernicus.eu/v1/search"
+cdse_process_url = "https://sh.dataspace.copernicus.eu/process/v1"
+cdse_token_url = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
+osm_url = "https://api.ohsome.org/v1"
+osm_v2_url = "https://api.heigit.org/ohsome-api/v2-rc"
+catalog_page_size = 100
+catalog_max_pages = 10
+catalog_timeout_seconds = 60
+process_timeout_seconds = 240
+http_retries = 2
+max_retry_wait_seconds = 10
+token_expiry_margin_seconds = 30
+minimum_scene_coverage = 0.98
+radar_repeat_days = 12
+radar_pre_gap_weight = 0.3
+radar_repeat_weight = 0.4
+optical_day_weight = 1.5
+optical_pass_tolerance_seconds = 600
+radar_pass_tolerance_seconds = 180
+scene_window_before_seconds = 30
+scene_window_after_seconds = 60
+terrain_ray_steps = 64
+trace_settlement_buffer_m = 1000

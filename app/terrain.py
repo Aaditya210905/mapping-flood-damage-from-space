@@ -4,9 +4,10 @@ from xml.etree import ElementTree
 import numpy as np
 from pyproj import Transformer
 from scipy.interpolate import LinearNDInterpolator, interp1d
+from app.settings import ACQUISITION
 
 
-def terrain_screen(dem, resolution, incidence, look_east, look_north, ray_steps=64):
+def terrain_screen(dem, resolution, incidence, look_east, look_north, ray_steps=ACQUISITION.terrain_ray_steps):
     """Look components point from ground toward radar; output bit flags.
 
     Flags: 1 self-shadow, 2 local layover, 4 terrain occlusion, 8 missing.

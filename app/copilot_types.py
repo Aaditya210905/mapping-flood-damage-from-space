@@ -146,6 +146,7 @@ class GenerationInfo(StrictModel):
     rate_limit_retries: int | None = None
     retry_after_seconds: float | None = None
     provider_http_status: int | None = None
+    cache_hit:bool=False
 
 
 class ReportSection(StrictModel):

@@ -36,7 +36,7 @@ def main():
         page.goto(base, wait_until="networkidle", timeout=60000)
         page.wait_for_function("state.sources !== null")
         workspace = page.evaluate("state.sources.workspace")
-        if workspace["completed_actual_runs"] == 0:
+        if workspace["completed_actual_runs"] == 0 and workspace["completed_synthetic_runs"] == 0:
             assert page.evaluate("state.run === null")
             assert page.locator("#map-empty").is_visible()
             assert page.locator("#stat-water").inner_text() == "—"
@@ -45,6 +45,11 @@ def main():
             assert page.locator("#report-link").get_attribute("aria-disabled") == "true"
             assert "No actual observations acquired" in page.locator("#workspace-data-status").inner_text()
             checks["checks"].append("Empty workspace has no fabricated counts; result controls are gated")
+            assert page.locator('#region').input_value() == 'custom'
+            assert page.locator('#event-date').input_value() == ''
+            assert all(page.locator('#'+field).input_value()=='' for field in ('west','south','east','north'))
+            assert page.locator('#satellite-provider').input_value() == page.evaluate('state.sources.acquisition_configuration.default_provider')
+            checks['checks'].append('Fresh inputs require an explicit area/date; provider default follows shared acquisition configuration')
         assert page.locator("#water-model").count() == 0
         assert page.evaluate("state.sources.copilot.component") == "situation_report_copilot"
         assert "situation-report copilot" in page.locator("#ai-component-status").inner_text()
@@ -78,6 +83,10 @@ def main():
 
         responsive("initial")
         page.set_viewport_size({"width": 1280, "height": 900})
+        # Explicit synthetic fixture inputs; never fill a production default.
+        page.locator('#region').select_option('custom')
+        for field,value in {'area-name':'','west':'10','south':'10','east':'10.4','north':'10.4','event-date':'2024-08-21'}.items():
+            page.locator('#'+field).fill(value)
         # Submit synthetic mode even when testing a workspace with a saved run.
         if page.locator("#map-empty").is_visible():
             page.locator("#preview-demo").click()
@@ -93,6 +102,7 @@ def main():
         assert "Synthetic demonstration" in page.locator("#notice").inner_text()
         assert "Synthetic fixture" in page.locator("#dataset-status").inner_text()
         assert page.locator("#stat-water").inner_text() == page.evaluate("state.run.stats.water_km2.toFixed(2)")
+        assert page.evaluate('state.run.name') == 'Custom flood analysis'
         assert page.locator("#ask-button").is_enabled()
         assert page.locator("#satellite-provider").is_disabled()
         checks["run_id"] = page.evaluate("state.run.id")
@@ -115,7 +125,7 @@ def main():
         page.locator("#method-tab").click()
         assert page.locator("#evidence-mode").inner_text() == "Synthetic inputs"
         assert "Rule-based radar and optical change detection" in page.locator("#provenance-content").inner_text()
-        assert "No official reference" in page.locator("#evaluation-status").inner_text()
+        assert "No independent matching reference" in page.locator("#evaluation-status").inner_text()
         disclosure = page.evaluate("""() => {
             const original = state.run;
             renderRun({...original, evaluation: {metrics: {iou: null, f1: 0.1}, limitations: 'Synthetic UI verification fixture.'}});
@@ -164,7 +174,7 @@ def main():
         report = context.request.get(base + f"/api/analyses/{checks['run_id']}/report?language=en")
         assert report.ok
         assert "synthetic" in report.text().lower()
-        for attribution in ("Contains modified Copernicus Sentinel data 2026", "OpenStreetMap contributors", "Copernicus WorldDEM-30"):
+        for attribution in ("Contains modified Copernicus Sentinel data", "OpenStreetMap contributors", "Copernicus WorldDEM-30"):
             assert attribution in report.text()
         page.reload(wait_until="networkidle")
         if workspace["completed_actual_runs"]:

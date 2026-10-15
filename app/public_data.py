@@ -23,6 +23,8 @@ from scipy.interpolate import interp1d
 
 from app.storage import ROOT, save_json, sha256
 from app.providers import osm_snapshot, select_pair, interval_snapshot
+from app.scene_selection import optical_pair, cloud_cover
+from app.settings import ACQUISITION, MAPPING
 
 STAC = "https://planetarycomputer.microsoft.com/api/stac/v1/search"
 SIGN = "https://planetarycomputer.microsoft.com/api/sas/v1/sign"
@@ -73,35 +75,10 @@ def write_grid(path, array, grid):
         target.write(array[None] if array.ndim == 2 else array)
 
 
-def optical_pair(items, params):
-    """Select complete acquisition mosaics, including cloudy tiles for SCL masking."""
-    from shapely.geometry import box, shape
-    from shapely.ops import unary_union
-    area = box(*params.bbox)
-    groups = {}
-    for item in items:
-        props = item["properties"]
-        key = (props["datetime"], props["platform"], props["sat:relative_orbit"])
-        groups.setdefault(key, []).append(item)
-    complete = []
-    for key, tiles in groups.items():
-        if unary_union([shape(i["geometry"]) for i in tiles]).intersection(area).area / area.area < .98:
-            continue
-        weights = [shape(i["geometry"]).intersection(area).area for i in tiles]
-        cloud = np.average([i["properties"].get("eo:cloud_cover", 100) for i in tiles], weights=weights)
-        day = datetime.fromisoformat(key[0].replace("Z", "+00:00")).date()
-        complete.append((day, float(cloud) + 1.5 * abs((day-params.flood_date).days), tiles))
-    pair = []
-    for before in (True, False):
-        candidates = [i for i in complete if (i[0] < params.flood_date if before else i[0] > params.flood_date)]
-        pair.append(min(candidates, key=lambda i: i[1])[2] if candidates else None)
-    return pair
-
-
 def optical_mosaic(tiles, grid, cache):
     mosaic = np.full((6, grid.height, grid.width), np.nan, dtype="float32")
     mosaic[5] = 0
-    for item in sorted(tiles, key=lambda i: i["properties"].get("eo:cloud_cover", 100)):
+    for item in sorted(tiles, key=cloud_cover):
         path = cache / f'{item["id"]}-optical.tif'
         if path.exists():
             with rasterio.open(path) as source:
@@ -120,8 +97,9 @@ def optical_mosaic(tiles, grid, cache):
             write_grid(path, array, grid)
         # Preserve a clear observation over a cloudy overlap, without mixing
         # reflectance bands from different tiles at the same pixel.
-        clear = (array[5] > 0) & np.isin(array[4], [2, 4, 5, 6])
-        existing_clear = (mosaic[5] > 0) & np.isin(mosaic[4], [2, 4, 5, 6])
+        allowed = [code for code in range(12) if code not in MAPPING.optical_excluded_scl_classes]
+        clear = (array[5] > 0) & np.isin(array[4], allowed)
+        existing_clear = (mosaic[5] > 0) & np.isin(mosaic[4], allowed)
         use = (array[5] > 0) & ((mosaic[5] == 0) | (clear & ~existing_clear))
         mosaic[:, use] = array[:, use]
     return mosaic
@@ -258,7 +236,7 @@ def acquire_public(params, grid, folder, progress):
     items = [item for item in items if {"vv", "vh"}.issubset(item.get("assets", {}))]
     scenes = select_pair(items, params)
     selected = [next(item for item in items if item["id"] == scene.id) for scene in scenes]
-    pad = 64
+    pad = ACQUISITION.terrain_ray_steps
     padded = Grid(grid.crs, from_origin(grid.transform.c-pad*grid.resolution, grid.transform.f+pad*grid.resolution, grid.resolution, grid.resolution),
                   grid.width+2*pad, grid.height+2*pad, grid.resolution)
     dem_path = cache / "dem-ellipsoid.tif"
@@ -324,7 +302,7 @@ def acquire_public(params, grid, folder, progress):
             "acquisition": {"provider": "Original ESA Sentinel GRD via the Microsoft public mirror; locally processed",
                 "radar_assets": [i["assets"]["vv"]["href"] for i in selected], "catalog": STAC,
                 "radar_assets_vh": [i["assets"]["vh"]["href"] for i in selected],
-                "terrain_screening": {"method":"Orbit/annotation local incidence, self-shadow and layover; Copernicus-DEM ray occlusion", "horizon_m":1920,"approximate":True},
+                "terrain_screening": {"method":"Orbit/annotation local incidence, self-shadow and layover; Copernicus-DEM ray occlusion", "horizon_m":pad*grid.resolution,"approximate":True},
                 "dem": json.loads((cache / "dem-sources.json").read_text()),
                 "processing": "DN squared, annotation range/azimuth thermal denoising, beta0 calibration, sarsen gamma_bilinear RTC with Copernicus GLO-30 and EGM2008-to-ellipsoid height conversion",
                 "osm_sha256": sha256(osm_path)}}

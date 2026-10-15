@@ -8,7 +8,7 @@ import re
 from app.copilot_types import SituationReport, ReportSection, GenerationInfo, AnswerDraft
 from app.evidence import EvidenceContext, FLOOD_FIELDS, INFRA_FIELDS, ACCESS_FIELDS
 from app.grounding import format_value, EXPLANATIONS, validate_draft, render_draft
-from app.models import ATTRIBUTIONS
+from app.attribution import run_attributions
 
 FONTS = Path(__file__).resolve().parent / 'static' / 'fonts'
 
@@ -92,8 +92,7 @@ def build_report_data(run, language='en', response=None):
     add(('Important limitations','सीमाहरू'),(),limits,topic='limitations')
     unique=list({fact.fact_id:fact for fact in selected}.values())
     missing=[fact.field_name for fact in unique if fact.status!='available']
-    recorded_credits=run.get('attributions')
-    attributions=list(dict.fromkeys(ATTRIBUTIONS+[text for text in (recorded_credits if isinstance(recorded_credits,list) else []) if isinstance(text,str)]))
+    attributions=run_attributions(run)
     generation=GenerationInfo.model_validate(response['generation']) if response else GenerationInfo(mode='deterministic_fallback',provider=None,model=None,reason='deterministic_report',validation='deterministic_facts')
     return SituationReport(report_id=str(uuid4()),run_id=context.run_id,language=language,
         title='बाढी स्थिति प्रतिवेदन' if i else 'Flood situation report',
