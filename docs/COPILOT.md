@@ -56,7 +56,7 @@ PDF rendering needs Pango. This workstation already has it. Debian/Ubuntu packag
 | `event_summary` | Run, area/bounds, requested event, status, metrics, acquisition metadata and limitations |
 | `flood_surface_change` | Potential water/surface-change areas, units, method and thresholds |
 | `infrastructure_impacts` | Buildings/roads/bridges, actual IDs, exposure/observation status and overlap/length; searchable and paginated |
-| `settlement_connectivity` | Modeled status, distinct before/after destinations, same-target detours and route road IDs; optional `destination_type=hospital|town|all` refuses unavailable legacy subtype evidence; searchable and paginated; optional exact `road_id` filters saved route dependencies |
+| `settlement_connectivity` | Modeled status, distinct before/after destinations, same-target detours and route road IDs; `destination_type` uses a saved configured profile or `all`; unavailable legacy subtype evidence stays missing; searchable and paginated; optional exact `road_id` filters saved route dependencies |
 | `sources_limitations` | Recorded products/dates, DEM tile IDs when recorded, historical OSM, CRS, methods, warnings and limitations |
 | `feature_evidence` | One exact feature ID/layer in the selected run; unknown IDs return `not_found` |
 | `mapped_inventory` | Count/list unique saved mapped elements, including hospital-only or town-only destination inventory; facility operation remains unverified |
@@ -64,6 +64,8 @@ PDF rendering needs Pango. This workstation already has it. Debian/Ubuntu packag
 Pydantic validates all inputs/results. Models cannot supply another run ID, executable code or a filesystem path argument. Tools never change results or recalculate geometry. Product IDs replace signed asset URLs. Corrupt/cross-run optional evaluation sidecars are excluded with a warning; evaluation measurements do not become Copilot inputs.
 
 Road-filtered connectivity returns `filter_road_id`, `matching_settlements_count` before pagination, and `route_membership_unavailable_count`. A match means the recorded baseline or disrupted route uses that road; physical proximity and all possible routes are not assessed. Missing/invalid route evidence stays unknown. Missing settlement layers produce unavailable counts rather than zero. Whole-analysis connectivity counts cannot substitute for a road-filtered answer. The claim validator also rejects omitted requested measurements and evidence for unrelated named features or settlement filters.
+
+Query/list selectors are shared across retrieval, native validation, fallback and pagination. `not_connected` includes known baseline disconnection or modeled loss, with uncertain/unassessed access counted separately. `baseline_disconnected` is distinct from newly `cut_off`. Either-target access uses the saved combined network; requests requiring both targets receive a specific clarification. Infrastructure `exposure=not_exposed` requires saved observations supporting absence; incomplete observations remain `unassessed`. Filtered counts and filter facts cannot be replaced by aggregate exposed/cut-off counts. Fallback reserves space for every requested topic and passes semantic relevance validation. See [integrated verification](INTEGRATED_REPAIRS.md).
 
 ## Grounding and bilingual responses
 

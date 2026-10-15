@@ -1,5 +1,7 @@
 # Six additional hardcoding repairs
 
+This is the earlier six-item repair record. The later [integrated repairs and current validation](INTEGRATED_REPAIRS.md) supersede its configuration-version and test-count snapshot.
+
 Completed against the six findings in the follow-up audit. Earlier saved runs, reference archives and submission PDFs/video retain their original snapshots.
 
 | Finding | Result |
